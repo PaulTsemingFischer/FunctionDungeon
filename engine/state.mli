@@ -1,4 +1,3 @@
-type input = Move of int
 
 (**[event] represents some basic action that has occurred in a world 
    transformation.  Examples: [Move of Entity.t * (int * int) * (int * int)] 
@@ -17,3 +16,14 @@ and t = World.t * transition_generator list * event list
 and transition = int * (t -> t)
 (**[transition] is a prioritized function that maps one world state onto another
    (in other words, it changes the world in some way)*)
+
+(**[create world generators] returns a new game state with an empty event record and the given list of transition generators*)
+val create: World.t -> transition_generator list -> t
+
+type input = ..
+
+exception Invalid_input of input
+
+(**[step state input] returns the next state given the the current state [state] and the user input [input].
+   Raises: [Invalid_input] when the provided input requests an action that is not possible*)
+val step : t -> input -> t
