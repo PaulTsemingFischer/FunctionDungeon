@@ -2,7 +2,7 @@ open Engine
 
 type State.input += Move of Entity.vec2
 
-let create_wall_at = Entity.create { health = 0. } Wall Entity.Id_debug []
+let create_wall_at = Entity.create { health = 0. } Wall (Entity.Ascii '#') []
 
 let print_all_entities world =
   List.iter
@@ -56,7 +56,8 @@ let rec print_world_region (world : World.t) ((x1, y1) : int * int)
 
 let rec loop (state : State.t) =
   ignore (Sys.command "clear");
-  print_world_region state.world (-5, -5) (10, 10);
+  print_world_region state.world (-10, -10) (10, 10);
+  print_endline ("Turn number " ^ string_of_int state.turn);
   let input = String.trim (read_line ()) in
   try
     match input with
@@ -81,7 +82,13 @@ let () =
       (fun (current_world : World.t) wall_pos ->
         World.put_entity current_world (create_wall_at wall_pos))
       world
-      (List.init 10 (fun x -> (-5 + x, 5)))
+      (List.append
+         (List.append
+            (List.init 10 (fun x -> (-5 + x, 5)))
+            (List.init 10 (fun x -> (-5 + x, -5))))
+         (List.append
+            (List.init 11 (fun x -> (5, -5 + x)))
+            (List.init 10 (fun x -> (-5, x - 5)))))
   in
   let state = State.create world_with_walls [ entity_action_generator ] in
   loop state

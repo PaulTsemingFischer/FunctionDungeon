@@ -11,7 +11,7 @@ type event = ..
    changed*)
 type transition_generator = Generator of (t -> Entity.t -> input -> transition option)
 
-and t = {world:World.t; generators: transition_generator list; events:event list}
+and t = {world:World.t; generators: transition_generator list; events:event list; turn:int}
 (**[t] is the game state that contains a world, a list of transition
    generators, and history of events that describe how the world changes*)
 
