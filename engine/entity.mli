@@ -1,3 +1,6 @@
+(**[id] represents the type of an entity's id*)
+type id
+
 (**[stats] describes basic entity information common to all entities*)
 type stats = { health : float }
 
@@ -17,7 +20,7 @@ type status =
   | Invisible of int
 
 type t = {
-    id : int;
+    id : id;
     stats : stats;
     entity_type : entity_type;
     rendering : rendering;

@@ -11,5 +11,5 @@ Michaela Eichel (mae97)
 To run coverage tests:
 
 ```bash
-
+bash coverage.sh
 ```

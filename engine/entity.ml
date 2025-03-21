@@ -1,3 +1,4 @@
+type id = int
 type stats = { health : float }
 
 type entity_type =
