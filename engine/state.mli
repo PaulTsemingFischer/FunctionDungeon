@@ -28,3 +28,6 @@ exception Invalid_input of input
 (**[step state input] returns the next state given the the current state [state] and the user input [input].
    Raises: [Invalid_input] when the provided input requests an action that is not possible*)
 val step : t -> input -> t
+
+(**[update_world state new_world] is a utility function that only replaces the world of [state] with [new_world]*)
+val update_world : t -> World.t->t

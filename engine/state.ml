@@ -29,3 +29,6 @@ let step ((world, generators, events) : t) (input : input) =
       transition_function starting_world_state)
     (world, generators, events)
     transitions
+
+let update_world (world, generators, events) new_world =
+  (new_world, generators, events)

@@ -2,6 +2,16 @@
 (**[id] represents the type of an entity's id. Entities are considered identical if they have the same id*)
 type id
 
+(**[string_of_id] returns a human-readable string representation of the entity's id*)
+val string_of_id : id -> string
+
+
+(**[vec2] describes the location of an entity in 2D cartesian space*)
+type vec2 = int * int
+
+(**[add_vec2 vec1 vec2] returns the sum of two positions*)
+val add_vec2 : vec2 -> vec2 -> vec2
+
 (**[stats] describes basic entity information common to all entities*)
 type stats = { health : float }
 
@@ -16,7 +26,8 @@ type entity_type =
 
 (**[rendering] describes how an entity should be rendered, and optionally
    contain rendering state*)
-type rendering = Ascii of char
+type rendering = |Ascii of char
+| Id_debug
 
 (**[status] describes a status affect applied to an entity*)
 type status =
@@ -25,7 +36,7 @@ type status =
 
 type t = {
     id : id;
-    pos: int * int;
+    pos: vec2;
     stats : stats;
     entity_type : entity_type;
     rendering : rendering;
@@ -34,12 +45,12 @@ type t = {
   (**[t] is the type of an entity, containing its id, stats, entity type,
      rendering rules, and statuses*)
 
-val create : stats -> entity_type -> rendering -> status list -> int * int -> t
+val create : stats -> entity_type -> rendering -> status list -> vec2 -> t
 (**[create stats entity_type rendering statuses pos] creates an entity with a unique id and the given entity
     information*)
 
 (**[set_pos entity pos] changes an entity's position to the [pos]*)
-val set_pos : t -> int * int -> t
+val set_pos : t -> vec2 -> t
 
 
 (**[string_of_entity entity] converts [entity] into a string*)

@@ -1,4 +1,11 @@
 type id = int
+
+let string_of_id = string_of_int
+
+type vec2 = int * int
+
+let add_vec2 (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
+
 type stats = { health : float }
 
 let zeroed_stats = { health = 0. }
@@ -7,7 +14,9 @@ type entity_type =
   | Player
   | Wall
 
-type rendering = Ascii of char
+type rendering =
+  | Ascii of char
+  | Id_debug
 
 type status =
   | Poisoned of int
@@ -15,7 +24,7 @@ type status =
 
 type t = {
   id : int;
-  pos : int * int;
+  pos : vec2;
   stats : stats;
   entity_type : entity_type;
   rendering : rendering;
@@ -66,7 +75,8 @@ let string_of_status (e_status : status) =
 
 let string_of_rendering (e_rendering : rendering) =
   match e_rendering with
-  | Ascii x -> "poison (" ^ String.make 1 x ^ ")"
+  | Ascii x -> "ascii (" ^ String.make 1 x ^ ")"
+  | Id_debug -> "id_debug"
 
 let string_of_entity e =
   Printf.sprintf

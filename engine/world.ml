@@ -13,7 +13,10 @@ let make_placeholder_entity (e_id : Entity.id) : Entity.t =
   }
 
 let empty = EntitySet.empty
-let query_pos world pos = EntitySet.find_first_opt (fun e -> e.pos = pos) world
+let all_entities (world : t) : Entity.t list = EntitySet.to_list world
+
+let query_pos world (pos : Entity.vec2) =
+  List.find_opt (fun (e : Entity.t) -> e.pos = pos) (all_entities world)
 
 let query_id world e_id =
   EntitySet.find_opt
@@ -26,8 +29,6 @@ let query_id world e_id =
       statuses = [];
     }
     world
-
-let all_entities (world : t) : Entity.t list = EntitySet.to_list world
 
 let put_entity (world : t) (e : Entity.t) =
   if EntitySet.mem e world then EntitySet.add e (EntitySet.remove e world)
