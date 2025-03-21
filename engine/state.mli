@@ -11,7 +11,7 @@ type event = ..
    changed*)
 type transition_generator = Generator of (t -> Entity.t -> input -> transition option)
 
-and t = World.t * transition_generator list * event list
+and t = {world:World.t; generators: transition_generator list; events:event list}
 (**[t] is the game state that contains a world, a list of transition
    generators, and history of events that describe how the world changes*)
 
@@ -30,4 +30,4 @@ exception Invalid_input of input
 val step : t -> input -> t
 
 (**[update_world state new_world] is a utility function that only replaces the world of [state] with [new_world]*)
-val update_world : t -> World.t->t
+val update_world : t -> World.t -> t

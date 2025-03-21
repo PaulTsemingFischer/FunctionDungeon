@@ -14,24 +14,23 @@ let is_pos_empty world pos =
   | Some _ -> false
   | None -> true
 
-let player_action_generator (world, generators, events) (entity : Entity.t)
-    input =
-  let state = (world, generators, events) in
+let player_action_generator (state : State.t) (entity : Entity.t) input =
   match input with
   | Move dir ->
-      if not (is_pos_empty world (Entity.add_vec2 entity.pos dir)) then None
+      if not (is_pos_empty state.world (Entity.add_vec2 entity.pos dir)) then
+        raise (State.Invalid_input input)
       else
         Some
           ( 0,
-            fun (world, generators, events) : State.t ->
+            fun state : State.t ->
               State.update_world state
-                (World.put_entity world
+                (World.put_entity state.world
                    (Entity.set_pos entity (Entity.add_vec2 dir entity.pos))) )
   | _ -> None
 
 let entity_action_generator =
   State.Generator
-    (fun state entity input ->
+    (fun (state : State.t) (entity : Entity.t) (input : State.input) ->
       match entity.entity_type with
       | Entity.Player -> player_action_generator state entity input
       | Entity.Wall -> None)
@@ -56,17 +55,21 @@ let rec print_world_region (world : World.t) ((x1, y1) : int * int)
     print_world_region world (x1, y1) (x2, y2 - 1)
 
 let rec loop (state : State.t) =
-  let world, _, _ = state in
   ignore (Sys.command "clear");
-  print_world_region world (-5, -5) (10, 10);
+  print_world_region state.world (-5, -5) (10, 10);
   let input = String.trim (read_line ()) in
-  match input with
-  | "w" -> loop (State.step state (Move (0, 1)))
-  | "a" -> loop (State.step state (Move (-1, 0)))
-  | "s" -> loop (State.step state (Move (0, -1)))
-  | "d" -> loop (State.step state (Move (1, 0)))
-  | "q" -> ()
-  | _ -> loop state
+  try
+    match input with
+    | "w" -> loop (State.step state (Move (0, 1)))
+    | "a" -> loop (State.step state (Move (-1, 0)))
+    | "s" -> loop (State.step state (Move (0, -1)))
+    | "d" -> loop (State.step state (Move (1, 0)))
+    | "q" -> ()
+    | _ -> loop state
+  with State.Invalid_input input_val -> (
+    match input_val with
+    | Move vec -> loop state
+    | _ -> print_endline "unknown invalid action")
 
 let () =
   let player =

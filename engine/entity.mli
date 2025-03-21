@@ -12,6 +12,9 @@ type vec2 = int * int
 (**[add_vec2 vec1 vec2] returns the sum of two positions*)
 val add_vec2 : vec2 -> vec2 -> vec2
 
+(**[string_of_vec vec] converts [vec] into a string form*)
+val string_of_vec : vec2 -> string
+
 (**[stats] describes basic entity information common to all entities*)
 type stats = { health : float }
 

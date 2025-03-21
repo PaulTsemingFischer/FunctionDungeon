@@ -6,6 +6,9 @@ type vec2 = int * int
 
 let add_vec2 (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 
+let string_of_vec vec =
+  "(" ^ string_of_id (fst vec) ^ "," ^ string_of_int (snd vec) ^ ")"
+
 type stats = { health : float }
 
 let zeroed_stats = { health = 0. }
