@@ -1,14 +1,16 @@
 module EntitySet = Set.Make (Entity)
 
 type t = EntitySet.t
+type Entity.entity_type += Placeholder
+type Entity.rendering += RPlaceholder
 
 let make_placeholder_entity (e_id : Entity.id) : Entity.t =
   {
     id = e_id;
     pos = (0, 0);
     stats = Entity.zeroed_stats;
-    entity_type = Entity.Wall;
-    rendering = Entity.Ascii 'P';
+    entity_type = Placeholder;
+    rendering = RPlaceholder;
     statuses = [];
   }
 
@@ -29,8 +31,8 @@ let query_id world e_id =
       id = e_id;
       pos = (0, 0);
       stats = Entity.zeroed_stats;
-      entity_type = Entity.Wall;
-      rendering = Entity.Ascii '.';
+      entity_type = Placeholder;
+      rendering = RPlaceholder;
       statuses = [];
     }
     world

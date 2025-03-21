@@ -29,19 +29,14 @@ val zeroed_stats : stats
 
 (**[entity_type] describes the behavior of entities in game and optionally
    contains state related to that entity type*)
-type entity_type =
-  | Player
-  | Wall
+type entity_type = ..
 
 (**[rendering] describes how an entity should be rendered, and optionally
    contain rendering state*)
-type rendering = |Ascii of char
-| Id_debug
+type rendering = ..
 
 (**[status] describes a status affect applied to an entity*)
-type status =
-  | Poisoned of int
-  | Invisible of int
+type status = ..
 
 type t = {
     id : id;
@@ -62,7 +57,7 @@ val create : stats -> entity_type -> rendering -> status list -> vec2 -> t
 val set_pos : t -> vec2 -> t
 
 
-(**[string_of_entity entity] converts [entity] into a string*)
-val string_of_entity : t -> string
+(**[string_of_entity entity string_of_type string_of_rendering string_of_status] converts [entity] into a string*)
+val string_of_entity : (entity_type -> string) -> (rendering -> string) -> (status -> string) -> t -> string
 
 include Set.OrderedType with type t := t

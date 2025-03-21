@@ -2,13 +2,34 @@ open OUnit2
 open Engine.Entity
 open Engine.World
 
+type entity_type += Test_type
+type rendering += Test_rendering
+
+let string_of_test_types (e_type : entity_type) =
+  match e_type with
+  | Test_type -> "\"test type\""
+  | _ -> failwith "test error: unsupported entity type"
+
+let string_of_test_rendering (e_rendering : rendering) =
+  match e_rendering with
+  | Test_rendering -> "\"test_rendering\""
+  | _ -> failwith "test error: unsupported rendering type"
+
+let string_of_test_status (e_status : status) =
+  match e_status with
+  | _ -> failwith "test error: unsupported entity status"
+
+let string_of_test_entity =
+  string_of_entity string_of_test_types string_of_test_rendering
+    string_of_test_status
+
 (**[create_wall ()] is utility method that creates a wall entity*)
-let create_wall () = create { health = 0. } Wall (Ascii '#') [] (0, 0)
+let create_wall () = create { health = 0. } Test_type Test_rendering [] (0, 0)
 
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : Engine.Entity.t option) =
   match op with
-  | Some x -> string_of_entity x
+  | Some x -> string_of_test_entity x
   | None -> "none"
 
 (**[entity_tests] tests functionality related to creating entities*)
@@ -20,16 +41,16 @@ let entity_tests =
          >:: fun _ ->
            let new_entity = create_wall () in
            assert_equal { health = 0. } new_entity.stats;
-           assert_equal Wall new_entity.entity_type;
-           assert_equal (Ascii '#') new_entity.rendering;
+           assert_equal Test_type new_entity.entity_type;
+           assert_equal Test_rendering new_entity.rendering;
            assert_equal [] new_entity.statuses );
          ( "Entity.create produces an entity with a different id after one \
             entity is already created"
          >:: fun _ ->
            let e_1 = create_wall () and e_2 = create_wall () in
            assert_equal { health = 0. } e_2.stats;
-           assert_equal Wall e_2.entity_type;
-           assert_equal (Ascii '#') e_2.rendering;
+           assert_equal Test_type e_2.entity_type;
+           assert_equal Test_rendering e_2.rendering;
            assert_equal [] e_2.statuses;
            assert_bool "entity id should be different, but is the same"
              (not (e_1.id = e_2.id)) );
@@ -40,6 +61,8 @@ let entity_tests =
          ( "Entity.neg_vec2 correctly computes the difference between two \
             vectors"
          >:: fun _ -> assert_equal (-1, 0) (sub_vec2 (0, 1) (1, 1)) );
+         ( "Entity.string_of_vec2 correctly converts the given vec2 to a string"
+         >:: fun _ -> assert_equal "(-1,0)" (string_of_vec (-1, 0)) );
        ]
 
 (**[world_tests] tests functionality related to creating worlds, adding entities

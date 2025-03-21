@@ -1,12 +1,34 @@
 open Engine
 
 type State.input += Move of Entity.vec2
+type Entity.entity_type += Wall | Player
+type Entity.rendering += Ascii of char | Id_debug
 
-let create_wall_at = Entity.create { health = 0. } Wall (Entity.Ascii '#') []
+let string_of_game_types (e_type : Entity.entity_type) =
+  match e_type with
+  | Wall -> "\"wall\""
+  | Player -> "\"Player\""
+  | _ -> failwith "game error: unsupported entity type"
+
+let string_of_game_rendering (e_rendering : Entity.rendering) =
+  match e_rendering with
+  | Ascii ch -> String.make 1 ch
+  | Id_debug -> "\"id_renderer\""
+  | _ -> failwith "game error: unsupported rendering type"
+
+let string_of_game_status (e_status : Entity.status) =
+  match e_status with
+  | _ -> failwith "game error: unsupported entity status"
+
+let string_of_game_entity =
+  Entity.string_of_entity string_of_game_types string_of_game_rendering
+    string_of_game_status
+
+let create_wall_at = Entity.create { health = 0. } Wall (Ascii '#') []
 
 let print_all_entities world =
   List.iter
-    (fun ent -> print_endline (Entity.string_of_entity ent))
+    (fun ent -> print_endline (string_of_game_entity ent))
     (World.all_entities world)
 
 let player_action_generator (state : State.t) (entity : Entity.t) input =
@@ -27,8 +49,11 @@ let entity_action_generator =
   State.Generator
     (fun (state : State.t) (entity : Entity.t) (input : State.input) ->
       match entity.entity_type with
-      | Entity.Player -> player_action_generator state entity input
-      | Entity.Wall -> None)
+      | Player -> player_action_generator state entity input
+      | Wall -> None
+      | _ ->
+          print_endline "unsupported_entity";
+          None)
 
 let rec print_world_region (world : World.t) ((x1, y1) : int * int)
     ((x2, y2) : int * int) =
@@ -42,7 +67,8 @@ let rec print_world_region (world : World.t) ((x1, y1) : int * int)
         | Some ent -> (
             match ent.rendering with
             | Ascii x -> print_string (String.make 1 x ^ " ")
-            | Id_debug -> Printf.printf "%-2s" (Entity.string_of_id ent.id)));
+            | Id_debug -> Printf.printf "%-2s" (Entity.string_of_id ent.id)
+            | _ -> failwith "game error: unsupported renderer"));
         print_row world (xr + 1, yr) end_x)
     in
     print_row world (x1, y2) x2;
@@ -69,9 +95,7 @@ let rec loop (state : State.t) =
     | _ -> print_endline "unknown invalid action")
 
 let () =
-  let player =
-    Entity.create { health = 1. } Entity.Player (Entity.Ascii '@') [] (0, 0)
-  in
+  let player = Entity.create { health = 1. } Player (Ascii '@') [] (0, 0) in
   let world = World.put_entity World.empty player in
   let world_with_walls =
     List.fold_left

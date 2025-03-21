@@ -15,17 +15,9 @@ type stats = { health : float }
 
 let zeroed_stats = { health = 0. }
 
-type entity_type =
-  | Player
-  | Wall
-
-type rendering =
-  | Ascii of char
-  | Id_debug
-
-type status =
-  | Poisoned of int
-  | Invisible of int
+type entity_type = ..
+type rendering = ..
+type status = ..
 
 type t = {
   id : int;
@@ -65,36 +57,24 @@ let set_pos (e : t) (x, y) =
     statuses = e.statuses;
   }
 
-let string_of_entity_type (e_type : entity_type) =
-  match e_type with
-  | Player -> "player"
-  | Wall -> "wall"
-
 let string_of_stats (e_stats : stats) =
   Printf.sprintf "{ health: %f }" e_stats.health
 
-let string_of_status (e_status : status) =
-  match e_status with
-  | Poisoned x -> "poison (" ^ string_of_int x ^ ")"
-  | Invisible x -> "invisible (" ^ string_of_int x ^ ")"
-
-let string_of_rendering (e_rendering : rendering) =
-  match e_rendering with
-  | Ascii x -> "ascii (" ^ String.make 1 x ^ ")"
-  | Id_debug -> "id_debug"
-
-let string_of_entity e =
+let string_of_entity (string_of_type : entity_type -> string)
+    (string_of_rendering : rendering -> string)
+    (string_of_status : status -> string) e =
   Printf.sprintf
     "{\n\
-    \     id: %d,\n\
-    \     pos: (%d, %d),\n\
-    \     stats: %s\n\
-    \     entity_type: \"%s\",\n\
-    \     rendering: \"%s\",\n\
-    \     statuses: \"%s\",\n\
-    \   }"
+    \  id: %d,\n\
+    \  pos: (%d,\n\
+    \   %d),\n\
+    \  stats: %s\n\
+    \  entity_type: \"%s\",\n\
+    \  rendering: \"%s\",\n\
+    \   statuses: \"%s\",\n\
+     }"
     e.id (fst e.pos) (snd e.pos) (string_of_stats e.stats)
-    (string_of_entity_type e.entity_type)
+    (string_of_type e.entity_type)
     (string_of_rendering e.rendering)
     (List.fold_left
        (fun acc x -> acc ^ ", " ^ string_of_status x)
