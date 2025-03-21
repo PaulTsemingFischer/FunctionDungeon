@@ -2,8 +2,10 @@ open OUnit2
 open Engine.Entity
 open Engine.World
 
+(**[create_wall ()] is utility method that creates a wall entity*)
 let create_wall () = create { health = 0. } Wall (Ascii '#') [] (0, 0)
 
+(**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : Engine.Entity.t option) =
   match op with
   | Some x -> string_of_entity x
