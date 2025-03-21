@@ -7,6 +7,9 @@ val empty : t
 (**[query_pos world pos] returns [Some x] if entity [x] exists at the cartesian point given by [pos], and [None] otherwise*)
 val query_pos : t -> Entity.vec2 -> Entity.t option
 
+(**[pos_empty world pos] returns [true] if no entity exists at [pos] and false otherwise*)
+val query_empty : t -> Entity.vec2 -> bool
+
 (**[query_id : world e_id] returns [Some x] if there exists some entity [x] with [x.id = e_id], and [None] otherwise*)
 val query_id : t -> Entity.id -> Entity.t option
 

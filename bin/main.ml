@@ -9,16 +9,11 @@ let print_all_entities world =
     (fun ent -> print_endline (Entity.string_of_entity ent))
     (World.all_entities world)
 
-let is_pos_empty world pos =
-  match World.query_pos world pos with
-  | Some _ -> false
-  | None -> true
-
 let player_action_generator (state : State.t) (entity : Entity.t) input =
   match input with
   | Move dir ->
-      if not (is_pos_empty state.world (Entity.add_vec2 entity.pos dir)) then
-        raise (State.Invalid_input input)
+      if not (World.query_empty state.world (Entity.add_vec2 entity.pos dir))
+      then raise (State.Invalid_input input)
       else
         Some
           ( 0,
@@ -58,6 +53,7 @@ let rec loop (state : State.t) =
   ignore (Sys.command "clear");
   print_world_region state.world (-10, -10) (10, 10);
   print_endline ("Turn number " ^ string_of_int state.turn);
+  print_string "wasd to move, q to quit: ";
   let input = String.trim (read_line ()) in
   try
     match input with

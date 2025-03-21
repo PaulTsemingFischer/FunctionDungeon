@@ -12,6 +12,12 @@ type vec2 = int * int
 (**[add_vec2 vec1 vec2] returns the sum of two positions*)
 val add_vec2 : vec2 -> vec2 -> vec2
 
+(**[neg_vec2 vec] returns the negated version of [vec]*)
+val neg_vec2 : vec2 -> vec2
+
+(**[sub_vec2 vec1] returns [(fst vec1 - fst vec2, snd vec1 - snd vec2)]*)
+val sub_vec2 : vec2 -> vec2 -> vec2
+
 (**[string_of_vec vec] converts [vec] into a string form*)
 val string_of_vec : vec2 -> string
 

@@ -33,6 +33,13 @@ let entity_tests =
            assert_equal [] e_2.statuses;
            assert_bool "entity id should be different, but is the same"
              (not (e_1.id = e_2.id)) );
+         ( "Entity.add_vec2 correctly computes the sum of two vectors"
+         >:: fun _ -> assert_equal (1, 2) (add_vec2 (0, 1) (1, 1)) );
+         ( "Entity.neg_vec2 correctly computes the negation of a vector"
+         >:: fun _ -> assert_equal (-3, -1) (neg_vec2 (3, 1)) );
+         ( "Entity.neg_vec2 correctly computes the difference between two \
+            vectors"
+         >:: fun _ -> assert_equal (-1, 0) (sub_vec2 (0, 1) (1, 1)) );
        ]
 
 (**[world_tests] tests functionality related to creating worlds, adding entities
@@ -78,6 +85,18 @@ let world_tests =
          >:: fun _ ->
            let w = empty in
            assert_equal None (query_pos w (0, 0)) );
+         ( "querying if something is empty (0, 0) in an empty world should \
+            return true"
+         >:: fun _ ->
+           let w = empty in
+           assert_bool "the position is supposed to be empty, but is not"
+             (query_empty w (0, 0)) );
+         ( "querying if something is empty (0, 0) in a world with an entity at \
+            (0, 0) should return false"
+         >:: fun _ ->
+           let w = put_entity empty (create_wall ()) in
+           assert_bool "the position is not supposed to be empty, but is"
+             (not (query_empty w (0, 0))) );
          ( "adding a single entity then updating it with put_entity should \
             return a world that still contains that entity"
          >:: fun _ ->

@@ -18,6 +18,11 @@ let all_entities (world : t) : Entity.t list = EntitySet.to_list world
 let query_pos world (pos : Entity.vec2) =
   List.find_opt (fun (e : Entity.t) -> e.pos = pos) (all_entities world)
 
+let query_empty world pos =
+  match query_pos world pos with
+  | Some _ -> false
+  | None -> true
+
 let query_id world e_id =
   EntitySet.find_opt
     {
