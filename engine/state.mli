@@ -1,3 +1,5 @@
+(**[input] represents all possible user inputs that can be inputted into program*)
+type input = ..
 
 (**[event] represents some basic action that has occurred in a world 
    transformation.  Examples: [Move of Entity.t * (int * int) * (int * int)] 
@@ -7,7 +9,7 @@ type event = ..
 (**[transition_generator] is a type that takes the game state, an entity, an
    input, and returns a [transition] that describes how the world should be
    changed*)
-type transition_generator = Generator of (t -> Entity.t -> int -> transition)
+type transition_generator = Generator of (t -> Entity.t -> input -> transition option)
 
 and t = World.t * transition_generator list * event list
 (**[t] is the game state that contains a world, a list of transition
@@ -20,8 +22,7 @@ and transition = int * (t -> t)
 (**[create world generators] returns a new game state with an empty event record and the given list of transition generators*)
 val create: World.t -> transition_generator list -> t
 
-type input = ..
-
+(**[Invalid_input] is raised in [step] when an given input produces no valid action*)
 exception Invalid_input of input
 
 (**[step state input] returns the next state given the the current state [state] and the user input [input].
