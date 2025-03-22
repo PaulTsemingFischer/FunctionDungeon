@@ -32,14 +32,14 @@ let rec print_world_region (world : GameWorld.t) ((x1, y1) : int * int)
     print_world_region world (x1, y1) (x2, y2 - 1)
 
 let print_events (state : GameState.t) =
-  (* ignore (Sys.command "clear"); *)
+  ignore (Sys.command "clear");
   print_endline (Printf.sprintf "Event List (%d): " (List.length state.events));
   List.iter (fun event -> print_endline (string_of_event event)) state.events;
   print_string "press any key to continue: ";
   ignore (read_line ())
 
 let rec loop (state : GameState.t) =
-  (* ignore (Sys.command "clear"); *)
+  ignore (Sys.command "clear");
   print_world_region state.world (-10, -10) (10, 10);
   print_endline ("Turn number " ^ string_of_int state.turn);
   print_string "w/a/s/d/e/q: ";
