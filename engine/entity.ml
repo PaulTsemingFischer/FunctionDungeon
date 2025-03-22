@@ -28,6 +28,16 @@ type t = {
   statuses : status list;
 }
 
+let update_stats (e : t) (stats : stats) =
+  {
+    id = e.id;
+    pos = e.pos;
+    stats;
+    entity_type = e.entity_type;
+    rendering = e.rendering;
+    statuses = e.statuses;
+  }
+
 (*a ref containing the last id assigned to a entity*)
 let next_available_id = ref 0
 
@@ -66,14 +76,13 @@ let string_of_entity (string_of_type : entity_type -> string)
   Printf.sprintf
     "{\n\
     \  id: %d,\n\
-    \  pos: (%d,\n\
-    \   %d),\n\
+    \  pos: %s,\n\
     \  stats: %s\n\
     \  entity_type: \"%s\",\n\
     \  rendering: \"%s\",\n\
-    \   statuses: \"%s\",\n\
+    \  statuses: \"%s\",\n\
      }"
-    e.id (fst e.pos) (snd e.pos) (string_of_stats e.stats)
+    e.id (string_of_vec e.pos) (string_of_stats e.stats)
     (string_of_type e.entity_type)
     (string_of_rendering e.rendering)
     (List.fold_left

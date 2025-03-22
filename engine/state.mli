@@ -25,7 +25,7 @@ val create: World.t -> transition_generator list -> t
 (**[Invalid_input] is raised in [step] when an given input produces no valid action*)
 exception Invalid_input of input
 
-(**[step state input] returns the next state given the the current state [state] and the user input [input].
+(**[step state input] returns the next state given the the current state [state] and the user input [input]. Increments [t.turn] by 1.
    Raises: [Invalid_input] when the provided input requests an action that is not possible*)
 val step : t -> input -> t
 

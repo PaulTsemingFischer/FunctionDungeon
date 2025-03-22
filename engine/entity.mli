@@ -56,6 +56,8 @@ val create : stats -> entity_type -> rendering -> status list -> vec2 -> t
 (**[set_pos entity pos] changes an entity's position to the [pos]*)
 val set_pos : t -> vec2 -> t
 
+(**[update_stats source stats] is a utility method that returns an entity with stats equal to [stats] and other parameters being equal to that of [source]*)
+val update_stats: t -> stats -> t
 
 (**[string_of_entity entity string_of_type string_of_rendering string_of_status] converts [entity] into a string*)
 val string_of_entity : (entity_type -> string) -> (rendering -> string) -> (status -> string) -> t -> string

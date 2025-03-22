@@ -1,18 +1,20 @@
 open OUnit2
 open Engine.Entity
 open Engine.World
+open Engine.State
 
 type entity_type += Test_type
 type rendering += Test_rendering
+type Engine.State.input += Test_input
 
 let string_of_test_types (e_type : entity_type) =
   match e_type with
-  | Test_type -> "\"test type\""
+  | Test_type -> "test_type"
   | _ -> failwith "test error: unsupported entity type"
 
 let string_of_test_rendering (e_rendering : rendering) =
   match e_rendering with
-  | Test_rendering -> "\"test_rendering\""
+  | Test_rendering -> "test_rendering"
   | _ -> failwith "test error: unsupported rendering type"
 
 let string_of_test_status (e_status : status) =
@@ -23,8 +25,9 @@ let string_of_test_entity =
   string_of_entity string_of_test_types string_of_test_rendering
     string_of_test_status
 
-(**[create_wall ()] is utility method that creates a wall entity*)
-let create_wall () = create { health = 0. } Test_type Test_rendering [] (0, 0)
+(**[create_test_entity ()] is utility method that creates a test_entity entity*)
+let create_test_entity () =
+  Engine.Entity.create { health = 0. } Test_type Test_rendering [] (0, 0)
 
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : Engine.Entity.t option) =
@@ -39,7 +42,7 @@ let entity_tests =
          ( "Entity.create produces an entity with id 0 and the provided entity \
             information when no other entities have been created"
          >:: fun _ ->
-           let new_entity = create_wall () in
+           let new_entity = create_test_entity () in
            assert_equal { health = 0. } new_entity.stats;
            assert_equal Test_type new_entity.entity_type;
            assert_equal Test_rendering new_entity.rendering;
@@ -47,13 +50,25 @@ let entity_tests =
          ( "Entity.create produces an entity with a different id after one \
             entity is already created"
          >:: fun _ ->
-           let e_1 = create_wall () and e_2 = create_wall () in
+           let e_1 = create_test_entity () and e_2 = create_test_entity () in
            assert_equal { health = 0. } e_2.stats;
            assert_equal Test_type e_2.entity_type;
            assert_equal Test_rendering e_2.rendering;
            assert_equal [] e_2.statuses;
            assert_bool "entity id should be different, but is the same"
              (not (e_1.id = e_2.id)) );
+         ( "Entity.update stats produces an entity with the given stats from \
+            while all other attributes copied from a source entity"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let e2 = update_stats e1 { health = e1.stats.health -. 1.0 } in
+           assert_bool "entity id should be the same, but is different"
+             (e1.id = e2.id);
+
+           assert_equal { health = -1.0 } e2.stats;
+           assert_equal e1.entity_type e2.entity_type;
+           assert_equal e1.rendering e2.rendering;
+           assert_equal e1.statuses e2.statuses );
          ( "Entity.add_vec2 correctly computes the sum of two vectors"
          >:: fun _ -> assert_equal (1, 2) (add_vec2 (0, 1) (1, 1)) );
          ( "Entity.neg_vec2 correctly computes the negation of a vector"
@@ -77,7 +92,7 @@ let world_tests =
          ( "adding a single entity to a world and retrieving all entities \
             should return a list containing only that entity"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w = put_entity empty e1 in
            let all_e = all_entities w in
            assert_equal 1 (List.length all_e);
@@ -90,18 +105,18 @@ let world_tests =
          ( "adding a single entity to a world and retrieving it with query_id \
             should return an option containing that entity"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w = put_entity empty e1 in
            assert_equal (Some e1) (query_id w e1.id) );
          ( "retrieving an entity from an empty world by id should produce None"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w = empty in
            assert_equal None (query_id w e1.id) );
          ( "retrieving an entity added to position (0, 0) should return that \
             entity"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w = put_entity empty e1 in
            assert_equal (Some e1) (query_pos w (0, 0)) );
          ( "querying position (0, 0) in an empty world should return None"
@@ -117,13 +132,13 @@ let world_tests =
          ( "querying if something is empty (0, 0) in a world with an entity at \
             (0, 0) should return false"
          >:: fun _ ->
-           let w = put_entity empty (create_wall ()) in
+           let w = put_entity empty (create_test_entity ()) in
            assert_bool "the position is not supposed to be empty, but is"
              (not (query_empty w (0, 0))) );
          ( "adding a single entity then updating it with put_entity should \
             return a world that still contains that entity"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w1 = put_entity empty e1 in
            let w2 = put_entity w1 e1 in
            assert_equal (Some e1) (query_id w2 e1.id) );
@@ -131,7 +146,7 @@ let world_tests =
             same entity moved to (1, 0) should return a world that still \
             contains that entity"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w1 = put_entity empty e1 in
            let w2 = put_entity w1 (set_pos e1 (1, 0)) in
            assert_equal
@@ -140,12 +155,95 @@ let world_tests =
          ( "adding a single entity then removing it will result in an empty \
             world"
          >:: fun _ ->
-           let e1 = create_wall () in
+           let e1 = create_test_entity () in
            let w1 = put_entity empty e1 in
            assert_equal (Some e1) (query_id w1 e1.id);
            assert_equal empty (remove_entity w1 e1.id) );
        ]
 
+let simple_transition_generator : transition_generator =
+  Generator
+    (fun (state : Engine.State.t)
+      (e : Engine.Entity.t)
+      (input : Engine.State.input)
+    ->
+      Some
+        ( 0,
+          fun (start_state : Engine.State.t) ->
+            match query_id start_state.world e.id with
+            | Some target_entity ->
+                let updated =
+                  update_stats target_entity
+                    { health = target_entity.stats.health -. 1.0 }
+                in
+                update_world start_state (put_entity start_state.world updated)
+            | None -> start_state ))
+
+let useless_transition_generator : transition_generator =
+  Generator
+    (fun (state : Engine.State.t)
+      (e : Engine.Entity.t)
+      (input : Engine.State.input)
+    -> None)
+
+let print_all_entities (w : Engine.World.t) =
+  List.iter
+    (fun e -> print_endline (string_of_test_entity e))
+    (Engine.World.all_entities w)
+
+(**[state_tests] tests stepping through state with multiple state generator
+   functions and ensuring that the state at each step is the expected state*)
+let state_tests =
+  "test suite that tests end-to-end functionality of state progression"
+  >::: [
+         ( "stepping through the state of a game with no generators and a \
+            single entity advances the turn but leaves the entity unchanged"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let world = put_entity empty e1 in
+           let state_start = create world [] in
+           assert_equal (Some e1) (query_id state_start.world e1.id);
+           assert_equal 0 state_start.turn;
+           let state_next = step state_start Test_input in
+           assert_equal (Some e1) (query_id state_next.world e1.id);
+           assert_equal 1 state_next.turn );
+         ( "stepping through the state of a game with one generator that \
+            decreases health and a single entity advances the turn and \
+            decreases the entity's health"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let world = put_entity empty e1 in
+           let state_start = create world [ simple_transition_generator ] in
+           print_all_entities state_start.world;
+           assert_equal (Some e1) (query_id state_start.world e1.id);
+           assert_equal 0 state_start.turn;
+           let state_next = step state_start Test_input in
+           print_all_entities state_next.world;
+
+           assert_equal
+             (Some (update_stats e1 { health = e1.stats.health -. 1.0 }))
+             (query_id state_next.world e1.id)
+             ~printer:string_of_entity_option;
+           assert_equal 1 state_next.turn );
+         ( "stepping through the state of a game with one generator that does \
+            nothing and a single entity advances the turn but leaves the \
+            entity unchanged"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let world = put_entity empty e1 in
+           let state_start = create world [ useless_transition_generator ] in
+           print_all_entities state_start.world;
+           assert_equal (Some e1) (query_id state_start.world e1.id);
+           assert_equal 0 state_start.turn;
+           let state_next = step state_start Test_input in
+           print_all_entities state_next.world;
+           assert_equal (Some e1)
+             (query_id state_next.world e1.id)
+             ~printer:string_of_entity_option;
+           assert_equal 1 state_next.turn );
+       ]
+
 let _ =
   run_test_tt_main entity_tests;
-  run_test_tt_main world_tests
+  run_test_tt_main world_tests;
+  run_test_tt_main state_tests
