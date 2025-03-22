@@ -3,10 +3,11 @@ open Engine.Utils
 open Game.Root
 open Game.Entities
 open Game.Player
+open Game.Transformations
 
 let print_all_entities world =
   List.iter
-    (fun ent -> print_endline (string_of_game_entity ent))
+    (fun ent -> print_endline (string_of_entity ent))
     (GameWorld.all_entities world)
 
 let rec print_world_region (world : GameWorld.t) ((x1, y1) : int * int)
@@ -30,11 +31,18 @@ let rec print_world_region (world : GameWorld.t) ((x1, y1) : int * int)
     print_newline ();
     print_world_region world (x1, y1) (x2, y2 - 1)
 
+let print_events (state : GameState.t) =
+  (* ignore (Sys.command "clear"); *)
+  print_endline (Printf.sprintf "Event List (%d): " (List.length state.events));
+  List.iter (fun event -> print_endline (string_of_event event)) state.events;
+  print_string "press any key to continue: ";
+  ignore (read_line ())
+
 let rec loop (state : GameState.t) =
-  ignore (Sys.command "clear");
+  (* ignore (Sys.command "clear"); *)
   print_world_region state.world (-10, -10) (10, 10);
   print_endline ("Turn number " ^ string_of_int state.turn);
-  print_string "wasd to move, q to quit: ";
+  print_string "w/a/s/d/e/q: ";
   let input = String.trim (read_line ()) in
   try
     match input with
@@ -43,6 +51,9 @@ let rec loop (state : GameState.t) =
     | "s" -> loop (GameState.step state (MovePlayer (0, -1)))
     | "d" -> loop (GameState.step state (MovePlayer (1, 0)))
     | "q" -> ()
+    | "e" ->
+        print_events state;
+        loop state
     | _ -> loop state
   with GameState.Invalid_input input_val -> (
     match input_val with
@@ -50,13 +61,15 @@ let rec loop (state : GameState.t) =
     | _ -> print_endline "unknown invalid action")
 
 let () =
-  let player = GameEntity.create { health = 1. } Player (Ascii '@') [] (0, 0) in
-  let world = GameWorld.put_entity GameWorld.empty player in
+  let player = create_default_at Player (0, 0) in
+  let pigeon = create_default_at (Pigeon 1) (3, 3) in
+  let world =
+    GameWorld.put_entity (GameWorld.put_entity GameWorld.empty player) pigeon
+  in
   let world_with_walls =
     List.fold_left
       (fun (current_world : GameWorld.t) wall_pos ->
-        GameWorld.put_entity current_world
-          (create_default_entity_at Wall wall_pos))
+        GameWorld.put_entity current_world (create_default_at Wall wall_pos))
       world
       (List.append
          (List.append

@@ -65,7 +65,7 @@ module Make (W : World.S) : S with type w_t = W.t and type e_t = W.e_t = struct
       (fun starting_world_state ((_, transition_function) : transition) ->
         transition_function starting_world_state)
       { world; generators; events; turn = turn + 1 }
-      transitions
+      (List.stable_sort (fun t1 t2 -> fst t1 - fst t2) transitions)
 
   let update_world { world; generators; events; turn } new_world : t =
     { world = new_world; generators; events; turn }
