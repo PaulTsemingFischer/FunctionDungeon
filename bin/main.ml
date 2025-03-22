@@ -1,4 +1,5 @@
 open Engine
+open Engine.Utils
 
 type game_stat = { health : float }
 
@@ -13,7 +14,7 @@ module GameEntity = Entity.Make (BaseGameStat)
 module GameWorld = World.Make (GameEntity)
 module GameState = State.Make (GameWorld)
 
-type GameState.input += Move of Entity.vec2
+type GameState.input += Move of vec2
 type GameEntity.entity_type += Wall | Player
 type GameEntity.rendering += Ascii of char | Id_debug
 
@@ -48,17 +49,15 @@ let player_action_generator (state : GameState.t) (entity : GameEntity.t) input
     =
   match input with
   | Move dir ->
-      if
-        not (GameWorld.query_empty state.world (Entity.add_vec2 entity.pos dir))
-      then raise (GameState.Invalid_input input)
+      if not (GameWorld.query_empty state.world (add_vec2 entity.pos dir)) then
+        raise (GameState.Invalid_input input)
       else
         Some
           ( 0,
             fun state : GameState.t ->
               GameState.update_world state
                 (GameWorld.put_entity state.world
-                   (GameEntity.set_pos entity (Entity.add_vec2 dir entity.pos)))
-          )
+                   (GameEntity.set_pos entity (add_vec2 dir entity.pos))) )
   | _ -> None
 
 let entity_action_generator =

@@ -1,5 +1,6 @@
 open OUnit2
 open Engine
+open Engine.Utils
 
 type test_stat = { health : float }
 
@@ -46,6 +47,20 @@ let string_of_entity_option (op : TestEntity.t option) =
   | Some x -> string_of_test_entity x
   | None -> "none"
 
+(**[utils_tests] tests operations with vec2s*)
+let utils_tests =
+  "test suite that tests vec2 operations"
+  >::: [
+         ( "add_vec2 correctly computes the sum of two vectors" >:: fun _ ->
+           assert_equal (1, 2) (add_vec2 (0, 1) (1, 1)) );
+         ( "neg_vec2 correctly computes the negation of a vector" >:: fun _ ->
+           assert_equal (-3, -1) (neg_vec2 (3, 1)) );
+         ( "neg_vec2 correctly computes the difference between two vectors"
+         >:: fun _ -> assert_equal (-1, 0) (sub_vec2 (0, 1) (1, 1)) );
+         ( "string_of_vec2 correctly converts the given vec2 to a string"
+         >:: fun _ -> assert_equal "(-1,0)" (string_of_vec (-1, 0)) );
+       ]
+
 (**[entity_tests] tests functionality related to creating entities*)
 let entity_tests =
   "test suite that tests basic operations of the Entity module"
@@ -82,15 +97,6 @@ let entity_tests =
            assert_equal e1.TestEntity.entity_type e2.TestEntity.entity_type;
            assert_equal e1.rendering e2.rendering;
            assert_equal e1.statuses e2.statuses );
-         ( "Entity.add_vec2 correctly computes the sum of two vectors"
-         >:: fun _ -> assert_equal (1, 2) (Entity.add_vec2 (0, 1) (1, 1)) );
-         ( "Entity.neg_vec2 correctly computes the negation of a vector"
-         >:: fun _ -> assert_equal (-3, -1) (Entity.neg_vec2 (3, 1)) );
-         ( "Entity.neg_vec2 correctly computes the difference between two \
-            vectors"
-         >:: fun _ -> assert_equal (-1, 0) (Entity.sub_vec2 (0, 1) (1, 1)) );
-         ( "Entity.string_of_vec2 correctly converts the given vec2 to a string"
-         >:: fun _ -> assert_equal "(-1,0)" (Entity.string_of_vec (-1, 0)) );
        ]
 
 (**[world_tests] tests functionality related to creating worlds, adding entities
@@ -262,6 +268,7 @@ let state_tests =
        ]
 
 let _ =
+  run_test_tt_main utils_tests;
   run_test_tt_main entity_tests;
   run_test_tt_main world_tests;
   run_test_tt_main state_tests

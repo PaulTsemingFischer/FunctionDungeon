@@ -1,11 +1,13 @@
+open Utils
+
 module type S = sig
   type t
   type e_t
   type e_id
 
   val empty : t
-  val query_pos : t -> Entity.vec2 -> e_t option
-  val query_empty : t -> Entity.vec2 -> bool
+  val query_pos : t -> vec2 -> e_t option
+  val query_empty : t -> vec2 -> bool
   val query_id : t -> e_id -> e_t option
   val all_entities : t -> e_t list
   val put_entity : t -> e_t -> t
@@ -34,7 +36,7 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
   let empty = EntitySet.empty
   let all_entities (world : t) : e_t list = EntitySet.to_list world
 
-  let query_pos world (pos : Entity.vec2) =
+  let query_pos world (pos : vec2) =
     List.find_opt (fun (e : e_t) -> e.pos = pos) (all_entities world)
 
   let query_empty world pos =

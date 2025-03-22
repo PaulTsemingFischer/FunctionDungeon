@@ -1,3 +1,5 @@
+open Utils
+
 module type S = sig
   
   (**[t] represents the world type*)
@@ -13,10 +15,10 @@ module type S = sig
   val empty : t
 
   (**[query_pos world pos] returns [Some x] if entity [x] exists at the cartesian point given by [pos], and [None] otherwise*)
-  val query_pos : t -> Entity.vec2 -> e_t option
+  val query_pos : t -> vec2 -> e_t option
 
   (**[pos_empty world pos] returns [true] if no entity exists at [pos] and false otherwise*)
-  val query_empty : t -> Entity.vec2 -> bool
+  val query_empty : t -> vec2 -> bool
 
   (**[query_id : world e_id] returns [Some x] if there exists some entity [x] with [x.id = e_id], and [None] otherwise*)
   val query_id : t -> e_id -> e_t option
