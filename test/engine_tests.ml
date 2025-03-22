@@ -148,7 +148,7 @@ let world_tests =
          >:: fun _ ->
            let w = TestWorld.empty in
            assert_bool "the position is supposed to be empty, but is not"
-             (TestWorld.query_empty w (0, 0)) );
+             (not (TestWorld.mem_pos w (0, 0))) );
          ( "querying if something is empty (0, 0) in a world with an entity at \
             (0, 0) should return false"
          >:: fun _ ->
@@ -156,7 +156,7 @@ let world_tests =
              TestWorld.put_entity TestWorld.empty (create_test_entity ())
            in
            assert_bool "the position is not supposed to be empty, but is"
-             (not (TestWorld.query_empty w (0, 0))) );
+             (TestWorld.mem_pos w (0, 0)) );
          ( "adding a single entity then updating it with put_entity should \
             return a world that still contains that entity"
          >:: fun _ ->

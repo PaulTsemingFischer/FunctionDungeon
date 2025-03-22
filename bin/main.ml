@@ -1,77 +1,13 @@
 open Engine
 open Engine.Utils
-
-type game_stat = { health : float }
-
-module BaseGameStat : Entity.StatType with type t = game_stat = struct
-  type t = game_stat
-
-  let zeroed_stats = { health = 0.0 }
-  let string_of_stats stat = Printf.sprintf "health: %f" stat.health
-end
-
-module GameEntity = Entity.Make (BaseGameStat)
-module GameWorld = World.Make (GameEntity)
-module GameState = State.Make (GameWorld)
-
-type GameState.input += Move of vec2
-type GameEntity.entity_type += Wall | Player
-type GameEntity.rendering += Ascii of char | Id_debug
-
-let string_of_game_types (e_type : GameEntity.entity_type) =
-  match e_type with
-  | Wall -> "\"wall\""
-  | Player -> "\"Player\""
-  | _ -> failwith "game error: unsupported entity type"
-
-let string_of_game_rendering (e_rendering : GameEntity.rendering) =
-  match e_rendering with
-  | Ascii ch -> String.make 1 ch
-  | Id_debug -> "\"id_renderer\""
-  | _ -> failwith "game error: unsupported rendering type"
-
-let string_of_game_status (e_status : GameEntity.status) =
-  match e_status with
-  | _ -> failwith "game error: unsupported entity status"
-
-let string_of_game_entity =
-  GameEntity.string_of_entity string_of_game_types string_of_game_rendering
-    string_of_game_status
-
-let create_wall_at = GameEntity.create { health = 0. } Wall (Ascii '#') []
+open Game.Root
+open Game.Entities
+open Game.Player
 
 let print_all_entities world =
   List.iter
     (fun ent -> print_endline (string_of_game_entity ent))
     (GameWorld.all_entities world)
-
-let player_action_generator (state : GameState.t) (entity : GameEntity.t) input
-    =
-  match input with
-  | Move dir ->
-      if not (GameWorld.query_empty state.world (add_vec2 entity.pos dir)) then
-        raise (GameState.Invalid_input input)
-      else
-        Some
-          ( 0,
-            fun state : GameState.t ->
-              GameState.update_world state
-                (GameWorld.put_entity state.world
-                   (GameEntity.set_pos entity (add_vec2 dir entity.pos))) )
-  | _ -> None
-
-let entity_action_generator =
-  GameState.Generator
-    (fun (state : GameState.t)
-      (entity : GameEntity.t)
-      (input : GameState.input)
-    ->
-      match entity.entity_type with
-      | Player -> player_action_generator state entity input
-      | Wall -> None
-      | _ ->
-          print_endline "unsupported_entity";
-          None)
 
 let rec print_world_region (world : GameWorld.t) ((x1, y1) : int * int)
     ((x2, y2) : int * int) =
@@ -102,15 +38,15 @@ let rec loop (state : GameState.t) =
   let input = String.trim (read_line ()) in
   try
     match input with
-    | "w" -> loop (GameState.step state (Move (0, 1)))
-    | "a" -> loop (GameState.step state (Move (-1, 0)))
-    | "s" -> loop (GameState.step state (Move (0, -1)))
-    | "d" -> loop (GameState.step state (Move (1, 0)))
+    | "w" -> loop (GameState.step state (MovePlayer (0, 1)))
+    | "a" -> loop (GameState.step state (MovePlayer (-1, 0)))
+    | "s" -> loop (GameState.step state (MovePlayer (0, -1)))
+    | "d" -> loop (GameState.step state (MovePlayer (1, 0)))
     | "q" -> ()
     | _ -> loop state
   with GameState.Invalid_input input_val -> (
     match input_val with
-    | Move vec -> loop state
+    | MovePlayer vec -> loop state
     | _ -> print_endline "unknown invalid action")
 
 let () =
@@ -119,7 +55,8 @@ let () =
   let world_with_walls =
     List.fold_left
       (fun (current_world : GameWorld.t) wall_pos ->
-        GameWorld.put_entity current_world (create_wall_at wall_pos))
+        GameWorld.put_entity current_world
+          (create_default_entity_at Wall wall_pos))
       world
       (List.append
          (List.append

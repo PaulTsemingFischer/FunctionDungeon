@@ -7,8 +7,9 @@ module type S = sig
 
   val empty : t
   val query_pos : t -> vec2 -> e_t option
-  val query_empty : t -> vec2 -> bool
   val query_id : t -> e_id -> e_t option
+  val mem_pos : t -> vec2 -> bool
+  val mem_id : t -> e_id -> bool
   val all_entities : t -> e_t list
   val put_entity : t -> e_t -> t
   val remove_entity : t -> e_id -> t
@@ -39,11 +40,6 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
   let query_pos world (pos : vec2) =
     List.find_opt (fun (e : e_t) -> e.pos = pos) (all_entities world)
 
-  let query_empty world pos =
-    match query_pos world pos with
-    | Some _ -> false
-    | None -> true
-
   let query_id world e_id =
     EntitySet.find_opt
       {
@@ -55,6 +51,13 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
         statuses = [];
       }
       world
+
+  let mem_pos world pos =
+    match query_pos world pos with
+    | Some _ -> true
+    | None -> false
+
+  let mem_id world e_id = EntitySet.mem (make_placeholder_entity e_id) world
 
   let put_entity (world : t) (e : e_t) =
     if EntitySet.mem e world then EntitySet.add e (EntitySet.remove e world)
