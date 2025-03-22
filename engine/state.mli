@@ -22,7 +22,7 @@ module type S = sig
 
    and transition = int * (t -> t)
    (**[transition] is a prioritized function that maps one world state onto another
-      (in other words, it changes the world in some way)*)
+      (in other words, it changes the world in some way). transitions are run in increasing priority order*)
 
    (**[create world generators] returns a new game state with an empty event record and the given list of transition generators*)
    val create:  w_t -> transition_generator list -> t
