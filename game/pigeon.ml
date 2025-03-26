@@ -1,14 +1,11 @@
 open Root
 open Engine.Utils
-open Transformations
 
-let pigeon_action_generator (state : GameState.t) (entity : GameEntity.t) _ :
-    GameState.transition option =
+let pigeon_action (state : GameState.t) (entity : GameEntity.t) _ =
   let random_direction : vec2 = (1 - Random.int 3, 1 - Random.int 3) in
   let target_pos = add_vec2 random_direction entity.pos in
   if GameWorld.mem_pos state.world target_pos then
-    Some (say 1 state entity "<LOUD pigeon noises>")
+    Transformations.move_entity state entity target_pos
   else
-    Some
-      (Transformations.say 1 state entity "<pigeon noises>"
-      <& move_entity 1 state entity target_pos)
+    let state_1 = Transformations.say state entity "<pigeon noises>" in
+    Transformations.move_entity state_1 entity target_pos

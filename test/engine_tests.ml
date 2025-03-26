@@ -184,26 +184,17 @@ let world_tests =
            assert_equal TestWorld.empty (TestWorld.remove_entity w1 e1.id) );
        ]
 
-let simple_transition_generator : TestState.transition_generator =
-  Generator
-    (fun (state : TestState.t) (e : TestEntity.t) (input : TestState.input) ->
-      Some
-        ( 0,
-          fun (start_state : TestState.t) ->
-            match TestWorld.query_id start_state.world e.id with
-            | Some target_entity ->
-                let updated =
-                  TestEntity.update_stats target_entity
-                    { health = target_entity.stats.health -. 1.0 }
-                in
-                TestState.update_world start_state
-                  (TestWorld.put_entity start_state.world updated)
-            | None -> start_state ))
+let simple_transition : TestState.transition =
+ fun (start_state : TestState.t) (entity : TestEntity.t)
+     (_ : TestState.input) ->
+  let updated =
+    TestEntity.update_stats entity { health = entity.stats.health -. 0.1 }
+  in
+  TestState.update_world start_state
+    (TestWorld.put_entity start_state.world updated)
 
-let useless_transition_generator : TestState.transition_generator =
-  Generator
-    (fun (state : TestState.t) (e : TestEntity.t) (input : TestState.input) ->
-      None)
+let useless_transition (start_state : TestState.t) _ _ : TestState.t =
+  start_state
 
 let print_all_entities (w : TestWorld.t) =
   List.iter
@@ -232,9 +223,7 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_test_entity () in
            let world = TestWorld.put_entity TestWorld.empty e1 in
-           let state_start =
-             TestState.create world [ simple_transition_generator ]
-           in
+           let state_start = TestState.create world [ simple_transition ] in
            print_all_entities state_start.world;
            assert_equal (Some e1) (TestWorld.query_id state_start.world e1.id);
            assert_equal 0 state_start.turn;
@@ -253,9 +242,7 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_test_entity () in
            let world = TestWorld.put_entity TestWorld.empty e1 in
-           let state_start =
-             TestState.create world [ useless_transition_generator ]
-           in
+           let state_start = TestState.create world [ useless_transition ] in
            print_all_entities state_start.world;
            assert_equal (Some e1) (TestWorld.query_id state_start.world e1.id);
            assert_equal 0 state_start.turn;

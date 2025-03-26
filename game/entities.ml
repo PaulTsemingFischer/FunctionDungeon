@@ -45,16 +45,12 @@ let create_default_at e_type pos =
       GameEntity.create { health = 10.0 } (Pigeon x) (Ascii 'p') [] pos
   | _ -> failwith "entity error: create unsupported entity type"
 
-let entity_action_generator =
-  GameState.Generator
-    (fun (state : GameState.t)
-      (entity : GameEntity.t)
-      (input : GameState.input)
-    ->
-      match entity.entity_type with
-      | Player -> Player.player_action_generator state entity input
-      | Pigeon _ -> Pigeon.pigeon_action_generator state entity input
-      | Wall -> None
-      | _ ->
-          print_endline "unsupported_entity";
-          None)
+let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
+    (input : GameState.input) =
+  match entity.entity_type with
+  | Player -> Player.player_action state entity input
+  | Pigeon _ -> Pigeon.pigeon_action state entity input
+  | Wall -> state
+  | _ ->
+      print_endline "unsupported_entity";
+      state

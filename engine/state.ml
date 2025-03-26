@@ -2,21 +2,19 @@ module type S = sig
   type w_t
   type e_t
   type input = ..
-  type event = ..
 
-  type transition_generator =
-    | Generator of (t -> e_t -> input -> transition option)
+  type event = ..
 
   and t = {
     world : w_t;
-    generators : transition_generator list;
+    transitions : transition list;
     events : event list;
     turn : int;
   }
 
-  and transition = int * (t -> t)
+  and transition = t -> e_t -> input -> t
 
-  val create : w_t -> transition_generator list -> t
+  val create : w_t -> transition list -> t
 
   exception Invalid_input of input
 
@@ -30,43 +28,30 @@ module Make (W : World.S) : S with type w_t = W.t and type e_t = W.e_t = struct
   type input = ..
   type event = ..
 
-  type transition_generator =
-    | Generator of (t -> e_t -> input -> transition option)
-
-  and t = {
+  type t = {
     world : w_t;
-    generators : transition_generator list;
+    transitions : transition list;
     events : event list;
     turn : int;
   }
 
-  and transition = int * (t -> t)
+  and transition = t -> e_t -> input -> t
 
-  let create (world : w_t) (generators : transition_generator list) : t =
-    { world; generators; events = []; turn = 0 }
+  let create (world : w_t) (transitions : transition list) : t =
+    { world; transitions; events = []; turn = 0 }
 
   exception Invalid_input of input
 
-  let step ({ world; generators; events; turn } : t) (input : input) =
-    let transitions =
-      List.fold_left
-        (fun (ext_acc : transition list) (entity : e_t) ->
-          List.fold_left
-            (fun (acc : transition list) (Generator generator_fn) ->
-              match
-                generator_fn { world; generators; events; turn } entity input
-              with
-              | Some new_transition -> new_transition :: acc
-              | None -> acc)
-            ext_acc generators)
-        [] (W.all_entities world)
-    in
+  let step (state : t) (input : input) =
     List.fold_left
-      (fun starting_world_state ((_, transition_function) : transition) ->
-        transition_function starting_world_state)
-      { world; generators; events; turn = turn + 1 }
-      (List.stable_sort (fun t1 t2 -> fst t1 - fst t2) transitions)
+      (fun (state_ext : t) (entity : e_t) ->
+        List.fold_left
+          (fun (acc : t) (transition : transition) ->
+            transition state_ext entity input)
+          state_ext state_ext.transitions)
+      state
+      (W.all_entities state.world)
 
-  let update_world { world; generators; events; turn } new_world : t =
-    { world = new_world; generators; events; turn }
+  let update_world { world; transitions; events; turn } new_world : t =
+    { world = new_world; transitions; events; turn }
 end

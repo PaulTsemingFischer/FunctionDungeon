@@ -79,5 +79,5 @@ let () =
             (List.init 11 (fun x -> (5, -5 + x)))
             (List.init 10 (fun x -> (-5, x - 5)))))
   in
-  let state = GameState.create world_with_walls [ entity_action_generator ] in
+  let state = GameState.create world_with_walls [ entity_action_runner ] in
   loop state

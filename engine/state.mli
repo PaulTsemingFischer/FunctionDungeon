@@ -11,21 +11,16 @@ module type S = sig
       can be used to describe a basic movement from one position to another*)
    type event = ..
 
-   (**[transition_generator] is a type that takes the game state, an entity, an
-      input, and returns a [transition] that describes how the world should be
-      changed*)
-   type transition_generator = Generator of (t -> e_t -> input -> transition option)
-
-   and t = {world: w_t; generators: transition_generator list; events:event list; turn:int}
+   and t = {world: w_t; transitions: transition list; events:event list; turn:int}
    (**[t] is the game state that contains a world, a list of transition
       generators, and history of events that describe how the world changes*)
 
-   and transition = int * (t -> t)
+   and transition = (t -> e_t -> input -> t)
    (**[transition] is a prioritized function that maps one world state onto another
       (in other words, it changes the world in some way). transitions are run in increasing priority order*)
 
    (**[create world generators] returns a new game state with an empty event record and the given list of transition generators*)
-   val create:  w_t -> transition_generator list -> t
+   val create:  w_t -> transition list -> t
 
    (**[Invalid_input] is raised in [step] when an given input produces no valid action*)
    exception Invalid_input of input
