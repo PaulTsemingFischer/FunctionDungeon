@@ -309,6 +309,8 @@ let attack_tests =
        ]
 
 let _ =
-  (* run_test_tt_main utils_tests; run_test_tt_main entity_tests;
-     run_test_tt_main world_tests; run_test_tt_main state_tests; *)
+  run_test_tt_main utils_tests;
+  run_test_tt_main entity_tests;
+  run_test_tt_main world_tests;
+  run_test_tt_main state_tests;
   run_test_tt_main attack_tests
