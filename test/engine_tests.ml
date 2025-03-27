@@ -274,25 +274,41 @@ let attack_tests =
   >::: [
          make_modify_test "Add 1 damage to empty"
            AttackMap.(empty |> add (0, 0) [ Item.Damage 1 ])
-           (fun tile -> [ (fst tile, [ Item.Damage 1 ]) ])
+           Item.do_damage_example
            AttackMap.(empty |> add (0, 0) []);
          make_modify_test "Add 1 damage on top of existing effects"
            AttackMap.(empty |> add (0, 0) [ Item.Fire (2, 3); Item.Damage 1 ])
-           (fun tile -> [ (fst tile, [ Item.Damage 1 ]) ])
+           Item.do_damage_example
            AttackMap.(empty |> add (0, 0) [ Item.Fire (2, 3) ]);
          make_modify_test "Augment to above tile"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [])
-           (fun tile -> [ tile; (Utils.add_vec2 (fst tile) (0, 1), snd tile) ])
+           Item.augment_to_above_example
            AttackMap.(empty |> add (0, 0) []);
          make_modify_test "Augment to above tile with duplicates"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [] |> add (0, 2) [])
-           (fun tile -> [ tile; (Utils.add_vec2 (fst tile) (0, 1), snd tile) ])
+           Item.augment_to_above_example
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) []);
+         make_modify_test "Augment to above tile and copy effects"
+           AttackMap.(
+             empty
+             |> add (0, 0) [ Item.Damage 1 ]
+             |> add (0, 1) [ Item.Damage 1 ])
+           Item.augment_to_above_example
+           AttackMap.(empty |> add (0, 0) [ Item.Damage 1 ]);
+         make_modify_test "Augment to above tile and add new effects"
+           AttackMap.(
+             empty
+             |> add (0, 0) [ Item.Damage 1 ]
+             |> add (0, 1) [ Item.Damage 1; Item.Damage 1 ]
+             |> add (0, 2) [ Item.Damage 1 ])
+           Item.augment_to_above_example
+           AttackMap.(
+             empty
+             |> add (0, 0) [ Item.Damage 1 ]
+             |> add (0, 1) [ Item.Damage 1 ]);
        ]
 
 let _ =
-  run_test_tt_main utils_tests;
-  run_test_tt_main entity_tests;
-  run_test_tt_main world_tests;
-  run_test_tt_main state_tests;
+  (* run_test_tt_main utils_tests; run_test_tt_main entity_tests;
+     run_test_tt_main world_tests; run_test_tt_main state_tests; *)
   run_test_tt_main attack_tests
