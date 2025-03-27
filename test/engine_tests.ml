@@ -1,6 +1,7 @@
 open OUnit2
 open Engine
 open Engine.Utils
+open Game
 
 type test_stat = { health : float }
 
@@ -254,8 +255,44 @@ let state_tests =
            assert_equal 1 state_next.turn );
        ]
 
+module AttackMap = Map.Make (ComparableVec2.Vec2)
+(** Represents a map of tile coordinates to attack effects. *)
+
+(** [make_modify_test name expected_output func input] is a unit test with name
+    [name], asserting whether [func input] is equal to [expected_output]. *)
+let make_modify_test name expected_output func input =
+  name >:: fun _ ->
+  let output = Item.modify_attack func input in
+  assert_equal expected_output output
+    ~cmp:(AttackMap.equal (fun a b -> List.equal Item.compare_effects a b))
+    ~printer:Item.bindings_to_string
+
+(** [attack_tests] is a series of unit tests ensuring that attack modifiers work
+    as expected. *)
+let attack_tests =
+  "test suite"
+  >::: [
+         make_modify_test "Add 1 damage to empty"
+           AttackMap.(empty |> add (0, 0) [ Item.Damage 1 ])
+           (fun tile -> [ (fst tile, [ Item.Damage 1 ]) ])
+           AttackMap.(empty |> add (0, 0) []);
+         make_modify_test "Add 1 damage on top of existing effects"
+           AttackMap.(empty |> add (0, 0) [ Item.Fire (2, 3); Item.Damage 1 ])
+           (fun tile -> [ (fst tile, [ Item.Damage 1 ]) ])
+           AttackMap.(empty |> add (0, 0) [ Item.Fire (2, 3) ]);
+         make_modify_test "Augment to above tile"
+           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [])
+           (fun tile -> [ tile; (Utils.add_vec2 (fst tile) (0, 1), snd tile) ])
+           AttackMap.(empty |> add (0, 0) []);
+         make_modify_test "Augment to above tile with duplicates"
+           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [] |> add (0, 2) [])
+           (fun tile -> [ tile; (Utils.add_vec2 (fst tile) (0, 1), snd tile) ])
+           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) []);
+       ]
+
 let _ =
   run_test_tt_main utils_tests;
   run_test_tt_main entity_tests;
   run_test_tt_main world_tests;
-  run_test_tt_main state_tests
+  run_test_tt_main state_tests;
+  run_test_tt_main attack_tests
