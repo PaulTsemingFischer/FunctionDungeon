@@ -2,6 +2,7 @@ open OUnit2
 open Engine
 open Engine.Utils
 open Game
+open Game
 
 type test_stat = { health : float }
 type test_types = TestEntity
