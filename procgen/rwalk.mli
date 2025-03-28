@@ -19,7 +19,7 @@ val generate :
   int ->
   int ->
   tile array array
-(**[generate ~printing ~nwalkers ~pp_fill_chance width height] is random-walk
+(**[generate ~printing ~walker_age ~nwalkers ~pp_fill_chance width height] is random-walk
    assignment using [nwalkers] walkers of tiles to a space of size [width] x
    [height]. If [printing], each stage of the world generation is printed. When
    [pp_fill_chance] is closer to 1, the resulting world will be smoother and
