@@ -15,6 +15,7 @@ type GameEntity.entity_type +=
   | Player
   | Pigeon of int
   | Enemy of Enemies.enemy
+  | Obstacle of Obstacles.obstacle
 
 type GameEntity.rendering += Ascii of char | Id_debug
 
@@ -25,6 +26,7 @@ let string_of_entity_types (e_type : GameEntity.entity_type) =
   | Player -> "player"
   | Pigeon x -> Printf.sprintf "pigeon (%d)" x
   | Enemy e -> Printf.sprintf "%s" (Enemies.string_of_enemy e)
+  | Obstacle o -> Printf.sprintf "%s" (Obstacles.string_of_obstacle o)
   | _ -> failwith "entity error: unsupported entity type"
 
 let string_of_entity_rendering (e_rendering : GameEntity.rendering) =
