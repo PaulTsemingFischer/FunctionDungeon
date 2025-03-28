@@ -21,29 +21,40 @@ let string_of_genworld (arr : t) =
     |> Array.to_list)
   ^ "\n"
 
-(**[generate_aux world walkers nwalkers] walks a random walker from the list of [walkers]
-   1 step with no more than [nwalkers] existing at any moment. *)
+type walker = {
+  mutable coord : vec2;
+  mutable age : int;
+}
+
+(**[generate_aux world walkers nwalkers] walks a random walker from the list of
+   [walkers] 1 step with no more than [nwalkers] existing at any moment. *)
 let generate_aux world walkers nwalkers =
   let random_walker () =
-    BatList.at !walkers (Random.int (BatList.length !walkers)) in
-  try
-    let walker = random_walker () in
-    for i = 1 to 4 do
-      let tile = add_vec2 !walker (random_dir ()) in
-      if get_at_vec_opt world tile = Some Void then begin
-        set_at_vec world tile Ground;
-        walker := tile;
+    BatList.at !walkers (Random.int (BatList.length !walkers))
+  in
+  let kill_walker walker = walkers := BatList.remove !walkers walker in
 
-        if BatList.length !walkers < nwalkers then
-          walkers := BatList.cons (random_walker ()) !walkers;
-        (*Add walker*)
-        raise Exit
-      end
-    done;
-    walkers := BatList.remove !walkers walker (*Kill lost walker *)
-  with Exit -> ()
+  let walker = random_walker () in
+  let possible_tiles =
+    neighbors walker.coord |> List.filter (fun c -> get_at_vec_opt world c = Some Void)
+  in
+  if List.is_empty possible_tiles then kill_walker walker
+  else
+    let tile =
+      BatList.at possible_tiles (Random.int (BatList.length possible_tiles))
+    in
+    set_at_vec world tile Ground;
+    walker.coord <- tile;
+    walker.age <- walker.age - 1;
+    if walker.age <= 0 then kill_walker walker
+    else if BatList.length !walkers < nwalkers then
+      walkers :=
+        BatList.cons
+          { coord = walker.coord; age = walker.age }
+          !walkers (*Add walker*)
 
-(**[post_process world] is the world after being processed to avoid narrow passages. *)
+(**[post_process world] is the world after being processed to avoid narrow
+   passages. *)
 let post_process world fill_chance =
   Array.mapi
     (fun outer_index arr ->
@@ -60,12 +71,12 @@ let post_process world fill_chance =
         arr)
     world
 
-let generate ?(printing = false) ?(nwalkers = 5) ?(pp_fill_chance = 0.4) width height =
+let generate ?(printing = false) ?(walker_age = 30) ?(nwalkers = 30) ?(pp_fill_chance = 0.4) width height =
   Random.self_init ();
   let world = Array.init height (fun _ -> Array.make width Void) in
   let center : vec2 = (height / 2, width / 2) in
   set_at_vec world center Ground;
-  let walkers = ref [ ref center ] in
+  let walkers = ref [ { coord = center; age = walker_age } ] in
   while BatList.length !walkers <> 0 do
     if printing then string_of_genworld world |> print_endline;
     generate_aux world walkers nwalkers
