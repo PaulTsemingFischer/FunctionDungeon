@@ -1,6 +1,6 @@
 (lang dune 3.17)
 
-(name cs_3110_team_project)
+(name functionDungeon)
 
 (generate_opam_files true)
 
@@ -16,7 +16,7 @@
 (documentation https://url/to/documentation)
 
 (package
- (name cs_3110_team_project)
+ (name functionDungeon)
  (synopsis "A short synopsis")
  (description "A longer description")
  (depends ocaml)
