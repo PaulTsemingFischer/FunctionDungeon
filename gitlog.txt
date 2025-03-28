@@ -1,0 +1,197 @@
+commit 6d7cca69e08e70874502d177645432a95db46739
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 28 11:52:07 2025 -0400
+
+    chore: update GALLERY.yaml and INSTALL.md
+
+commit 541388368b09c8eb8d8c48854e540aee99ae92fd
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 28 11:36:28 2025 -0400
+
+    chore: add run command to INSTALL.md and README
+
+commit 9216db199881bf459bfdb893182005e41c38f4ee
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 28 11:34:49 2025 -0400
+
+    chore: add AUTHORS.md and INSTALL.md
+
+commit 3f4682f216887797115ec469257917ffceb6d030
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Wed Mar 26 16:44:44 2025 -0400
+
+    task: remove generators
+
+commit 4b16f7e4b74a5020ae27ef611f9b8dc6c1b0c56a
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Sat Mar 22 01:17:30 2025 -0400
+
+    fix: remove debug print in pigeon.ml
+
+commit e35e901c343b0f362bed15b6ce90738a785ba17f
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Sat Mar 22 00:49:08 2025 -0400
+
+    chore: re-enable terminal flushing per turn
+
+commit 368563d9420df18cfe50b93bf0230721c1d17e6f
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Sat Mar 22 00:48:29 2025 -0400
+
+    doc: specified transition sorting
+
+commit 393095ce8c9c837a6b1a88977df36c65fa0a7b3f
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Sat Mar 22 00:47:07 2025 -0400
+
+    feat: add pigeon
+
+commit 58dde71a702ba6fb7bb4c15ad110ec4cec6e6cd1
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 23:44:45 2025 -0400
+
+    refactor: organized declarations into game director
+
+commit a24e055f4603e1eeed383bfebe9ae791ba5af55f
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 22:40:41 2025 -0400
+
+    refactor: move vec2 operations to separate Utils compilation unit
+
+commit a86a46bacada91da90ce4a47cda8ba4f18c61bdd
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 22:31:53 2025 -0400
+
+    refactor: functorize Entity, World, and State to allow for custom base stats in different scenarios
+
+commit 749ee6bb3fffced8b6ff1592a5c1b9eae612628d
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 21:16:02 2025 -0400
+
+    test: add full coverage for state operations
+
+commit fd56856d313b3e7bf16aa8de5690eb0fafda701d
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 13:07:34 2025 -0400
+
+    refactor: convert entity_type, rendering, and status to extensible variants
+
+commit 94aeed4a7e3ea750af061c51eb12950f975f65d2
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 11:48:51 2025 -0400
+
+    test: vec2 basic math operations
+
+commit 0a85528a7e17dd7174c1c723d417c609ec4b6b96
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 05:35:27 2025 -0400
+
+    chore: add html generation to coverage report
+
+commit 81732b34833c33f99af98a536c2056d8f1caa6f3
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 05:28:48 2025 -0400
+
+    feat: turn number added to state
+
+commit ebbcd5cc0b85bd7444da401205f6a38761bb0ee2
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 05:14:43 2025 -0400
+
+    feat: raise invalid input exception when trying to move into wall
+
+commit 8dd0d5e384bf987f449bc87b65646ce7dae006e0
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 04:59:51 2025 -0400
+
+    feat: add checks before movement to prevent walking into wall
+
+commit 8f16ae9461ef065d2ef436504656a7d0e566759b
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 03:09:33 2025 -0400
+
+    task: implement engine step function
+
+commit fc7c7d4e21f9c17a5c8e1140a827d8720b87a73b
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 02:54:31 2025 -0400
+
+    task: add stubs for state functions
+
+commit 2dd23692093f9894f08c9150331c3158eafce3f3
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 02:38:20 2025 -0400
+
+    task: create definitions for world state and transformations
+
+commit dc8ddd40740118463d0f9fe0e38b603da431a45e
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 01:56:56 2025 -0400
+
+    doc: document utility functions in tests
+
+commit 73c75cb5c20e059b9e52bb83be9922c146657f7d
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 01:55:23 2025 -0400
+
+    task: impelemnt and test world functions
+
+commit b4e40e43522238b67192d6bf7b107fc618c22327
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 00:35:47 2025 -0400
+
+    task: create world stub
+
+commit de23a38a172b7a69eef701a2dda87d07c0038bf9
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 00:15:51 2025 -0400
+
+    chore: udpate .gitignore and remove _coverage directory from tracking
+
+commit b72d335694e39c09de2db7d2346c95b94a01d26f
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Fri Mar 21 00:13:06 2025 -0400
+
+    task: implement and test entity creation
+
+commit 6cf6dfe07c7df5c82fb0c7c981e376ab764774bb
+Author: rwq3 <rwq3@cornell.edu>
+Date:   Wed Mar 19 15:27:53 2025 -0400
+
+    chore: initialize dune project
+
+commit 60ff7d33e8c81b8ffa1ade2de0ce580994c5e68b
+Author: summerxa <anne.xia6@gmail.com>
+Date:   Wed Mar 5 20:46:48 2025 -0500
+
+    Update ax53 name and add line breaks to README
+
+commit 6d2669da3f8c8f8f26389795c1a238a2b7aeb9af
+Author: YottaYocta <chubbean.rq@gmail.com>
+Date:   Wed Mar 5 20:46:45 2025 -0500
+
+    added name to readme
+
+commit a46e39e054137c11b8e15be4c42e51e0075afc90
+Author: michaelaeichel <michaelaeichel@gmail.com>
+Date:   Wed Mar 5 20:46:16 2025 -0500
+
+    commit name mae97
+
+commit e1ee10c1a31b02f16107b18a7867227abe2375a7
+Author: Paul Fischer <ptf34@cornell.edu>
+Date:   Wed Mar 5 20:44:39 2025 -0500
+
+    Initial commit by Paul Fischer (ptf34)
+
+commit 8e1daaa2b0f0f08be32c9f49be2bae5dd2210568
+Author: summerxa <anne.xia6@gmail.com>
+Date:   Wed Mar 5 20:41:31 2025 -0500
+
+    initial commit
+
+commit 8716fef7bd2d2f0195179af683d2e13199edeb3d
+Author: YottaYocta <chubbean.rq@gmail.com>
+Date:   Wed Mar 5 20:40:29 2025 -0500
+
+    initial commit
