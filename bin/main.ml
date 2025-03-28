@@ -4,6 +4,7 @@ open Game.Root
 open Game.Entities
 open Game.Player
 open Game.Transformations
+open Procgen
 
 let print_all_entities world =
   List.iter
@@ -40,7 +41,7 @@ let print_events (state : GameState.t) =
 
 let rec loop (state : GameState.t) =
   ignore (Sys.command "clear");
-  print_world_region state.world (-10, -10) (10, 10);
+  print_world_region state.world (0, 0) (19, 19);
   print_endline ("Turn number " ^ string_of_int state.turn);
   print_string "w/a/s/d/e/q: ";
   let input = String.trim (read_line ()) in
@@ -64,20 +65,12 @@ let () =
   let player = create_default_at Player (0, 0) in
   let pigeon = create_default_at (Pigeon 1) (3, 3) in
   let world =
-    GameWorld.put_entity (GameWorld.put_entity GameWorld.empty player) pigeon
+    GameWorld.put_entity
+      (GameWorld.put_entity
+         (Procgen.Rwalk.world_from_genworld
+            (Rwalk.generate ~printing:false 20 20))
+         player)
+      pigeon
   in
-  let world_with_walls =
-    List.fold_left
-      (fun (current_world : GameWorld.t) wall_pos ->
-        GameWorld.put_entity current_world (create_default_at Wall wall_pos))
-      world
-      (List.append
-         (List.append
-            (List.init 10 (fun x -> (-5 + x, 5)))
-            (List.init 10 (fun x -> (-5 + x, -5))))
-         (List.append
-            (List.init 11 (fun x -> (5, -5 + x)))
-            (List.init 10 (fun x -> (-5, x - 5)))))
-  in
-  let state = GameState.create world_with_walls [ entity_action_runner ] in
+  let state = GameState.create world [ entity_action_runner ] in
   loop state
