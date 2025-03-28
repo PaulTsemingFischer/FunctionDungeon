@@ -10,7 +10,12 @@ open Root
 
    4. define entity behavior using transformations in entity_action_generator *)
 
-type GameEntity.entity_type += Wall | Player | Pigeon of int
+type GameEntity.entity_type +=
+  | Wall
+  | Player
+  | Pigeon of int
+  | Enemy of Enemies.enemy
+
 type GameEntity.rendering += Ascii of char | Id_debug
 
 (* printing entities *)
@@ -19,6 +24,7 @@ let string_of_entity_types (e_type : GameEntity.entity_type) =
   | Wall -> "wall"
   | Player -> "player"
   | Pigeon x -> Printf.sprintf "pigeon (%d)" x
+  | Enemy e -> Printf.sprintf "%s" (Enemies.string_of_enemy e)
   | _ -> failwith "entity error: unsupported entity type"
 
 let string_of_entity_rendering (e_rendering : GameEntity.rendering) =
