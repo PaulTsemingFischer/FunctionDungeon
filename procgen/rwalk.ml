@@ -1,6 +1,9 @@
 open Engine.Utils
 open BatList
 open Seq
+open Game.Root
+open Game.Entities
+open Engine
 
 type tile =
   | Void
@@ -36,7 +39,8 @@ let generate_aux world walkers nwalkers =
 
   let walker = random_walker () in
   let possible_tiles =
-    neighbors walker.coord |> List.filter (fun c -> get_at_vec_opt world c = Some Void)
+    neighbors walker.coord
+    |> List.filter (fun c -> get_at_vec_opt world c = Some Void)
   in
   if List.is_empty possible_tiles then kill_walker walker
   else
@@ -71,7 +75,8 @@ let post_process world fill_chance =
         arr)
     world
 
-let generate ?(printing = false) ?(walker_age = 30) ?(nwalkers = 30) ?(pp_fill_chance = 0.4) width height =
+let generate ?(printing = false) ?(walker_age = 30) ?(nwalkers = 5)
+    ?(pp_fill_chance = 0.6) width height =
   Random.self_init ();
   let world = Array.init height (fun _ -> Array.make width Void) in
   let center : vec2 = (height / 2, width / 2) in
@@ -85,3 +90,25 @@ let generate ?(printing = false) ?(walker_age = 30) ?(nwalkers = 30) ?(pp_fill_c
   let world = post_process world pp_fill_chance in
   if printing then string_of_genworld world |> print_endline;
   world
+
+let world_from_genworld gen_world =
+  let game_world = ref GameWorld.empty in
+  let rows = Array.length gen_world in
+  if rows = 0 then !game_world
+  else
+    let cols = Array.length gen_world.(0) in
+    for i = 0 to rows - 1 do
+      for j = 0 to cols - 1 do
+        let tile = get_at_vec gen_world (i, j) in
+        let neighbor_tiles =
+          List.map (get_at_vec_opt gen_world) (neighbors (i, j))
+        in
+        if tile = Void && List.mem (Some Ground) neighbor_tiles then
+          (* print_endline ("Adding to " ^ string_of_int i ^ ", " ^
+             string_of_int j); *)
+          game_world :=
+            GameWorld.put_entity !game_world (create_default_at Wall (i, j))
+      done
+    done;
+    print_endline (string_of_genworld gen_world);
+    !game_world

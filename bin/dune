@@ -1,4 +1,4 @@
 (executable
  (public_name functionDungeon)
  (name main)
- (libraries engine game))
+ (libraries engine game procgen))
