@@ -43,14 +43,22 @@ module Make (W : World.S) : S with type w_t = W.t and type e_t = W.e_t = struct
   exception Invalid_input of input
 
   let step (state : t) (input : input) =
-    List.fold_left
-      (fun (state_ext : t) (entity : e_t) ->
-        List.fold_left
-          (fun (acc : t) (transition : transition) ->
-            transition state_ext entity input)
-          state_ext state_ext.transitions)
-      state
-      (W.all_entities state.world)
+    let new_state =
+      List.fold_left
+        (fun (state_ext : t) (entity : e_t) ->
+          List.fold_left
+            (fun (acc : t) (transition : transition) ->
+              transition state_ext entity input)
+            state_ext state_ext.transitions)
+        state
+        (W.all_entities state.world)
+    in
+    {
+      world = new_state.world;
+      transitions = new_state.transitions;
+      events = new_state.events;
+      turn = new_state.turn + 1;
+    }
 
   let update_world { world; transitions; events; turn } new_world : t =
     { world = new_world; transitions; events; turn }
