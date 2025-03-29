@@ -1,0 +1,33 @@
+---
+# Members of your group.
+group:
+  - name: Ryan Qiu
+    netid: rwq3
+  - name: Anne Xia
+    netid: ax53
+  - name: Paul Fischer
+    netid: ptf34
+  - name: Michaela Eichel
+    netid: mae97
+
+# Your PM.
+pm:
+  name: Brandon Lerit
+  netid: bsl77
+# Set to false if you don't want your gallery entry to be public.
+publish: true
+# Pithy title
+title: "Function Dungeon"
+# OK if this is a Cornell Github link, but public gallery viewers won't be able to see it.
+git-repo: "https://github.com/PaulTsemingFischer/FunctionDungeon"
+# Replace the URL with your own demo video.
+demo-video-url: https://youtube.com/shorts/1oci-PfxXKg?feature=share
+# Write a short, attention-grabbing description of your project.
+desc: >
+  Our project is a dungeon-crawler game. Players explore randomly
+  generated rooms, so each play-through is unique. Battle enemies,
+  manage your resources, and collect items to advance to the next
+  floor.
+
+  Standard keyboard input is supported, and the game is displayed with
+  custom GUI.

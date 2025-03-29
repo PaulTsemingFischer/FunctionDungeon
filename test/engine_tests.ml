@@ -188,7 +188,7 @@ let simple_transition : TestState.transition =
  fun (start_state : TestState.t) (entity : TestEntity.t)
      (_ : TestState.input) ->
   let updated =
-    TestEntity.update_stats entity { health = entity.stats.health -. 0.1 }
+    TestEntity.update_stats entity { health = entity.stats.health -. 1.0 }
   in
   TestState.update_world start_state
     (TestWorld.put_entity start_state.world updated)
