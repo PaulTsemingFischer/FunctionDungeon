@@ -1,7 +1,7 @@
 # Install necessary packages:
 
 ```
-opam install ounit2 bisect_ppx
+opam install ounit2 bisect_ppx batteries
 ```
 
 # Run Game:
