@@ -3,26 +3,25 @@ open Engine
 open Engine.Utils
 
 type test_stat = { health : float }
+type test_types = TestEntity
 
-module BaseTestStat : Entity.StatType with type t = test_stat = struct
+module BaseTestDeclarations :
+  Entity.EntityData with type t = test_stat and type entity_type = test_types =
+struct
   type t = test_stat
+  type entity_type = test_types
 
   let zeroed_stats = { health = 0.0 }
   let string_of_stats stat = Printf.sprintf "health: %f" stat.health
+  let string_of_type e_type = "test"
 end
 
-module TestEntity = Entity.Make (BaseTestStat)
+module TestEntity = Entity.Make (BaseTestDeclarations)
 module TestWorld = World.Make (TestEntity)
 module TestState = State.Make (TestWorld)
 
-type TestEntity.entity_type += Test_type
 type TestEntity.rendering += Test_rendering
 type TestState.input += Test_input
-
-let string_of_test_types (e_type : TestEntity.entity_type) =
-  match e_type with
-  | Test_type -> "test_type"
-  | _ -> failwith "test error: unsupported entity type"
 
 let string_of_test_rendering (e_rendering : TestEntity.rendering) =
   match e_rendering with
@@ -34,12 +33,11 @@ let string_of_test_status (e_status : TestEntity.status) =
   | _ -> failwith "test error: unsupported entity status"
 
 let string_of_test_entity =
-  TestEntity.string_of_entity string_of_test_types string_of_test_rendering
-    string_of_test_status
+  TestEntity.string_of_entity string_of_test_rendering string_of_test_status
 
 (**[create_test_entity ()] is utility method that creates a test_entity entity*)
 let create_test_entity () =
-  TestEntity.create { health = 0. } Test_type Test_rendering [] (0, 0)
+  TestEntity.create { health = 0. } TestEntity Test_rendering [] (0, 0)
 
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : TestEntity.t option) =
@@ -70,7 +68,7 @@ let entity_tests =
          >:: fun _ ->
            let new_entity = create_test_entity () in
            assert_equal { health = 0. } new_entity.stats;
-           assert_equal Test_type new_entity.TestEntity.entity_type;
+           assert_equal TestEntity new_entity.TestEntity.entity_type;
            assert_equal Test_rendering new_entity.rendering;
            assert_equal [] new_entity.statuses );
          ( "Entity.create produces an entity with a different id after one \
@@ -78,7 +76,7 @@ let entity_tests =
          >:: fun _ ->
            let e_1 = create_test_entity () and e_2 = create_test_entity () in
            assert_equal { health = 0. } e_2.stats;
-           assert_equal Test_type e_2.TestEntity.entity_type;
+           assert_equal TestEntity e_2.TestEntity.entity_type;
            assert_equal Test_rendering e_2.rendering;
            assert_equal [] e_2.statuses;
            assert_bool "entity id should be different, but is the same"

@@ -1,10 +1,12 @@
 open Utils
 
-module type StatType = sig
+module type EntityData = sig
   type t
+  type entity_type
 
   val zeroed_stats : t
   val string_of_stats : t -> string
+  val string_of_type : entity_type -> string
 end
 
 module type S = sig
@@ -16,7 +18,7 @@ module type S = sig
 
   val zeroed_stats : stats
 
-  type entity_type = ..
+  type entity_type
   type rendering = ..
   type status = ..
 
@@ -34,25 +36,22 @@ module type S = sig
   val update_stats : t -> stats -> t
 
   val string_of_entity :
-    (entity_type -> string) ->
-    (rendering -> string) ->
-    (status -> string) ->
-    t ->
-    string
+    (rendering -> string) -> (status -> string) -> t -> string
 
   include Set.OrderedType with type t := t
 end
 
-module Make (ST : StatType) : S with type stats = ST.t = struct
+module Make (ED : EntityData) :
+  S with type stats = ED.t and type entity_type = ED.entity_type = struct
   type id = int
 
   let string_of_id = string_of_int
 
-  type stats = ST.t
+  type stats = ED.t
 
-  let zeroed_stats = ST.zeroed_stats
+  let zeroed_stats = ED.zeroed_stats
 
-  type entity_type = ..
+  type entity_type = ED.entity_type
   type rendering = ..
   type status = ..
 
@@ -104,8 +103,7 @@ module Make (ST : StatType) : S with type stats = ST.t = struct
       statuses = e.statuses;
     }
 
-  let string_of_entity (string_of_type : entity_type -> string)
-      (string_of_rendering : rendering -> string)
+  let string_of_entity (string_of_rendering : rendering -> string)
       (string_of_status : status -> string) e =
     Printf.sprintf
       "{\n\
@@ -117,8 +115,8 @@ module Make (ST : StatType) : S with type stats = ST.t = struct
       \  statuses: \"%s\",\n\
        }"
       e.id (string_of_vec e.pos)
-      (ST.string_of_stats e.stats)
-      (string_of_type e.entity_type)
+      (ED.string_of_stats e.stats)
+      (ED.string_of_type e.entity_type)
       (string_of_rendering e.rendering)
       (List.fold_left
          (fun acc x -> acc ^ ", " ^ string_of_status x)

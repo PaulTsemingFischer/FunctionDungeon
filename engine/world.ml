@@ -21,18 +21,7 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
   type t = EntitySet.t
   type e_t = E.t
   type e_id = E.id
-  type E.entity_type += Placeholder
   type E.rendering += RPlaceholder
-
-  let make_placeholder_entity (e_id : e_id) : e_t =
-    {
-      id = e_id;
-      pos = (0, 0);
-      stats = E.zeroed_stats;
-      entity_type = Placeholder;
-      rendering = RPlaceholder;
-      statuses = [];
-    }
 
   let empty = EntitySet.empty
   let all_entities (world : t) : e_t list = EntitySet.to_list world
@@ -41,28 +30,24 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
     List.find_opt (fun (e : e_t) -> e.pos = pos) (all_entities world)
 
   let query_id world e_id =
-    EntitySet.find_opt
-      {
-        id = e_id;
-        pos = (0, 0);
-        stats = E.zeroed_stats;
-        entity_type = Placeholder;
-        rendering = RPlaceholder;
-        statuses = [];
-      }
-      world
+    EntitySet.find_first_opt (fun entity -> entity.id = e_id) world
 
   let mem_pos world pos =
     match query_pos world pos with
     | Some _ -> true
     | None -> false
 
-  let mem_id world e_id = EntitySet.mem (make_placeholder_entity e_id) world
+  let mem_id world e_id =
+    match query_id world e_id with
+    | Some _ -> true
+    | None -> false
 
   let put_entity (world : t) (e : e_t) =
     if EntitySet.mem e world then EntitySet.add e (EntitySet.remove e world)
     else EntitySet.add e world
 
   let remove_entity (world : t) (e_id : e_id) =
-    EntitySet.remove (make_placeholder_entity e_id) world
+    match query_id world e_id with
+    | Some e -> EntitySet.remove e world
+    | None -> world
 end
