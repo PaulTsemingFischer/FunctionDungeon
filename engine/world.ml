@@ -21,7 +21,6 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
   type t = EntitySet.t
   type e_t = E.t
   type e_id = E.id
-  type E.rendering += RPlaceholder
 
   let empty = EntitySet.empty
   let all_entities (world : t) : e_t list = EntitySet.to_list world
@@ -30,7 +29,7 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
     List.find_opt (fun (e : e_t) -> e.pos = pos) (all_entities world)
 
   let query_id world e_id =
-    EntitySet.find_first_opt (fun entity -> entity.id = e_id) world
+    EntitySet.find_first_opt (fun entity -> entity.id >= e_id) world
 
   let mem_pos world pos =
     match query_pos world pos with

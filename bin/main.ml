@@ -22,10 +22,10 @@ let rec print_world_region (world : GameWorld.t) ((x1, y1) : int * int)
         (match GameWorld.query_pos world (xr, yr) with
         | None -> print_string (String.make 1 '.' ^ " ")
         | Some ent -> (
-            match ent.rendering with
-            | Ascii x -> print_string (String.make 1 x ^ " ")
-            | Id_debug -> Printf.printf "%-2s" (GameEntity.string_of_id ent.id)
-            | _ -> failwith "game error: unsupported renderer"));
+            match ent.entity_type with
+            | Pigeon _ -> print_string "p "
+            | Player -> print_string "@ "
+            | Wall -> print_string "# "));
         print_row world (xr + 1, yr) end_x)
     in
     print_row world (x1, y2) x2;
@@ -40,7 +40,7 @@ let print_events (state : GameState.t) =
   ignore (read_line ())
 
 let rec loop (state : GameState.t) =
-  ignore (Sys.command "clear");
+  (* ignore (Sys.command "clear"); *)
   print_world_region state.world (0, 0) (19, 19);
   print_endline ("Turn number " ^ string_of_int state.turn);
   print_string "w/a/s/d/e/q: ";

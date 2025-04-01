@@ -20,24 +20,17 @@ module TestEntity = Entity.Make (BaseTestDeclarations)
 module TestWorld = World.Make (TestEntity)
 module TestState = State.Make (TestWorld)
 
-type TestEntity.rendering += Test_rendering
 type TestState.input += Test_input
-
-let string_of_test_rendering (e_rendering : TestEntity.rendering) =
-  match e_rendering with
-  | Test_rendering -> "test_rendering"
-  | _ -> failwith "test error: unsupported rendering type"
 
 let string_of_test_status (e_status : TestEntity.status) =
   match e_status with
   | _ -> failwith "test error: unsupported entity status"
 
-let string_of_test_entity =
-  TestEntity.string_of_entity string_of_test_rendering string_of_test_status
+let string_of_test_entity = TestEntity.string_of_entity string_of_test_status
 
 (**[create_test_entity ()] is utility method that creates a test_entity entity*)
 let create_test_entity () =
-  TestEntity.create { health = 0. } TestEntity Test_rendering [] (0, 0)
+  TestEntity.create { health = 0. } TestEntity [] (0, 0)
 
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : TestEntity.t option) =
@@ -69,7 +62,6 @@ let entity_tests =
            let new_entity = create_test_entity () in
            assert_equal { health = 0. } new_entity.stats;
            assert_equal TestEntity new_entity.TestEntity.entity_type;
-           assert_equal Test_rendering new_entity.rendering;
            assert_equal [] new_entity.statuses );
          ( "Entity.create produces an entity with a different id after one \
             entity is already created"
@@ -77,7 +69,6 @@ let entity_tests =
            let e_1 = create_test_entity () and e_2 = create_test_entity () in
            assert_equal { health = 0. } e_2.stats;
            assert_equal TestEntity e_2.TestEntity.entity_type;
-           assert_equal Test_rendering e_2.rendering;
            assert_equal [] e_2.statuses;
            assert_bool "entity id should be different, but is the same"
              (not (e_1.id = e_2.id)) );
@@ -93,7 +84,6 @@ let entity_tests =
 
            assert_equal { health = -1.0 } e2.stats;
            assert_equal e1.TestEntity.entity_type e2.TestEntity.entity_type;
-           assert_equal e1.rendering e2.rendering;
            assert_equal e1.statuses e2.statuses );
        ]
 
@@ -126,6 +116,53 @@ let world_tests =
            let e1 = create_test_entity () in
            let w = TestWorld.put_entity TestWorld.empty e1 in
            assert_equal (Some e1) (TestWorld.query_id w e1.id) );
+         ( "adding two entities to a world and retrieving them in added order \
+            with query_id should return an option containing that entity"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let e2 = create_test_entity () in
+           let w = TestWorld.put_entity TestWorld.empty e1 in
+           let w2 = TestWorld.put_entity w e2 in
+           assert_equal (Some e1) (TestWorld.query_id w2 e1.id)
+             ~printer:(fun x ->
+               match x with
+               | Some _ -> "some"
+               | None -> "none");
+           assert_equal (Some e2) (TestWorld.query_id w2 e2.id)
+             ~printer:(fun x ->
+               match x with
+               | Some _ -> "some"
+               | None -> "none") );
+         ( "adding two entities in reverse order to a world and retrieving \
+            them in added order with query_id should return an option \
+            containing that entity"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let e2 = create_test_entity () in
+           let w = TestWorld.put_entity TestWorld.empty e2 in
+           let w2 = TestWorld.put_entity w e1 in
+           assert_equal (Some e2) (TestWorld.query_id w2 e2.id);
+           assert_equal (Some e1) (TestWorld.query_id w2 e1.id) );
+         ( "adding two entities in normal order to a world and retrieving \
+            them  in reverse order with query_id should return an option \
+            containing  that entity"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let e2 = create_test_entity () in
+           let w = TestWorld.put_entity TestWorld.empty e1 in
+           let w2 = TestWorld.put_entity w e2 in
+           assert_equal (Some e2) (TestWorld.query_id w2 e2.id);
+           assert_equal (Some e1) (TestWorld.query_id w2 e1.id) );
+         ( "adding two entities in reverse order to a world and retrieving \
+            them in reverse order with query_id should return an option \
+            containing that entity"
+         >:: fun _ ->
+           let e1 = create_test_entity () in
+           let e2 = create_test_entity () in
+           let w = TestWorld.put_entity TestWorld.empty e2 in
+           let w2 = TestWorld.put_entity w e1 in
+           assert_equal (Some e1) (TestWorld.query_id w2 e1.id);
+           assert_equal (Some e2) (TestWorld.query_id w2 e2.id) );
          ( "retrieving an entity from an empty world by id should produce None"
          >:: fun _ ->
            let e1 = create_test_entity () in
