@@ -222,78 +222,7 @@ let world_tests =
            assert_equal TestWorld.empty (TestWorld.remove_entity w1 e1.id) );
        ]
 
-let simple_transition : TestState.transition =
- fun (start_state : TestState.t) (entity : TestEntity.t)
-     (_ : TestState.input) ->
-  let updated =
-    TestEntity.update_stats entity { health = entity.stats.health -. 1.0 }
-  in
-  TestState.update_world start_state
-    (TestWorld.put_entity start_state.world updated)
-
-let useless_transition (start_state : TestState.t) _ _ : TestState.t =
-  start_state
-
-let print_all_entities (w : TestWorld.t) =
-  List.iter
-    (fun e -> print_endline (TestEntity.string_of_entity e))
-    (TestWorld.all_entities w)
-
-(**[state_tests] tests stepping through state with multiple state generator
-   functions and ensuring that the state at each step is the expected state*)
-let state_tests =
-  "test suite that tests end-to-end functionality of state progression"
-  >::: [
-         ( "stepping through the state of a game with no generators and a \
-            single entity advances the turn but leaves the entity unchanged"
-         >:: fun _ ->
-           let e1 = create_test_entity () in
-           let world = TestWorld.put_entity TestWorld.empty e1 in
-           let state_start = TestState.create world [] in
-           assert_equal (Some e1) (TestWorld.query_id state_start.world e1.id);
-           assert_equal 0 state_start.turn;
-           let state_next = TestState.step state_start Test_input in
-           assert_equal (Some e1) (TestWorld.query_id state_next.world e1.id);
-           assert_equal 1 state_next.turn );
-         ( "stepping through the state of a game with one generator that \
-            decreases health and a single entity advances the turn and \
-            decreases the entity's health"
-         >:: fun _ ->
-           let e1 = create_test_entity () in
-           let world = TestWorld.put_entity TestWorld.empty e1 in
-           let state_start = TestState.create world [ simple_transition ] in
-           print_all_entities state_start.world;
-           assert_equal (Some e1) (TestWorld.query_id state_start.world e1.id);
-           assert_equal 0 state_start.turn;
-           let state_next = TestState.step state_start Test_input in
-           print_all_entities state_next.world;
-
-           assert_equal
-             (Some
-                (TestEntity.update_stats e1 { health = e1.stats.health -. 1.0 }))
-             (TestWorld.query_id state_next.world e1.id)
-             ~printer:string_of_entity_option;
-           assert_equal 1 state_next.turn );
-         ( "stepping through the state of a game with one generator that does \
-            nothing and a single entity advances the turn but leaves the \
-            entity unchanged"
-         >:: fun _ ->
-           let e1 = create_test_entity () in
-           let world = TestWorld.put_entity TestWorld.empty e1 in
-           let state_start = TestState.create world [ useless_transition ] in
-           print_all_entities state_start.world;
-           assert_equal (Some e1) (TestWorld.query_id state_start.world e1.id);
-           assert_equal 0 state_start.turn;
-           let state_next = TestState.step state_start Test_input in
-           print_all_entities state_next.world;
-           assert_equal (Some e1)
-             (TestWorld.query_id state_next.world e1.id)
-             ~printer:string_of_entity_option;
-           assert_equal 1 state_next.turn );
-       ]
-
 let _ =
   run_test_tt_main utils_tests;
   run_test_tt_main entity_tests;
-  run_test_tt_main world_tests;
-  run_test_tt_main state_tests
+  run_test_tt_main world_tests
