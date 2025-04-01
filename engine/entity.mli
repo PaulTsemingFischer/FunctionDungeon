@@ -37,10 +37,6 @@ module type S = sig
   (**[entity_type] describes the behavior of entities in game and optionally
      contains state related to that entity type*)
 
-  type rendering = ..
-  (**[rendering] describes how an entity should be rendered, and optionally
-     contain rendering state*)
-
   type status = ..
   (**[status] describes a status affect applied to an entity*)
 
@@ -49,13 +45,12 @@ module type S = sig
     pos : vec2;
     stats : stats;
     entity_type : entity_type;
-    rendering : rendering;
     statuses : status list;
   }
   (**[t] is the type of an entity, containing its id, stats, entity type,
      rendering rules, and statuses*)
 
-  val create : stats -> entity_type -> rendering -> status list -> vec2 -> t
+  val create : stats -> entity_type -> status list -> vec2 -> t
   (**[create stats entity_type rendering statuses pos] creates an entity with a
      unique id and the given entity information*)
 
@@ -67,7 +62,6 @@ module type S = sig
      stats equal to [stats] and other parameters being equal to that of [source]*)
 
   val string_of_entity :
-    (rendering -> string) ->
     (status -> string) ->
     t ->
     string
