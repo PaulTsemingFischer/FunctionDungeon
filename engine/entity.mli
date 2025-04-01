@@ -1,14 +1,21 @@
 open Utils
 
-module type StatType = sig
+module type EntityData = sig
   type t
   (**[t] is the type of the entity's stats*)
+
+  type entity_type
+  (**[entity_type] describes the behavior of entities in game and optionally
+     contains state related to that entity type*)
 
   val zeroed_stats : t
   (**[zeroed_stats] is the default 'zeroed' instance of the given stat type*)
 
   val string_of_stats : t -> string
   (**[string_of_stats] is a function that converts [t] into a string*)
+
+   val string_of_type : entity_type -> string
+
 end
 
 module type S = sig
@@ -26,7 +33,7 @@ module type S = sig
   val zeroed_stats : stats
   (**[starter_stats] is a utility stats record with all stats set to zero*)
 
-  type entity_type = ..
+  type entity_type
   (**[entity_type] describes the behavior of entities in game and optionally
      contains state related to that entity type*)
 
@@ -60,7 +67,6 @@ module type S = sig
      stats equal to [stats] and other parameters being equal to that of [source]*)
 
   val string_of_entity :
-    (entity_type -> string) ->
     (rendering -> string) ->
     (status -> string) ->
     t ->
@@ -71,4 +77,4 @@ module type S = sig
   include Set.OrderedType with type t := t
 end
 
-module Make (ST : StatType) : S with type stats = ST.t
+module Make (ED : EntityData) : S with type stats = ED.t and type entity_type = ED.entity_type
