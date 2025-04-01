@@ -4,16 +4,21 @@ open Engine.Utils
 
 type test_stat = { health : float }
 type test_types = TestEntity
+type test_status_effects = Generic
 
 module BaseTestDeclarations :
-  Entity.EntityData with type t = test_stat and type entity_type = test_types =
-struct
+  Entity.EntityData
+    with type t = test_stat
+     and type entity_type = test_types
+     and type status_effect = test_status_effects = struct
   type t = test_stat
   type entity_type = test_types
+  type status_effect = test_status_effects
 
   let zeroed_stats = { health = 0.0 }
   let string_of_stats stat = Printf.sprintf "health: %f" stat.health
   let string_of_type e_type = "test"
+  let string_of_status (_ : status_effect) = "generic"
 end
 
 module TestEntity = Entity.Make (BaseTestDeclarations)
@@ -22,11 +27,9 @@ module TestState = State.Make (TestWorld)
 
 type TestState.input += Test_input
 
-let string_of_test_status (e_status : TestEntity.status) =
+let string_of_test_status (e_status : TestEntity.status_effect) =
   match e_status with
   | _ -> failwith "test error: unsupported entity status"
-
-let string_of_test_entity = TestEntity.string_of_entity string_of_test_status
 
 (**[create_test_entity ()] is utility method that creates a test_entity entity*)
 let create_test_entity () =
@@ -35,7 +38,7 @@ let create_test_entity () =
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : TestEntity.t option) =
   match op with
-  | Some x -> string_of_test_entity x
+  | Some x -> TestEntity.string_of_entity x
   | None -> "none"
 
 (**[utils_tests] tests operations with vec2s*)
@@ -233,7 +236,7 @@ let useless_transition (start_state : TestState.t) _ _ : TestState.t =
 
 let print_all_entities (w : TestWorld.t) =
   List.iter
-    (fun e -> print_endline (string_of_test_entity e))
+    (fun e -> print_endline (TestEntity.string_of_entity e))
     (TestWorld.all_entities w)
 
 (**[state_tests] tests stepping through state with multiple state generator

@@ -3,10 +3,12 @@ open Utils
 module type EntityData = sig
   type t
   type entity_type
+  type status_effect
 
   val zeroed_stats : t
   val string_of_stats : t -> string
   val string_of_type : entity_type -> string
+  val string_of_status : status_effect -> string
 end
 
 module type S = sig
@@ -19,26 +21,29 @@ module type S = sig
   val zeroed_stats : stats
 
   type entity_type
-  type status = ..
+  type status_effect
 
   type t = {
     id : id;
     pos : vec2;
     stats : stats;
     entity_type : entity_type;
-    statuses : status list;
+    statuses : status_effect list;
   }
 
-  val create : stats -> entity_type -> status list -> vec2 -> t
+  val create : stats -> entity_type -> status_effect list -> vec2 -> t
   val set_pos : t -> vec2 -> t
   val update_stats : t -> stats -> t
-  val string_of_entity : (status -> string) -> t -> string
+  val string_of_entity : t -> string
 
   include Set.OrderedType with type t := t
 end
 
 module Make (ED : EntityData) :
-  S with type stats = ED.t and type entity_type = ED.entity_type = struct
+  S
+    with type stats = ED.t
+     and type entity_type = ED.entity_type
+     and type status_effect = ED.status_effect = struct
   type id = int
 
   let string_of_id = string_of_int
@@ -48,14 +53,14 @@ module Make (ED : EntityData) :
   let zeroed_stats = ED.zeroed_stats
 
   type entity_type = ED.entity_type
-  type status = ..
+  type status_effect = ED.status_effect
 
   type t = {
     id : int;
     pos : vec2;
     stats : stats;
     entity_type : entity_type;
-    statuses : status list;
+    statuses : status_effect list;
   }
 
   let update_stats (e : t) (stats : stats) =
@@ -94,7 +99,7 @@ module Make (ED : EntityData) :
       statuses = e.statuses;
     }
 
-  let string_of_entity (string_of_status : status -> string) e =
+  let string_of_entity e =
     Printf.sprintf
       "{\n\
       \  id: %d,\n\
@@ -107,7 +112,7 @@ module Make (ED : EntityData) :
       (ED.string_of_stats e.stats)
       (ED.string_of_type e.entity_type)
       (List.fold_left
-         (fun acc x -> acc ^ ", " ^ string_of_status x)
+         (fun acc x -> acc ^ ", " ^ ED.string_of_status x)
          "" e.statuses)
 
   let compare (e1 : t) (e2 : t) = e1.id - e2.id

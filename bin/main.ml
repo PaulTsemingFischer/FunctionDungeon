@@ -8,7 +8,7 @@ open Procgen
 
 let print_all_entities world =
   List.iter
-    (fun ent -> print_endline (string_of_entity ent))
+    (fun ent -> print_endline (GameEntity.string_of_entity ent))
     (GameWorld.all_entities world)
 
 let rec print_world_region (world : GameWorld.t) ((x1, y1) : int * int)
@@ -40,7 +40,7 @@ let print_events (state : GameState.t) =
   ignore (read_line ())
 
 let rec loop (state : GameState.t) =
-  (* ignore (Sys.command "clear"); *)
+  ignore (Sys.command "clear");
   print_world_region state.world (0, 0) (19, 19);
   print_endline ("Turn number " ^ string_of_int state.turn);
   print_string "w/a/s/d/e/q: ";

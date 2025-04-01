@@ -1,11 +1,5 @@
 open Root
 
-let string_of_entity_status (e_status : GameEntity.status) =
-  match e_status with
-  | _ -> failwith "entity error: unsupported entity status"
-
-let string_of_entity = GameEntity.string_of_entity string_of_entity_status
-
 (* creating entities *)
 
 let create_default_at e_type pos =
