@@ -56,10 +56,7 @@ let rec loop (state : GameState.t) =
         print_events state;
         loop state
     | _ -> loop state
-  with GameState.Invalid_input input_val -> (
-    match input_val with
-    | MovePlayer vec -> loop state
-    | _ -> print_endline "unknown invalid action")
+  with GameState.Invalid_input _ -> loop state
 
 let () =
   let player = create_default_at Player (0, 0) in
