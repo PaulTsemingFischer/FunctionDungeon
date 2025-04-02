@@ -1,11 +1,11 @@
 open Game
 open Game.Root
 open Raylib
+open Engine.Utils
 
 type renderable = {
   source_entity : GameEntity.t;
-  x : float;
-  y : float;
+  rendered_pos : vec2f;
 }
 
 module ComparableRenderable = struct
@@ -33,14 +33,17 @@ let update_render_state (renderer : t) (game_state : GameState.t) =
          match renderer_opt with
          | None ->
              RenderableSet.add
-               { source_entity = entity; x = 0.0; y = 0.0 }
+               { source_entity = entity; rendered_pos = (0., 0.) }
                updated_renderer
          | Some exising_renderable ->
              let temp_renderer =
                RenderableSet.remove exising_renderable updated_renderer
              in
              RenderableSet.add
-               { source_entity = entity; x = 0.0; y = 0.0 }
+               {
+                 source_entity = entity;
+                 rendered_pos = exising_renderable.rendered_pos;
+               }
                temp_renderer)
        renderer
 
@@ -51,8 +54,10 @@ let tick (renderer : t) =
     (fun current_renderable ->
       {
         source_entity = current_renderable.source_entity;
-        x = float_of_int (fst current_renderable.source_entity.pos);
-        y = float_of_int (snd current_renderable.source_entity.pos);
+        rendered_pos =
+          lerp_vec current_renderable.rendered_pos
+            (vec2f_of_vec2 current_renderable.source_entity.pos)
+            0.5;
       })
     renderer
 
@@ -61,27 +66,35 @@ let render (renderer : t) =
   Raylib.clear_background Color.white;
   RenderableSet.to_list renderer
   |> List.iter (fun (r : renderable) ->
-         let renderable_x =
-           int_of_float
-             ((r.x *. font_scaling_factor) -. (font_scaling_factor /. 2.0))
-           + (Raylib.get_screen_width () / 2)
-         in
-         let renderable_y =
-           (Raylib.get_screen_height () / 2)
-           - int_of_float
-               ((r.y *. font_scaling_factor) -. (font_scaling_factor /. 2.0))
+         let screen_space_position =
+           ( float_of_int (Raylib.get_screen_width () / 2),
+             float_of_int (Raylib.get_screen_height () / 2) )
+           |> add_vec2f
+                (mul_vec2f
+                   (scale_vec2f r.rendered_pos font_scaling_factor)
+                   (1.0, -1.0))
+           |> add_vec2f
+                (neg_vec2f
+                   (font_scaling_factor /. 2.0, font_scaling_factor /. 2.0))
+           |> vec2_of_vec2f
          in
          match r.source_entity.entity_type with
          | Player ->
-             Raylib.draw_text "@" renderable_x renderable_y
+             Raylib.draw_text "@"
+               (fst screen_space_position)
+               (snd screen_space_position)
                (int_of_float font_scaling_factor)
                Color.black
          | Pigeon _ ->
-             Raylib.draw_text "p" renderable_x renderable_y
+             Raylib.draw_text "p"
+               (fst screen_space_position)
+               (snd screen_space_position)
                (int_of_float font_scaling_factor)
                Color.black
          | Wall ->
-             Raylib.draw_text "#" renderable_x renderable_y
+             Raylib.draw_text "#"
+               (fst screen_space_position)
+               (snd screen_space_position)
                (int_of_float font_scaling_factor)
                Color.black);
   Raylib.end_drawing ()
@@ -126,9 +139,5 @@ let loop (renderer : t) (game_state : GameState.t)
 let make_from_state (game_state : GameState.t) =
   GameWorld.all_entities game_state.world
   |> List.map (fun (entity : GameEntity.t) ->
-         {
-           source_entity = entity;
-           x = float_of_int (fst entity.pos);
-           y = float_of_int (snd entity.pos);
-         })
+         { source_entity = entity; rendered_pos = vec2f_of_vec2 entity.pos })
   |> RenderableSet.of_list

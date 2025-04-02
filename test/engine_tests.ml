@@ -50,7 +50,33 @@ let utils_tests =
          ( "neg_vec2 correctly computes the difference between two vectors"
          >:: fun _ -> assert_equal (-1, 0) (sub_vec2 (0, 1) (1, 1)) );
          ( "string_of_vec2 correctly converts the given vec2 to a string"
-         >:: fun _ -> assert_equal "(-1,0)" (string_of_vec (-1, 0)) );
+         >:: fun _ -> assert_equal "(-1,0)" (string_of_vec2 (-1, 0)) );
+         ( "add_vec2f correctly computes the sum of two vectors" >:: fun _ ->
+           assert_equal (1., 2.) (add_vec2f (0., 1.) (1., 1.)) );
+         ( "neg_vec2f correctly computes the negation of a vector" >:: fun _ ->
+           assert_equal (-3., -1.) (neg_vec2f (3., 1.)) );
+         ( "neg_vec2f correctly computes the difference between two vectors"
+         >:: fun _ -> assert_equal (-1., 0.) (sub_vec2f (0., 1.) (1., 1.)) );
+         ( "string_of_vec22f correctly converts the given vec2 to a string"
+         >:: fun _ ->
+           assert_equal "(-1.,0.)" (string_of_vec2f (-1., 0.)) ~printer:Fun.id
+         );
+         ( "lerp of 0 to 1 by a threshold of 0.5 should equal 0.5" >:: fun _ ->
+           assert_equal 0.5 (lerp 0. 1. 0.5) );
+         ( "lerp of 0 to 2 by a threshold of 0.5 should equal 1.0" >:: fun _ ->
+           assert_equal 1. (lerp 0. 2. 0.5) );
+         ( "lerp_vec of (0, 0) to (1, 1) by a threshold of 0.5 should equal \
+            (0.5, 0.5)"
+         >:: fun _ -> assert_equal (0.5, 0.5) (lerp_vec (0., 0.) (1., 1.) 0.5)
+         );
+         ( "lerp_vec of (0, 0) to (0, 1) by a threshold of 0.5 should equal \
+            (0., 0.5)"
+         >:: fun _ -> assert_equal (0., 0.5) (lerp_vec (0., 0.) (0., 1.) 0.5) );
+         ( "lerp_vec of (0, 0) to (1, 0) by a threshold of 0.5 should equal \
+            (0.5, 0.)"
+         >:: fun _ -> assert_equal (0.5, 0.) (lerp_vec (0., 0.) (1., 0.) 0.5) );
+         ( "the length squared of (2., 2.) should be 8." >:: fun _ ->
+           assert_equal 8. (length_squared (2., 2.)) );
        ]
 
 (**[entity_tests] tests functionality related to creating entities*)

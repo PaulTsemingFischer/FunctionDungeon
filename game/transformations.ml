@@ -6,7 +6,7 @@ let string_of_event event =
   | GameState.Move (entity, startpos, endpos) ->
       Printf.sprintf "Entity %s moved from %s to %s"
         (GameEntity.string_of_id entity.id)
-        (string_of_vec startpos) (string_of_vec endpos)
+        (string_of_vec2 startpos) (string_of_vec2 endpos)
   | GameState.Say (entity, message) ->
       Printf.sprintf "Entity %s says: %s"
         (GameEntity.string_of_id entity.id)
