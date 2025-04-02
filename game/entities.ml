@@ -2,7 +2,7 @@ open Root
 
 (* creating entities *)
 
-let create_default_at e_type pos =
+let create_default_at e_type pos : GameWorld.e_t =
   match e_type with
   | Player -> GameEntity.create { health = 10.0 } Player [] pos
   | Wall -> GameEntity.create { health = 10.0 } Wall [] pos

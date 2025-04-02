@@ -27,6 +27,7 @@ let move_entity (state : GameState.t) (entity : GameEntity.t) (target : vec2) :
       transitions = state.transitions;
       turn = state.turn;
       events = Move (entity, entity.pos, target) :: state.events;
+      player = state.player;
     }
 
 (**[say priority state entity message] makes an entity say something (cosmetic
@@ -38,4 +39,5 @@ let say (state : GameState.t) (entity : GameEntity.t) (message : string) :
     transitions = state.transitions;
     turn = state.turn;
     events = Say (entity, message) :: state.events;
+    player = state.player;
   }

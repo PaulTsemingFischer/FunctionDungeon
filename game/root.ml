@@ -48,12 +48,19 @@ module GameState = struct
     transitions : transition list;
     events : event list;
     turn : int;
+    player : GameWorld.e_t;
   }
 
   and transition = t -> GameEntity.t -> input -> t
 
   let create (world : GameWorld.t) (transitions : transition list) : t =
-    { world; transitions; events = []; turn = 0 }
+    {
+      world;
+      transitions;
+      events = [];
+      turn = 0;
+      player = GameEntity.create { health = 10.0 } Player [] (0, 0);
+    }
 
   exception Invalid_input of input
 
@@ -68,13 +75,22 @@ module GameState = struct
         state
         (GameWorld.all_entities state.world)
     in
+    let updated_player =
+      List.find_opt
+        (fun (e : GameEntity.t) -> e.entity_type = Player)
+        (GameWorld.all_entities new_state.world)
+    in
     {
       world = new_state.world;
       transitions = new_state.transitions;
       events = new_state.events;
       turn = new_state.turn + 1;
+      player =
+        (match updated_player with
+        | Some p -> p
+        | None -> state.player);
     }
 
-  let update_world { world; transitions; events; turn } new_world : t =
-    { world = new_world; transitions; events; turn }
+  let update_world { world; transitions; events; turn; player } new_world : t =
+    { world = new_world; transitions; events; turn; player }
 end
