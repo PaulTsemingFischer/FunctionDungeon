@@ -108,7 +108,7 @@ module Make (ED : EntityData) :
       \  entity_type: \"%s\",\n\
       \  statuses: \"%s\",\n\
        }"
-      e.id (string_of_vec e.pos)
+      e.id (string_of_vec2 e.pos)
       (ED.string_of_stats e.stats)
       (ED.string_of_type e.entity_type)
       (List.fold_left
