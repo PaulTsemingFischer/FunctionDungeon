@@ -240,8 +240,8 @@ let rec loop_aux (renderer : t) (game_state : GameState.t)
 
 let loop (renderer : t) (game_state : GameState.t)
     (input_handler : input_handler) =
-  Raylib.init_window screen_width screen_height
-    "raylib [core] example - basic window";
+  Raylib.init_window screen_width screen_height "Function Dungeon";
+  Raylib.set_window_state [ Raylib.ConfigFlags.Window_undecorated ];
   Raylib.set_target_fps 60;
   loop_aux renderer game_state input_handler
 
