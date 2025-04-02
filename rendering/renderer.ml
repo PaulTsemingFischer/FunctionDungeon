@@ -20,11 +20,25 @@ module RenderableSet = Set.Make (ComparableRenderable)
 type t = {
   renderables : RenderableSet.t;
   source_state : GameState.t;
+  camera : Raylib.Camera2D.t;
 }
 
 type input_handler = GameState.t -> GameState.input -> GameState.t
 
+let font_scaling_factor = 32.0
+
 let update_render_state (renderer : t) (game_state : GameState.t) =
+  Camera2D.set_target renderer.camera
+    (Vector2.scale
+       (Vector2.create
+          (float_of_int (fst game_state.player.pos))
+          (float_of_int (-snd game_state.player.pos)))
+       font_scaling_factor);
+
+  (* (Vector2.add (Vector2.scale (Vector2.create (float_of_int (fst
+     game_state.player.pos)) (float_of_int (snd game_state.player.pos)))
+     font_scaling_factor) (Vector2.create (float_of_int (get_screen_width () /
+     2)) (float_of_int (get_screen_height () / 2)))); *)
   {
     renderables =
       GameWorld.all_entities game_state.world
@@ -53,9 +67,8 @@ let update_render_state (renderer : t) (game_state : GameState.t) =
                    temp_renderer)
            renderer.renderables;
     source_state = renderer.source_state;
+    camera = renderer.camera;
   }
-
-let font_scaling_factor = 32.0
 
 let tick (renderer : t) =
   {
@@ -71,6 +84,7 @@ let tick (renderer : t) =
           })
         renderer.renderables;
     source_state = renderer.source_state;
+    camera = renderer.camera;
   }
 
 let draw_frame w =
@@ -81,8 +95,9 @@ let draw_frame w =
     (w *. 2.) Color.black
 
 let render (renderer : t) =
-  Raylib.begin_drawing ();
-  Raylib.clear_background Color.white;
+  begin_drawing ();
+  begin_mode_2d renderer.camera;
+  clear_background Color.white;
   RenderableSet.to_list renderer.renderables
   |> List.iter (fun (r : renderable) ->
          let screen_space_position =
@@ -116,8 +131,9 @@ let render (renderer : t) =
                (snd screen_space_position)
                (int_of_float font_scaling_factor)
                Color.black);
+  end_mode_2d ();
   draw_frame 80.;
-  Raylib.end_drawing ()
+  end_drawing ()
 
 let rec loop_aux (renderer : t) (game_state : GameState.t)
     (input_handler : input_handler) =
@@ -164,4 +180,5 @@ let make_from_state (game_state : GameState.t) =
              { source_entity = entity; rendered_pos = vec2f_of_vec2 entity.pos })
       |> RenderableSet.of_list;
     source_state = game_state;
+    camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
   }
