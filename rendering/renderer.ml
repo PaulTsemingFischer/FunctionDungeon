@@ -21,6 +21,7 @@ type t = {
   renderables : RenderableSet.t;
   source_state : GameState.t;
   camera : Raylib.Camera2D.t;
+  camera_target : Vector2.t;
 }
 
 type input_handler = GameState.t -> GameState.input -> GameState.t
@@ -28,17 +29,6 @@ type input_handler = GameState.t -> GameState.input -> GameState.t
 let font_scaling_factor = 32.0
 
 let update_render_state (renderer : t) (game_state : GameState.t) =
-  Camera2D.set_target renderer.camera
-    (Vector2.scale
-       (Vector2.create
-          (float_of_int (fst game_state.player.pos))
-          (float_of_int (-snd game_state.player.pos)))
-       font_scaling_factor);
-
-  (* (Vector2.add (Vector2.scale (Vector2.create (float_of_int (fst
-     game_state.player.pos)) (float_of_int (snd game_state.player.pos)))
-     font_scaling_factor) (Vector2.create (float_of_int (get_screen_width () /
-     2)) (float_of_int (get_screen_height () / 2)))); *)
   {
     renderables =
       GameWorld.all_entities game_state.world
@@ -68,9 +58,17 @@ let update_render_state (renderer : t) (game_state : GameState.t) =
            renderer.renderables;
     source_state = renderer.source_state;
     camera = renderer.camera;
+    camera_target =
+      Vector2.scale
+        (Vector2.create
+           (float_of_int (fst game_state.player.pos))
+           (float_of_int (-snd game_state.player.pos)))
+        font_scaling_factor;
   }
 
 let tick (renderer : t) =
+  Camera2D.set_target renderer.camera
+    (Vector2.lerp (Camera2D.target renderer.camera) renderer.camera_target 0.05);
   {
     renderables =
       RenderableSet.map
@@ -85,6 +83,7 @@ let tick (renderer : t) =
         renderer.renderables;
     source_state = renderer.source_state;
     camera = renderer.camera;
+    camera_target = renderer.camera_target;
   }
 
 let draw_frame w =
@@ -181,4 +180,10 @@ let make_from_state (game_state : GameState.t) =
       |> RenderableSet.of_list;
     source_state = game_state;
     camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
+    camera_target =
+      Vector2.scale
+        (Vector2.create
+           (float_of_int (fst game_state.player.pos))
+           (float_of_int (-snd game_state.player.pos)))
+        font_scaling_factor;
   }
