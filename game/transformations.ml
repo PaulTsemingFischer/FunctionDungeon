@@ -6,27 +6,17 @@ open Engine.Utils
    transformation will return an unchanged state*)
 let move_entity (state : GameState.t) (entity : GameEntity.t) (target : vec2) :
     GameState.t =
-  if not (GameWorld.mem_id state.world entity.id) then state
-  else if GameWorld.mem_pos state.world target then state
+  let world = GameState.get_world state in
+  if not (GameWorld.mem_id world entity.id) then state
+  else if GameWorld.mem_pos world target then state
   else
     let updated_entity = GameEntity.set_pos entity target in
-    let updated_world = GameWorld.put_entity state.world updated_entity in
-    {
-      world = updated_world;
-      transitions = state.transitions;
-      turn = state.turn;
-      events = Move (entity, entity.pos, target) :: state.events;
-      player = state.player;
-    }
+    let updated_state =
+      GameWorld.put_entity world updated_entity |> GameState.update_world state
+    in
+    GameState.add_event updated_state (Move (entity, entity.pos, target))
 
 (**[say priority state entity message] makes an entity say something (cosmetic
    effect for events)*)
-let say (state : GameState.t) (entity : GameEntity.t) (message : string) :
-    GameState.t =
-  {
-    world = state.world;
-    transitions = state.transitions;
-    turn = state.turn;
-    events = Say (entity, message) :: state.events;
-    player = state.player;
-  }
+let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
+  GameState.add_event state (Say (entity, message))

@@ -24,49 +24,77 @@ type t = {
   camera_target : Vector2.t;
 }
 
-type input_handler = GameState.t -> GameState.input -> GameState.t
+type input_handler = GameState.t -> input -> GameState.t
 
-let font_scaling_factor = 32.0
+let screen_width = 800
+let screen_height = 800
+let padding = 100
+let tile_scaling_factor = 24.0
 let ui_font_size = 24
+
+let draw_text_right (value : string) (x : int) (y : int) (fontsize : int)
+    (color : Color.t) =
+  draw_text value (x - measure_text value fontsize) y fontsize color
+
+let draw_metric (label : string) (value : string) (x : int) (y : int)
+    (fontsize : int) (color : Color.t) =
+  let metric_gap = 8 in
+  let label_width = measure_text label ui_font_size in
+  draw_text label x y fontsize (Color.create 255 255 255 125);
+  draw_text value (x + label_width + metric_gap) y fontsize color
+
+let draw_metric_right (label : string) (value : string) (x : int) (y : int)
+    (fontsize : int) (color : Color.t) =
+  let metric_gap = 8 in
+  let label_width = measure_text label ui_font_size in
+  let metric_width = measure_text value ui_font_size in
+  draw_text label
+    (x - label_width - metric_gap - metric_width)
+    y fontsize
+    (Color.create 255 255 255 125);
+  draw_text value (x - metric_width) y fontsize color
 
 let draw_ui (renderer : t) =
   Raylib.draw_rectangle_lines_ex
     (Raylib.Rectangle.create 0. 0.
        (float_of_int (Raylib.get_screen_width ()))
        (float_of_int (Raylib.get_screen_height ())))
-    100. Color.black;
+    (float_of_int padding) Color.black;
   Raylib.draw_rectangle 0
     (get_screen_height () - 300)
     (get_screen_width ()) (get_screen_height ()) Color.black;
-  Raylib.draw_text
-    (Printf.sprintf "HEALTH: %.1f" renderer.source_state.player.stats.health)
-    100
+  draw_metric "HEALTH: "
+    (Printf.sprintf "%.2f"
+       (GameState.get_player renderer.source_state).stats.health)
+    padding
+    (get_screen_height () - 268)
+    ui_font_size Color.red;
+
+  draw_metric_right "TURN: "
+    (Printf.sprintf "%d" (GameState.get_turn renderer.source_state))
+    (get_screen_width () - padding)
     (get_screen_height () - 268)
     ui_font_size Color.white;
-  Raylib.draw_text
-    (Printf.sprintf "TURN: %d" renderer.source_state.turn)
-    400
-    (get_screen_height () - 268)
-    ui_font_size Color.white;
+
   List.iteri
-    (fun (index : int) (event : GameState.event) ->
+    (fun (index : int) (event_entry : int * event) ->
       Raylib.draw_text
-        (GameState.string_of_event event)
-        100
+        (string_of_event (snd event_entry))
+        padding
         (get_screen_height () - 204 + (index * ui_font_size))
         ui_font_size
         (Color.create 255 255 255 (max (255 - (index * 40)) 0)))
-    renderer.source_state.events
+    (GameState.get_events renderer.source_state)
 
 let compute_camera_target ((x, y) : vec2) =
   Vector2.scale
-    (Vector2.create (float_of_int x) (float_of_int (-y + 2)))
-    font_scaling_factor
+    (Vector2.create (float_of_int x) (float_of_int (-y + 3)))
+    tile_scaling_factor
 
 let update_render_state (renderer : t) (game_state : GameState.t) =
   {
     renderables =
-      GameWorld.all_entities game_state.world
+      GameWorld.all_entities (GameState.get_world game_state)
       |> List.fold_left
            (fun (updated_renderer : RenderableSet.t) (entity : GameEntity.t) ->
              let renderer_opt =
@@ -93,7 +121,7 @@ let update_render_state (renderer : t) (game_state : GameState.t) =
            renderer.renderables;
     source_state = game_state;
     camera = renderer.camera;
-    camera_target = compute_camera_target game_state.player.pos;
+    camera_target = compute_camera_target (GameState.get_player game_state).pos;
   }
 
 let tick (renderer : t) =
@@ -127,11 +155,11 @@ let render (renderer : t) =
              float_of_int (Raylib.get_screen_height () / 2) )
            |> add_vec2f
                 (mul_vec2f
-                   (scale_vec2f r.rendered_pos font_scaling_factor)
+                   (scale_vec2f r.rendered_pos tile_scaling_factor)
                    (1.0, -1.0))
            |> add_vec2f
                 (neg_vec2f
-                   (font_scaling_factor /. 2.0, font_scaling_factor /. 2.0))
+                   (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
            |> vec2_of_vec2f
          in
          match r.source_entity.entity_type with
@@ -139,19 +167,19 @@ let render (renderer : t) =
              Raylib.draw_text "@"
                (fst screen_space_position)
                (snd screen_space_position)
-               (int_of_float font_scaling_factor)
+               (int_of_float tile_scaling_factor)
                Color.black
          | Pigeon _ ->
              Raylib.draw_text "p"
                (fst screen_space_position)
                (snd screen_space_position)
-               (int_of_float font_scaling_factor)
+               (int_of_float tile_scaling_factor)
                Color.black
          | Wall ->
              Raylib.draw_text "#"
                (fst screen_space_position)
                (snd screen_space_position)
-               (int_of_float font_scaling_factor)
+               (int_of_float tile_scaling_factor)
                Color.black);
   end_mode_2d ();
   draw_ui renderer;
@@ -163,7 +191,7 @@ let rec loop_aux (renderer : t) (game_state : GameState.t)
   else
     let frame_input_opt =
       match Raylib.get_key_pressed () with
-      | Raylib.Key.W -> Some (GameState.MovePlayer (0, 1))
+      | Raylib.Key.W -> Some (MovePlayer (0, 1))
       | Raylib.Key.A -> Some (MovePlayer (-1, 0))
       | Raylib.Key.S -> Some (MovePlayer (0, -1))
       | Raylib.Key.D -> Some (MovePlayer (1, 0))
@@ -183,25 +211,26 @@ let rec loop_aux (renderer : t) (game_state : GameState.t)
           let ticked_renderer = tick updated_renderer in
           render ticked_renderer;
           loop_aux ticked_renderer updated_game_state input_handler
-        with GameState.Invalid_input _ ->
+        with Invalid_input _ ->
           let updated_renderer = tick renderer in
           render updated_renderer;
           loop_aux updated_renderer game_state input_handler)
 
 let loop (renderer : t) (game_state : GameState.t)
     (input_handler : input_handler) =
-  Raylib.init_window 1000 1000 "raylib [core] example - basic window";
+  Raylib.init_window screen_width screen_height
+    "raylib [core] example - basic window";
   Raylib.set_target_fps 60;
   loop_aux renderer game_state input_handler
 
 let make_from_state (game_state : GameState.t) =
   {
     renderables =
-      GameWorld.all_entities game_state.world
+      GameWorld.all_entities (GameState.get_world game_state)
       |> List.map (fun (entity : GameEntity.t) ->
              { source_entity = entity; rendered_pos = vec2f_of_vec2 entity.pos })
       |> RenderableSet.of_list;
     source_state = game_state;
     camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
-    camera_target = compute_camera_target game_state.player.pos;
+    camera_target = compute_camera_target (GameState.get_player game_state).pos;
   }

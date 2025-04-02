@@ -9,7 +9,7 @@ let create_default_at e_type pos : GameWorld.e_t =
   | Pigeon x -> GameEntity.create { health = 10.0 } (Pigeon x) [] pos
 
 let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
-    (input : GameState.input) =
+    (input : input) =
   match entity.entity_type with
   | Player -> Player.player_action state entity input
   | Pigeon _ -> Pigeon.pigeon_action state entity input
