@@ -26,7 +26,7 @@ type t = {
 
 type input_handler = GameState.t -> input -> GameState.t
 
-let screen_width = 800
+let screen_width = 1000
 let screen_height = 800
 let padding = 100
 let tile_scaling_factor = 24.0
@@ -40,7 +40,7 @@ let draw_metric (label : string) (value : string) (x : int) (y : int)
     (fontsize : int) (color : Color.t) =
   let metric_gap = 8 in
   let label_width = measure_text label ui_font_size in
-  draw_text label x y fontsize (Color.create 255 255 255 125);
+  draw_text label x y fontsize (Color.create 255 255 255 100);
   draw_text value (x + label_width + metric_gap) y fontsize color
 
 let draw_metric_right (label : string) (value : string) (x : int) (y : int)
@@ -51,40 +51,62 @@ let draw_metric_right (label : string) (value : string) (x : int) (y : int)
   draw_text label
     (x - label_width - metric_gap - metric_width)
     y fontsize
-    (Color.create 255 255 255 125);
+    (Color.create 255 255 255 100);
   draw_text value (x - metric_width) y fontsize color
 
 let draw_ui (renderer : t) =
+  let bottom_panel_height = 250 in
+  let panel_padding = 32 in
+
   Raylib.draw_rectangle_lines_ex
     (Raylib.Rectangle.create 0. 0.
        (float_of_int (Raylib.get_screen_width ()))
        (float_of_int (Raylib.get_screen_height ())))
     (float_of_int padding) Color.black;
+
   Raylib.draw_rectangle 0
-    (get_screen_height () - 300)
+    (get_screen_height () - bottom_panel_height)
     (get_screen_width ()) (get_screen_height ()) Color.black;
+
   draw_metric "HEALTH: "
     (Printf.sprintf "%.2f"
        (GameState.get_player renderer.source_state).stats.health)
     padding
-    (get_screen_height () - 268)
+    (get_screen_height () - (bottom_panel_height - panel_padding))
     ui_font_size Color.red;
 
   draw_metric_right "TURN: "
     (Printf.sprintf "%d" (GameState.get_turn renderer.source_state))
     (get_screen_width () - padding)
-    (get_screen_height () - 268)
+    (get_screen_height () - (bottom_panel_height - panel_padding))
     ui_font_size Color.white;
 
-  List.iteri
-    (fun (index : int) (event_entry : int * event) ->
-      Raylib.draw_text
-        (string_of_event (snd event_entry))
-        padding
-        (get_screen_height () - 204 + (index * ui_font_size))
-        ui_font_size
-        (Color.create 255 255 255 (max (255 - (index * 40)) 0)))
-    (GameState.get_events renderer.source_state)
+  let render_n_events (event_list : (int * event) list) (n : int) =
+    let rec render_n_events_aux (event_list : (int * event) list) (n : int)
+        (current : int) =
+      if n <= current then ()
+      else
+        match event_list with
+        | [] -> ()
+        | event_entry :: t ->
+            let entry_height =
+              get_screen_height ()
+              - (bottom_panel_height - (2 * panel_padding)
+                - ((current + 1) * ui_font_size))
+            in
+
+            Raylib.draw_text
+              (string_of_event (snd event_entry))
+              padding entry_height ui_font_size
+              (Color.create 200 200 200 (max (200 - (200 / n * current)) 0));
+            render_n_events_aux t n (current + 1);
+            draw_metric_right "TURN: "
+              (string_of_int (fst event_entry))
+              (screen_width - padding) entry_height ui_font_size Color.gray
+    in
+    render_n_events_aux event_list n 0
+  in
+  render_n_events (GameState.get_events renderer.source_state) 4
 
 let compute_camera_target ((x, y) : vec2) =
   Vector2.scale
