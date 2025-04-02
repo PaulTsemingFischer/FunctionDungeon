@@ -1,3 +1,7 @@
+
+val random_element : 'a list -> 'a
+(**[random_element list] returns a random element from [list]*)
+
 type vec2 = int * int
 (**[vec2] describes the location of an entity in 2D cartesian space*)
 
