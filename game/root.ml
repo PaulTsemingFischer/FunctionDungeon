@@ -10,6 +10,12 @@ type entity_types =
 
 type status_effects = Fire of int
 
+let string_of_type e_type =
+  match e_type with
+  | Wall -> "wall"
+  | Player -> "player"
+  | Pigeon x -> Printf.sprintf "pigeon of %d" x
+
 module BaseEntityDeclarations :
   Entity.EntityData
     with type t = game_stat
@@ -21,6 +27,7 @@ module BaseEntityDeclarations :
 
   let zeroed_stats = { health = 0.0 }
   let string_of_stats stat = Printf.sprintf "health: %f" stat.health
+  let string_of_type = string_of_type
 
   let string_of_type e_type =
     match e_type with
@@ -46,13 +53,11 @@ module GameState = struct
   let string_of_event event =
     match event with
     | Move (entity, startpos, endpos) ->
-        Printf.sprintf "Entity %s moved from %s to %s"
-          (GameEntity.string_of_id entity.id)
+        Printf.sprintf "%s moved from %s to %s"
+          (string_of_type entity.entity_type)
           (string_of_vec2 startpos) (string_of_vec2 endpos)
     | Say (entity, message) ->
-        Printf.sprintf "Entity %s says: %s"
-          (GameEntity.string_of_id entity.id)
-          message
+        Printf.sprintf "%s says: %s" (string_of_type entity.entity_type) message
 
   type t = {
     world : GameWorld.t;
