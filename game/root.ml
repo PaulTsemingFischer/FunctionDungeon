@@ -43,6 +43,17 @@ module GameState = struct
     | Move of GameEntity.t * vec2 * vec2
     | Say of GameEntity.t * string
 
+  let string_of_event event =
+    match event with
+    | Move (entity, startpos, endpos) ->
+        Printf.sprintf "Entity %s moved from %s to %s"
+          (GameEntity.string_of_id entity.id)
+          (string_of_vec2 startpos) (string_of_vec2 endpos)
+    | Say (entity, message) ->
+        Printf.sprintf "Entity %s says: %s"
+          (GameEntity.string_of_id entity.id)
+          message
+
   type t = {
     world : GameWorld.t;
     transitions : transition list;

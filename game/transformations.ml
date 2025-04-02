@@ -1,17 +1,6 @@
 open Root
 open Engine.Utils
 
-let string_of_event event =
-  match event with
-  | GameState.Move (entity, startpos, endpos) ->
-      Printf.sprintf "Entity %s moved from %s to %s"
-        (GameEntity.string_of_id entity.id)
-        (string_of_vec2 startpos) (string_of_vec2 endpos)
-  | GameState.Say (entity, message) ->
-      Printf.sprintf "Entity %s says: %s"
-        (GameEntity.string_of_id entity.id)
-        message
-
 (**[move_entity state entity] moves an entity to some location. If the entity is
    not in the world when this is run, or the location is not empty, then this
    transformation will return an unchanged state*)

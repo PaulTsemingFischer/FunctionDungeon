@@ -27,6 +27,41 @@ type t = {
 type input_handler = GameState.t -> GameState.input -> GameState.t
 
 let font_scaling_factor = 32.0
+let ui_font_size = 24
+
+let draw_ui (renderer : t) =
+  Raylib.draw_rectangle_lines_ex
+    (Raylib.Rectangle.create 0. 0.
+       (float_of_int (Raylib.get_screen_width ()))
+       (float_of_int (Raylib.get_screen_height ())))
+    100. Color.black;
+  Raylib.draw_rectangle 0
+    (get_screen_height () - 300)
+    (get_screen_width ()) (get_screen_height ()) Color.black;
+  Raylib.draw_text
+    (Printf.sprintf "HEALTH: %.1f" renderer.source_state.player.stats.health)
+    100
+    (get_screen_height () - 268)
+    ui_font_size Color.white;
+  Raylib.draw_text
+    (Printf.sprintf "TURN: %d" renderer.source_state.turn)
+    400
+    (get_screen_height () - 268)
+    ui_font_size Color.white;
+  List.iteri
+    (fun (index : int) (event : GameState.event) ->
+      Raylib.draw_text
+        (GameState.string_of_event event)
+        100
+        (get_screen_height () - 204 + (index * ui_font_size))
+        ui_font_size
+        (Color.create 255 255 255 (max (255 - (index * 40)) 0)))
+    renderer.source_state.events
+
+let compute_camera_target ((x, y) : vec2) =
+  Vector2.scale
+    (Vector2.create (float_of_int x) (float_of_int (-y + 2)))
+    font_scaling_factor
 
 let update_render_state (renderer : t) (game_state : GameState.t) =
   {
@@ -56,14 +91,9 @@ let update_render_state (renderer : t) (game_state : GameState.t) =
                    }
                    temp_renderer)
            renderer.renderables;
-    source_state = renderer.source_state;
+    source_state = game_state;
     camera = renderer.camera;
-    camera_target =
-      Vector2.scale
-        (Vector2.create
-           (float_of_int (fst game_state.player.pos))
-           (float_of_int (-snd game_state.player.pos)))
-        font_scaling_factor;
+    camera_target = compute_camera_target game_state.player.pos;
   }
 
 let tick (renderer : t) =
@@ -85,13 +115,6 @@ let tick (renderer : t) =
     camera = renderer.camera;
     camera_target = renderer.camera_target;
   }
-
-let draw_frame w =
-  Raylib.draw_rectangle_lines_ex
-    (Raylib.Rectangle.create 0. 0.
-       (float_of_int (Raylib.get_screen_width ()))
-       (float_of_int (Raylib.get_screen_height ())))
-    (w *. 2.) Color.black
 
 let render (renderer : t) =
   begin_drawing ();
@@ -131,7 +154,7 @@ let render (renderer : t) =
                (int_of_float font_scaling_factor)
                Color.black);
   end_mode_2d ();
-  draw_frame 80.;
+  draw_ui renderer;
   end_drawing ()
 
 let rec loop_aux (renderer : t) (game_state : GameState.t)
@@ -180,10 +203,5 @@ let make_from_state (game_state : GameState.t) =
       |> RenderableSet.of_list;
     source_state = game_state;
     camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
-    camera_target =
-      Vector2.scale
-        (Vector2.create
-           (float_of_int (fst game_state.player.pos))
-           (float_of_int (-snd game_state.player.pos)))
-        font_scaling_factor;
+    camera_target = compute_camera_target game_state.player.pos;
   }
