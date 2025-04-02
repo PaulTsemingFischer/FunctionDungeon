@@ -24,9 +24,6 @@ end
 
 module TestEntity = Entity.Make (BaseTestDeclarations)
 module TestWorld = World.Make (TestEntity)
-module TestState = State.Make (TestWorld)
-
-type TestState.input += Test_input
 
 let string_of_test_status (e_status : TestEntity.status_effect) =
   match e_status with
