@@ -9,13 +9,12 @@ let string_of_entity_option (op : GameEntity.t option) =
   | None -> "none"
 
 let simple_transition : GameState.transition =
- fun (start_state : GameState.t) (entity : GameEntity.t)
-     (_ : GameState.input) ->
+ fun (start_state : GameState.t) (entity : GameEntity.t) (_ : input) ->
   let updated =
     GameEntity.update_stats entity { health = entity.stats.health -. 1.0 }
   in
   GameState.update_world start_state
-    (GameWorld.put_entity start_state.world updated)
+    (GameWorld.put_entity (GameState.get_world start_state) updated)
 
 let useless_transition (start_state : GameState.t) _ _ : GameState.t =
   start_state
@@ -42,11 +41,13 @@ let state_tests =
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
            let state_start = GameState.create world [] in
-           assert_equal (Some e1) (GameWorld.query_id state_start.world e1.id);
-           assert_equal 0 state_start.turn;
+           assert_equal (Some e1)
+             (GameWorld.query_id (GameState.get_world state_start) e1.id);
+           assert_equal 0 (GameState.get_turn state_start);
            let state_next = GameState.step state_start Wait in
-           assert_equal (Some e1) (GameWorld.query_id state_next.world e1.id);
-           assert_equal 1 state_next.turn );
+           assert_equal (Some e1)
+             (GameWorld.query_id (GameState.get_world state_next) e1.id);
+           assert_equal 1 (GameState.get_turn state_next) );
          ( "stepping\n\
            \ through the state of a game with one generator that decreases  \
             health and\n\
@@ -57,18 +58,19 @@ let state_tests =
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
            let state_start = GameState.create world [ simple_transition ] in
-           print_all_entities state_start.world;
-           assert_equal (Some e1) (GameWorld.query_id state_start.world e1.id);
-           assert_equal 0 state_start.turn;
+           print_all_entities (GameState.get_world state_start);
+           assert_equal (Some e1)
+             (GameWorld.query_id (GameState.get_world state_start) e1.id);
+           assert_equal 0 (GameState.get_turn state_start);
            let state_next = GameState.step state_start Wait in
-           print_all_entities state_next.world;
+           print_all_entities (GameState.get_world state_next);
 
            assert_equal
              (Some
                 (GameEntity.update_stats e1 { health = e1.stats.health -. 1.0 }))
-             (GameWorld.query_id state_next.world e1.id)
+             (GameWorld.query_id (GameState.get_world state_next) e1.id)
              ~printer:string_of_entity_option;
-           assert_equal 1 state_next.turn );
+           assert_equal 1 (GameState.get_turn state_next) );
          ( "stepping through the state of a game with one generator that does \
             nothing\n\
            \  and a single entity advances the turn but leaves the entity \
@@ -77,15 +79,16 @@ let state_tests =
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
            let state_start = GameState.create world [ useless_transition ] in
-           print_all_entities state_start.world;
-           assert_equal (Some e1) (GameWorld.query_id state_start.world e1.id);
-           assert_equal 0 state_start.turn;
-           let state_next = GameState.step state_start Wait in
-           print_all_entities state_next.world;
+           print_all_entities (GameState.get_world state_start);
            assert_equal (Some e1)
-             (GameWorld.query_id state_next.world e1.id)
+             (GameWorld.query_id (GameState.get_world state_start) e1.id);
+           assert_equal 0 (GameState.get_turn state_start);
+           let state_next = GameState.step state_start Wait in
+           print_all_entities (GameState.get_world state_next);
+           assert_equal (Some e1)
+             (GameWorld.query_id (GameState.get_world state_next) e1.id)
              ~printer:string_of_entity_option;
-           assert_equal 1 state_next.turn );
+           assert_equal 1 (GameState.get_turn state_next) );
        ]
 
 let _ = run_test_tt_main state_tests
