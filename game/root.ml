@@ -87,6 +87,12 @@ exception Invalid_input of input
 type event =
   | Move of GameEntity.t * vec2 * vec2
   | Say of GameEntity.t * string
+  | ActivateActionModifier of
+      GameEntity.t
+      * Modifiers.possible_action list
+      * Modifiers.possible_action list
+  | ActivateMoveModifier of
+      GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
 
 let string_of_event event =
   match event with
@@ -96,6 +102,12 @@ let string_of_event event =
         (string_of_vec2 startpos) (string_of_vec2 endpos)
   | Say (entity, message) ->
       Printf.sprintf "%s says: %s" (string_of_type entity.entity_type) message
+  | ActivateActionModifier (entity, _, _) ->
+      Printf.sprintf "%s activates their action modifiers!"
+        (string_of_type entity.entity_type)
+  | ActivateMoveModifier (entity, _, _) ->
+      Printf.sprintf "%s activates their move modifiers!"
+        (string_of_type entity.entity_type)
 
 module type GameStateSignature = sig
   type t
@@ -135,6 +147,26 @@ module type GameStateSignature = sig
     * Modifiers.possible_moves_modifier list
   (**[get_modifiers state entity_type] returns a tuple of tile and movement
      modifiers associated with that entity type*)
+
+  val activate_action_modifiers :
+    t ->
+    GameEntity.t ->
+    Modifiers.possible_action list ->
+    t * Modifiers.possible_action list
+  (**[activate_action_modifiers state entity possible_actions] applies the
+     action modifiers associated with [entity.entity_type] to
+     [possible_actions], returning a list of new actions and the updated state,
+     with the activation of the modifiers pushed to the event stack*)
+
+  val activate_move_modifiers :
+    t ->
+    GameEntity.t ->
+    Modifiers.possible_move list ->
+    t * Modifiers.possible_move list
+  (**[activate_move_modifiers state entity possible_moves] applies the move
+     modifiers associated with [entity.entity_type] to [possible_moves],
+     returning a list of new actions and the updated state, with the activation
+     of the modifiers pushed to the event stack*)
 
   val add_actions_modifier :
     t -> Modifiers.possible_actions_modifier -> entity_types -> t
@@ -224,6 +256,52 @@ module GameState : GameStateSignature = struct
 
   let get_turn state = state.turn
   let get_player state = state.player
+
+  let activate_action_modifiers state (entity : GameEntity.t)
+      (possible_actions : Modifiers.possible_action list) =
+    match
+      List.assoc_opt (string_of_type entity.entity_type) state.modifiers
+    with
+    | Some (possible_actions_modifiers, _) ->
+        let modified_actions =
+          List.fold_left
+            (fun (possible_actions_acc : Modifiers.possible_action list)
+                 (action_modifier : Modifiers.possible_actions_modifier) ->
+              match action_modifier with
+              | ScaleAction factor ->
+                  List.map
+                    (fun ((pos, action) : Modifiers.possible_action) ->
+                      (scale_vec2 pos factor, action))
+                    possible_actions_acc)
+            possible_actions possible_actions_modifiers
+        in
+        ( add_event state
+            (ActivateActionModifier (entity, possible_actions, modified_actions)),
+          modified_actions )
+    | None -> (state, possible_actions)
+
+  let activate_move_modifiers state (entity : GameEntity.t)
+      (possible_moves : Modifiers.possible_move list) =
+    match
+      List.assoc_opt (string_of_type entity.entity_type) state.modifiers
+    with
+    | Some (_, possible_moves_modifiers) ->
+        let modified_actions =
+          List.fold_left
+            (fun (possible_moves_acc : Modifiers.possible_move list)
+                 (action_modifier : Modifiers.possible_moves_modifier) ->
+              match action_modifier with
+              | ScaleMove factor ->
+                  List.map
+                    (fun (pos : Modifiers.possible_move) ->
+                      scale_vec2 pos factor)
+                    possible_moves_acc)
+            possible_moves possible_moves_modifiers
+        in
+        ( add_event state
+            (ActivateMoveModifier (entity, possible_moves, modified_actions)),
+          modified_actions )
+    | None -> (state, possible_moves)
 
   let get_modifiers state entity_type :
       Modifiers.possible_actions_modifier list

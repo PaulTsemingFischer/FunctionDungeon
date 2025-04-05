@@ -4,6 +4,7 @@ open Game.Root
 open Game.Entities
 open Game.Player
 open Game.Transformations
+open Game.Modifiers
 open Procgen
 open Raylib
 open Rendering
@@ -19,7 +20,8 @@ let generate_starting_state () =
          player)
       pigeon
   in
-  GameState.create world [ entity_action_runner ]
+  let state = GameState.create world [ entity_action_runner ] in
+  GameState.add_moves_modifier state (ScaleMove 3) (Pigeon 1)
 
 let setup () =
   Raylib.init_window 1000 1000 "raylib [core] example - basic window";
