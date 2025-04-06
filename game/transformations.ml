@@ -24,3 +24,26 @@ let apply_move (state : GameState.t) (entity : GameEntity.t)
    effect for events)*)
 let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
   GameState.add_event state (Say (entity, message))
+
+exception Entity_not_found of GameEntity.t
+
+let apply_action_to (state : GameState.t) (entity : GameEntity.t)
+    (action : Modifiers.action) =
+  let world = GameState.get_world state in
+  if GameWorld.query_id world entity.id = None then
+    raise (Entity_not_found entity)
+  else
+    match action with
+    | DealDamage x ->
+        let updated_state =
+          GameState.update_world state
+            (GameWorld.put_entity world
+               (GameEntity.update_stats entity
+                  {
+                    health = entity.stats.health -. x;
+                    base_moves = entity.stats.base_moves;
+                    base_actions = entity.stats.base_actions;
+                  }))
+        in
+        GameState.add_event updated_state (ChangeHealth (entity, -.x))
+    | ApplyFire x -> state
