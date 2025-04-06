@@ -10,7 +10,7 @@ type game_stat = {
 type entity_types =
   | Wall
   | Player
-  | Pigeon of int
+  | Pigeon
 
 type status_effects = Fire of int
 
@@ -18,7 +18,7 @@ let string_of_type e_type =
   match e_type with
   | Wall -> "wall"
   | Player -> "player"
-  | Pigeon _ -> "pigeon"
+  | Pigeon -> "pigeon"
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -43,7 +43,7 @@ module BaseEntityDeclarations :
     match e_type with
     | Wall -> "wall"
     | Player -> "player"
-    | Pigeon x -> Printf.sprintf "pigeon of %d" x
+    | Pigeon -> "pigeon"
 
   let string_of_status (_ : status_effect) = "generic"
 end
@@ -67,14 +67,14 @@ let create_default_at e_type pos : GameEntity.t =
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
           Wall [] pos
-    | Pigeon x ->
+    | Pigeon ->
         GameEntity.create
           {
             health = 10.0;
             base_moves = base_cross_moves;
             base_actions = base_cross_actions;
           }
-          (Pigeon x) [] pos)
+          Pigeon [] pos)
 
 module GameWorld = World.Make (GameEntity)
 

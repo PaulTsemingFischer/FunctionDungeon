@@ -191,7 +191,7 @@ let render (renderer : t) =
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
                Color.black
-         | Pigeon _ ->
+         | Pigeon ->
              Raylib.draw_text "p"
                (fst screen_space_position)
                (snd screen_space_position)
