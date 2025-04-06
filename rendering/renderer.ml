@@ -114,33 +114,47 @@ let compute_camera_target ((x, y) : vec2) =
     tile_scaling_factor
 
 let update_render_state (renderer : t) (game_state : GameState.t) =
+  let all_entitities =
+    GameWorld.all_entities (GameState.get_world game_state)
+  in
+  let filtered_renderables =
+    RenderableSet.filter
+      (fun renderable ->
+        GameWorld.mem_id
+          (GameState.get_world game_state)
+          renderable.source_entity.id)
+      renderer.renderables
+  in
+  (* print_newline (); *)
+  (* print_endline (string_of_int (RenderableSet.cardinal filtered_renderables)); *)
+  let updated_renderables =
+    List.fold_left
+      (fun (updated_renderer : RenderableSet.t) (entity : GameEntity.t) ->
+        let renderer_opt =
+          RenderableSet.find_first_opt
+            (fun (current_renderable : renderable) ->
+              current_renderable.source_entity.id >= entity.id)
+            updated_renderer
+        in
+        match renderer_opt with
+        | None ->
+            RenderableSet.add
+              { source_entity = entity; rendered_pos = (0., 0.) }
+              updated_renderer
+        | Some existing_renderable ->
+            let temp_renderer =
+              RenderableSet.remove existing_renderable updated_renderer
+            in
+            RenderableSet.add
+              {
+                source_entity = entity;
+                rendered_pos = existing_renderable.rendered_pos;
+              }
+              temp_renderer)
+      filtered_renderables all_entitities
+  in
   {
-    renderables =
-      GameWorld.all_entities (GameState.get_world game_state)
-      |> List.fold_left
-           (fun (updated_renderer : RenderableSet.t) (entity : GameEntity.t) ->
-             let renderer_opt =
-               RenderableSet.find_first_opt
-                 (fun (current_renderable : renderable) ->
-                   current_renderable.source_entity.id >= entity.id)
-                 updated_renderer
-             in
-             match renderer_opt with
-             | None ->
-                 RenderableSet.add
-                   { source_entity = entity; rendered_pos = (0., 0.) }
-                   updated_renderer
-             | Some existing_renderable ->
-                 let temp_renderer =
-                   RenderableSet.remove existing_renderable updated_renderer
-                 in
-                 RenderableSet.add
-                   {
-                     source_entity = entity;
-                     rendered_pos = existing_renderable.rendered_pos;
-                   }
-                   temp_renderer)
-           renderer.renderables;
+    renderables = updated_renderables;
     source_state = game_state;
     camera = renderer.camera;
     camera_target = compute_camera_target (GameState.get_player game_state).pos;
@@ -202,7 +216,14 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
+               Color.black
+         | Door ->
+             Raylib.draw_text ">"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
                Color.black);
+
   end_mode_2d ();
   draw_ui renderer;
   end_drawing ()

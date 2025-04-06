@@ -16,20 +16,21 @@ module type S = sig
 end
 
 module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
-  module EntitySet = Set.Make (E)
+  module EntityMap = Map.Make (Int)
 
-  type t = EntitySet.t
+  type t = E.t EntityMap.t
   type e_t = E.t
   type e_id = E.id
 
-  let empty = EntitySet.empty
-  let all_entities (world : t) : e_t list = EntitySet.to_list world
+  let empty = EntityMap.empty
+
+  let all_entities (world : t) : e_t list =
+    List.map snd (EntityMap.to_list world)
 
   let query_pos world (pos : vec2) =
     List.find_opt (fun (e : e_t) -> e.pos = pos) (all_entities world)
 
-  let query_id world e_id =
-    EntitySet.find_first_opt (fun entity -> entity.id >= e_id) world
+  let query_id (world : t) (e_id : e_id) = EntityMap.find_opt e_id world
 
   let mem_pos world pos =
     match query_pos world pos with
@@ -41,12 +42,10 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
     | Some _ -> true
     | None -> false
 
-  let put_entity (world : t) (e : e_t) =
-    if EntitySet.mem e world then EntitySet.add e (EntitySet.remove e world)
-    else EntitySet.add e world
+  let put_entity (world : t) (e : e_t) = EntityMap.add e.id e world
 
   let remove_entity (world : t) (e_id : e_id) =
     match query_id world e_id with
-    | Some e -> EntitySet.remove e world
+    | Some e -> EntityMap.remove e.id world
     | None -> world
 end
