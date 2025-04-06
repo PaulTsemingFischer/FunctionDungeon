@@ -2,7 +2,7 @@ open Engine.Utils
 
 (**[action] describes an action that some entity in the world can take*)
 type action =
-  | DealDamage of int
+  | DealDamage of float
   | ApplyFire of int
 
 type possible_action = vec2 * action
@@ -26,4 +26,4 @@ let base_cross_moves : possible_move list = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
 
 (**[base_cross_actions] is a list containing the most basic acting pattern*)
 let base_cross_actions : possible_action list =
-  List.map (fun target -> (target, DealDamage 1)) base_cross_moves
+  List.map (fun target -> (target, DealDamage 1.)) base_cross_moves

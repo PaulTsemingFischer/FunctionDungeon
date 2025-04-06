@@ -4,9 +4,12 @@ open Transformations
 
 let player_action (state : GameState.t) (entity : GameEntity.t) input =
   match input with
-  | MovePlayer dir ->
+  | MovePlayer dir -> (
       let target_pos = add_vec2 entity.pos dir in
-      if GameWorld.mem_pos (GameState.get_world state) target_pos then
-        raise (Invalid_input input)
-      else apply_move state entity dir
+      match GameWorld.query_pos (GameState.get_world state) target_pos with
+      | Some e -> (
+          match e.entity_type with
+          | Wall -> raise (Invalid_input input)
+          | _ -> apply_action_to state e (DealDamage 1.))
+      | None -> apply_move state entity dir)
   | Wait -> state
