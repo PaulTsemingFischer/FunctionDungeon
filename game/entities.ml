@@ -6,3 +6,4 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | Player -> Player.player_action state entity input
   | Pigeon -> Pigeon.pigeon_action state entity input
   | Wall -> state
+  | Door -> state

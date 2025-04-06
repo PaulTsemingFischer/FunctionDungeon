@@ -10,6 +10,7 @@ let player_action (state : GameState.t) (entity : GameEntity.t) input =
       | Some e -> (
           match e.entity_type with
           | Wall -> raise (Invalid_input input)
+          | Door -> generate_normal_room state entity
           | _ -> apply_action_to state e (DealDamage 1.))
       | None -> apply_move state entity dir)
   | Wait -> state

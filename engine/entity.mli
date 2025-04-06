@@ -25,7 +25,7 @@ module type EntityData = sig
 end
 
 module type S = sig
-  type id
+  type id = int
   (**[id] represents the type of an entity's id. Entities are considered
      identical if they have the same id*)
 

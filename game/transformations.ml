@@ -47,3 +47,11 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
         in
         GameState.add_event updated_state (ChangeHealth (entity, -.x))
     | ApplyFire x -> state
+
+let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
+  let world =
+    GameWorld.put_entity
+      (GameWorld.put_entity GameWorld.empty (GameEntity.set_pos player (0, 0)))
+      (create_default_at Door (-5, -5))
+  in
+  GameState.update_world state world

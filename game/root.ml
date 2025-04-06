@@ -11,6 +11,7 @@ type entity_types =
   | Wall
   | Player
   | Pigeon
+  | Door
 
 type status_effects = Fire of int
 
@@ -19,6 +20,7 @@ let string_of_type e_type =
   | Wall -> "wall"
   | Player -> "player"
   | Pigeon -> "pigeon"
+  | Door -> "door"
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -44,6 +46,7 @@ module BaseEntityDeclarations :
     | Wall -> "wall"
     | Player -> "player"
     | Pigeon -> "pigeon"
+    | Door -> "door"
 
   let string_of_status (_ : status_effect) = "generic"
 end
@@ -70,11 +73,15 @@ let create_default_at e_type pos : GameEntity.t =
     | Pigeon ->
         GameEntity.create
           {
-            health = 10.0;
+            health = 3.0;
             base_moves = base_cross_moves;
             base_actions = base_cross_actions;
           }
-          Pigeon [] pos)
+          Pigeon [] pos
+    | Door ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Door [] pos)
 
 module GameWorld = World.Make (GameEntity)
 
@@ -235,10 +242,12 @@ module GameState : GameStateSignature = struct
     let new_state =
       List.fold_left
         (fun (state_ext : t) (entity : GameEntity.t) ->
-          List.fold_left
-            (fun (acc : t) (transition : transition) ->
-              transition state_ext entity input)
-            state_ext state_ext.transitions)
+          if GameWorld.mem_id state_ext.world entity.id then
+            List.fold_left
+              (fun (acc : t) (transition : transition) ->
+                transition state_ext entity input)
+              state_ext state_ext.transitions
+          else state_ext)
         state
         (GameWorld.all_entities state.world)
     in
@@ -247,6 +256,7 @@ module GameState : GameStateSignature = struct
         (fun (e : GameEntity.t) -> e.entity_type = Player)
         (GameWorld.all_entities new_state.world)
     in
+    print_int (List.length (GameWorld.all_entities new_state.world));
     {
       world = new_state.world;
       transitions = new_state.transitions;
