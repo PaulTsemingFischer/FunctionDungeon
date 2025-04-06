@@ -51,7 +51,33 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   let world =
     GameWorld.put_entity
-      (GameWorld.put_entity GameWorld.empty (GameEntity.set_pos player (0, 0)))
-      (create_default_at Door (-5, -5))
+      (GameWorld.put_entity GameWorld.empty player)
+      (create_default_at Door
+         (add_vec2
+            ( random_element [ 1; -1 ] * (Random.int 3 + 1),
+              random_element [ 1; -1 ] * (Random.int 3 + 1) )
+            player.pos))
   in
-  GameState.update_world state world
+
+  let room_radius = 5 + Random.int 7 in
+
+  let updated_world =
+    List.fold_left
+      (fun (acc : GameWorld.t) (current_x : int) ->
+        let pos_y =
+          sqrt
+            (float_of_int (room_radius * room_radius)
+            -. float_of_int (current_x * current_x))
+        in
+        GameWorld.put_entity
+          (GameWorld.put_entity acc
+             (create_default_at Wall
+                (add_vec2 player.pos
+                   (current_x, int_of_float (Float.round pos_y)))))
+          (create_default_at Wall
+             (add_vec2 player.pos
+                (current_x, -int_of_float (Float.round pos_y)))))
+      world
+      (List.init ((room_radius * 2) + 1) (fun x -> x - room_radius))
+  in
+  GameState.update_world state updated_world
