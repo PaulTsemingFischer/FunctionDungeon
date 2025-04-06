@@ -11,7 +11,7 @@ open Rendering
 
 let generate_starting_state () =
   let player = create_default_at Player (0, 0) in
-  let pigeon = create_default_at (Pigeon 1) (3, 3) in
+  let pigeon = create_default_at Pigeon (3, 3) in
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity
@@ -21,7 +21,7 @@ let generate_starting_state () =
       pigeon
   in
   let state = GameState.create world [ entity_action_runner ] in
-  GameState.add_moves_modifier state (ScaleMove 2) (Pigeon 1)
+  GameState.add_moves_modifier state (ScaleMove 2) Pigeon
 
 let setup () =
   Raylib.init_window 1000 1000 "raylib [core] example - basic window";
