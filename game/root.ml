@@ -256,7 +256,6 @@ module GameState : GameStateSignature = struct
         (fun (e : GameEntity.t) -> e.entity_type = Player)
         (GameWorld.all_entities new_state.world)
     in
-    print_int (List.length (GameWorld.all_entities new_state.world));
     {
       world = new_state.world;
       transitions = new_state.transitions;
