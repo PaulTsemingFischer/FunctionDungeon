@@ -1,5 +1,7 @@
 open Root
 
+(**[entity_action_runner state entity input] executes the actions associated
+   with some entity on the given [state]*)
 let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
     (input : input) =
   match entity.entity_type with

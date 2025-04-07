@@ -24,7 +24,7 @@ let generate_starting_state () =
       wall
   in
   let state = GameState.create world [ entity_action_runner ] in
-  GameState.add_moves_modifier state (ScaleMove 2) Pigeon
+  GameState.add_moves_modifier state (ScaleMove 1) Pigeon
 
 let setup () =
   Raylib.init_window 1000 1000 "raylib [core] example - basic window";

@@ -51,9 +51,9 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
             if updated_entity.stats.health <= 0. then
               let updated_state =
                 GameState.update_world state
-                  (GameWorld.remove_entity world updated_entity.id)
+                  (GameWorld.remove_entity world entity.id)
               in
-              updated_state
+              GameState.add_event updated_state (EntityDeath entity)
             else
               let updated_state =
                 GameState.update_world state

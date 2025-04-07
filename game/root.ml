@@ -76,6 +76,10 @@ let create_default_at e_type pos : GameEntity.t =
           { health = 10.0; base_moves = []; base_actions = [] }
           Door [] pos)
 
+(**[print_entities entity_list] prints all entities in given entity_list*)
+let print_entities entity_list =
+  List.iter (fun x -> print_endline (GameEntity.string_of_entity x)) entity_list
+
 module GameWorld = World.Make (GameEntity)
 
 type input =
@@ -233,24 +237,38 @@ module GameState : GameStateSignature = struct
       modifiers = [];
     }
 
+  let print_events state =
+    List.iter
+      (fun ((turn, event) : int * event) ->
+        print_endline (string_of_int turn ^ "\t" ^ string_of_event event))
+      (List.rev state.events)
+
+  let print_latest_event state =
+    if List.length state.events > 0 then
+      let turn, event = List.hd state.events in
+      print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
+    else print_endline "No events"
+
   let step (state : t) (input : input) =
     let new_state =
       List.fold_left
-        (fun (state_ext : t) (entity : GameEntity.t) ->
-          if GameWorld.mem_id state_ext.world entity.id then
-            List.fold_left
-              (fun (acc : t) (transition : transition) ->
-                transition state_ext entity input)
-              state_ext state_ext.transitions
-          else state_ext)
-        state
-        (GameWorld.all_entities state.world)
+        (fun (state_ext : t) (transition : transition) ->
+          List.fold_left
+            (fun (acc : t) (entity : GameEntity.t) ->
+              if GameWorld.mem_id acc.world entity.id then
+                transition acc entity input
+              else acc)
+            state_ext
+            (GameWorld.all_entities state_ext.world))
+        state state.transitions
     in
+    print_latest_event state;
     let updated_player =
       List.find_opt
         (fun (e : GameEntity.t) -> e.entity_type = Player)
         (GameWorld.all_entities new_state.world)
     in
+
     {
       world = new_state.world;
       transitions = new_state.transitions;
