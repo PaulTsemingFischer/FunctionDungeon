@@ -81,7 +81,38 @@ let draw_ui (renderer : t) =
     (get_screen_height () - (bottom_panel_height - panel_padding))
     ui_font_size Color.white;
 
-  let render_n_events (event_list : (int * event) list) (n : int) =
+  let render_n_entities (entities : GameEntity.t list) (n : int) =
+    let rec render_n_entities_aux (entities : GameEntity.t list) (n : int)
+        (current : int) =
+      if n <= current then ()
+      else
+        match entities with
+        | [] -> ()
+        | h :: t -> (
+            match h.entity_type with
+            | Wall | Door -> render_n_entities_aux t n current
+            | x ->
+                let entry_height =
+                  get_screen_height ()
+                  - (bottom_panel_height - (2 * panel_padding)
+                    - ((current + 1) * ui_font_size))
+                in
+                Raylib.draw_text
+                  (string_of_type h.entity_type)
+                  padding entry_height ui_font_size Color.white;
+                render_n_entities_aux t n (current + 1);
+                draw_metric_right "HEALTH: "
+                  (Printf.sprintf "%.2f" h.stats.health)
+                  (get_screen_width () - padding)
+                  entry_height ui_font_size Color.red)
+    in
+    render_n_entities_aux entities 5 0
+  in
+  render_n_entities
+    (GameWorld.all_entities (GameState.get_world renderer.source_state))
+    3
+
+(* let render_n_events (event_list : (int * event) list) (n : int) =
     let rec render_n_events_aux (event_list : (int * event) list) (n : int)
         (current : int) =
       if n <= current then ()
@@ -105,8 +136,8 @@ let draw_ui (renderer : t) =
               (screen_width - padding) entry_height ui_font_size Color.gray
     in
     render_n_events_aux event_list n 0
-  in
-  render_n_events (GameState.get_events renderer.source_state) 4
+  in *)
+(* render_n_events (GameState.get_events renderer.source_state) 4 *)
 
 let compute_camera_target ((x, y) : vec2) =
   Vector2.scale
