@@ -1,7 +1,6 @@
 (test
  (name engine_tests)
  (libraries ounit2 engine game))
- (libraries ounit2 engine game))
 
 (test
  (name game_tests)
