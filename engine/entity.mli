@@ -11,9 +11,6 @@ module type EntityData = sig
    type status_effect
    (**[status_effect] includes effects like fire, slow, poison, etc. that may last over several turns when applied to an entity*)
 
-  val zeroed_stats : t
-  (**[zeroed_stats] is the default 'zeroed' instance of the given stat type*)
-
   val string_of_stats : t -> string
   (**[string_of_stats] returns a string representation of the type of stats, [t]*)
 
@@ -35,9 +32,6 @@ module type S = sig
 
   type stats
   (**[stats] describes basic entity information common to all entities*)
-
-  val zeroed_stats : stats
-  (**[starter_stats] is a utility stats record with all stats set to zero*)
 
   type entity_type
   (**[entity_type] describes the behavior of entities in game and optionally

@@ -31,13 +31,6 @@ module BaseEntityDeclarations :
   type entity_type = entity_types
   type status_effect = status_effects
 
-  let zeroed_stats =
-    {
-      health = 0.0;
-      base_moves = Modifiers.base_cross_moves;
-      base_actions = Modifiers.base_cross_actions;
-    }
-
   let string_of_stats stat = Printf.sprintf "health: %f" stat.health
   let string_of_type = string_of_type
 
