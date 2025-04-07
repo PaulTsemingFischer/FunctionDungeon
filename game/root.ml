@@ -160,40 +160,40 @@ module type GameStateSignature = sig
   (**[get_modifiers state entity_type] returns a tuple of tile and movement
      modifiers associated with that entity type*)
 
-  val apply_action_modifiers :
+  val activate_action_modifiers :
     t ->
     entity_types ->
     Modifiers.possible_action list ->
     Modifiers.possible_action list
-  (**[apply_action_modifiers state entity_type possible_actions] applies all
+  (**[activate_action_modifiers state entity_type possible_actions] applies all
      action modifiers associated with [entity_type] to [possible_actions] and
      returns the modified result (Does not change state in any way)*)
 
-  val apply_move_modifiers :
+  val activate_move_modifiers :
     t ->
     entity_types ->
     Modifiers.possible_move list ->
     Modifiers.possible_move list
-  (**[apply_move_modifiers state entity_type possible_moves] applies all move
+  (**[activate_move_modifiers state entity_type possible_moves] applies all move
      modifiers associated with [entity_type] to [possible_moves] and returns the
      modified result (Does not change state in any way)*)
 
-  val activate_action_modifiers :
+  val apply_action_modifiers :
     t ->
     GameEntity.t ->
     Modifiers.possible_action list ->
     t * Modifiers.possible_action list
-  (**[activate_action_modifiers state entity possible_actions] applies the
-     action modifiers associated with [entity.entity_type] to
-     [possible_actions], returning a list of new actions and the updated state,
-     with the activation of the modifiers pushed to the event stack*)
+  (**[apply_action_modifiers state entity possible_actions] applies the action
+     modifiers associated with [entity.entity_type] to [possible_actions],
+     returning a list of new actions and the updated state, with the activation
+     of the modifiers pushed to the event stack*)
 
-  val activate_move_modifiers :
+  val apply_move_modifiers :
     t ->
     GameEntity.t ->
     Modifiers.possible_move list ->
     t * Modifiers.possible_move list
-  (**[activate_move_modifiers state entity possible_moves] applies the move
+  (**[apply_move_modifiers state entity possible_moves] applies the move
      modifiers associated with [entity.entity_type] to [possible_moves],
      returning a list of new actions and the updated state, with the activation
      of the modifiers pushed to the event stack*)
@@ -291,7 +291,7 @@ module GameState : GameStateSignature = struct
 
   exception Entity_not_found of GameEntity.t
 
-  let apply_action_modifiers state (entity_type : entity_types)
+  let activate_action_modifiers state (entity_type : entity_types)
       (possible_actions : Modifiers.possible_action list) =
     match List.assoc_opt (string_of_type entity_type) state.modifiers with
     | Some (possible_actions_modifiers, _) ->
@@ -307,10 +307,10 @@ module GameState : GameStateSignature = struct
           possible_actions possible_actions_modifiers
     | None -> possible_actions
 
-  let activate_action_modifiers state (entity : GameEntity.t)
+  let apply_action_modifiers state (entity : GameEntity.t)
       (possible_actions : Modifiers.possible_action list) =
     let modified_actions =
-      apply_action_modifiers state entity.entity_type possible_actions
+      activate_action_modifiers state entity.entity_type possible_actions
     in
     match
       List.assoc_opt (string_of_type entity.entity_type) state.modifiers
@@ -321,7 +321,7 @@ module GameState : GameStateSignature = struct
           modified_actions )
     | None -> (state, possible_actions)
 
-  let apply_move_modifiers state (entity_type : entity_types)
+  let activate_move_modifiers state (entity_type : entity_types)
       (possible_moves : Modifiers.possible_move list) =
     match List.assoc_opt (string_of_type entity_type) state.modifiers with
     | Some (_, possible_moves_modifiers) ->
@@ -340,10 +340,10 @@ module GameState : GameStateSignature = struct
         modified_actions
     | None -> possible_moves
 
-  let activate_move_modifiers state (entity : GameEntity.t)
+  let apply_move_modifiers state (entity : GameEntity.t)
       (possible_moves : Modifiers.possible_move list) =
     let modified_moves =
-      apply_move_modifiers state entity.entity_type possible_moves
+      activate_move_modifiers state entity.entity_type possible_moves
     in
     match
       List.assoc_opt (string_of_type entity.entity_type) state.modifiers

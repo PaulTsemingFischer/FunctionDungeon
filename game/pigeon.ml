@@ -3,7 +3,7 @@ open Engine.Utils
 
 let pigeon_action (state : GameState.t) (entity : GameEntity.t) _ =
   let possible_attacks =
-    GameState.apply_action_modifiers state entity.entity_type
+    GameState.activate_action_modifiers state entity.entity_type
       entity.stats.base_actions
   in
   let nearby_entity_action_pairs :
@@ -27,7 +27,7 @@ let pigeon_action (state : GameState.t) (entity : GameEntity.t) _ =
   | Some (p, (_, a)) -> Transformations.apply_action_to state p a
   | None ->
       let updated_state, possible_moves =
-        GameState.activate_move_modifiers state entity entity.stats.base_moves
+        GameState.apply_move_modifiers state entity entity.stats.base_moves
       in
       let random_direction = random_element possible_moves in
       let target_position = add_vec2 random_direction entity.pos in
