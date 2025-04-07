@@ -57,7 +57,7 @@ module type S = sig
      rendering rules, and statuses*)
 
   val create : stats -> entity_type -> status_effect list -> vec2 -> t
-  (**[create stats entity_type rendering statuses pos] creates an entity with a
+  (**[create stats entity_type statuses pos] creates an entity with a
      unique id and the given entity information*)
 
   val set_pos : t -> vec2 -> t

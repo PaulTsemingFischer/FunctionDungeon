@@ -27,6 +27,8 @@ let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
 
 exception Entity_not_found of GameEntity.t
 
+(**[apply_action_to state entity action] applies [action] to [entity], returning
+   an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     (action : Modifiers.action) =
   let world = GameState.get_world state in
@@ -48,6 +50,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
         GameState.add_event updated_state (ChangeHealth (entity, -.x))
     | ApplyFire x -> state
 
+(**[generate_normal_room state player] creates a new room with the given player*)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   let world =
     GameWorld.put_entity
