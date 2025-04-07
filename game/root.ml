@@ -101,6 +101,7 @@ type event =
       * Modifiers.possible_action list
   | ActivateMoveModifier of
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
+  | EntityDeath of GameEntity.t
 
 let string_of_event event =
   match event with
@@ -120,6 +121,7 @@ let string_of_event event =
       Printf.sprintf "%s's health changed by %.2f"
         (string_of_type e.entity_type)
         amt
+  | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
 
 module type GameStateSignature = sig
   type t

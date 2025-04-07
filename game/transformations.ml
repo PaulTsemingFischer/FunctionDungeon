@@ -36,18 +36,31 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     raise (Entity_not_found entity)
   else
     match action with
-    | DealDamage x ->
-        let updated_state =
-          GameState.update_world state
-            (GameWorld.put_entity world
-               (GameEntity.update_stats entity
-                  {
-                    health = entity.stats.health -. x;
-                    base_moves = entity.stats.base_moves;
-                    base_actions = entity.stats.base_actions;
-                  }))
-        in
-        GameState.add_event updated_state (ChangeHealth (entity, -.x))
+    | DealDamage x -> (
+        match entity.entity_type with
+        | Wall | Door -> state
+        | _ ->
+            let updated_entity =
+              GameEntity.update_stats entity
+                {
+                  health = entity.stats.health -. x;
+                  base_moves = entity.stats.base_moves;
+                  base_actions = entity.stats.base_actions;
+                }
+            in
+            if updated_entity.stats.health <= 0. then
+              let updated_state =
+                GameState.update_world state
+                  (GameWorld.remove_entity world updated_entity.id)
+              in
+              updated_state
+            else
+              let updated_state =
+                GameState.update_world state
+                  (GameWorld.put_entity world updated_entity)
+              in
+
+              GameState.add_event updated_state (ChangeHealth (entity, -.x)))
     | ApplyFire x -> state
 
 (**[generate_normal_room state player] creates a new room with the given player*)
