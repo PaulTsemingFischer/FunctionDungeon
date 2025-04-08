@@ -88,6 +88,7 @@ module GameWorld = World.Make (GameEntity)
 type input =
   | MovePlayer of vec2
   | Wait
+  | Attack
 
 exception Invalid_input of input
 
