@@ -4,7 +4,9 @@ open Engine.Utils
 type enemy =
   | Jailer of int * int
     (* fence player in r radius from their current position for t turns *)
-  | Thief (* Randomly take one of player's items *)
+  | Thief
+    (* Randomly take one of player's items; CURRENTLY JUST TAKING FIRST IN THE
+       ACTIONS MODIFIER LIST BUT MAY CHANGE TO RANDOM LATER *)
   | Blinder of
       int (* player can't see any of the board/must go by memory for t turns *)
   | Fog_Cloud of int * int

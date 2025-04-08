@@ -215,6 +215,8 @@ module type GameStateSignature = sig
   val add_actions_modifier :
     t -> Modifiers.possible_actions_modifier -> entity_types -> t
 
+  val remove_actions_modifier : t -> entity_types -> t
+
   val add_moves_modifier :
     t -> Modifiers.possible_moves_modifier -> entity_types -> t
 end
@@ -402,6 +404,35 @@ module GameState : GameStateSignature = struct
             ( string_of_type entity_type,
               (possible_action :: possible_action_list, movement_modifier_list)
             )
+            :: removed_modifier_assoc;
+        }
+
+  let remove_actions_modifier state entity_type =
+    match List.assoc_opt (string_of_type entity_type) state.modifiers with
+    | None ->
+        {
+          world = state.world;
+          transitions = state.transitions;
+          events = state.events;
+          player = state.player;
+          turn = state.turn;
+          modifiers = state.modifiers;
+        }
+    | Some (possible_action_list, movement_modifier_list) ->
+        let removed_modifier_assoc =
+          List.remove_assoc (string_of_type entity_type) state.modifiers
+        in
+        {
+          world = state.world;
+          transitions = state.transitions;
+          events = state.events;
+          player = state.player;
+          turn = state.turn;
+          modifiers =
+            ( string_of_type entity_type,
+              match possible_action_list with
+              | h :: t -> (t, movement_modifier_list)
+              | [] -> ([], movement_modifier_list) )
             :: removed_modifier_assoc;
         }
 
