@@ -12,6 +12,8 @@ type entity_types =
   | Player
   | Pigeon
   | Door
+  | Enemy
+  | Obstacle
 
 type status_effects = Fire of int
 
@@ -21,6 +23,8 @@ let string_of_type e_type =
   | Player -> "player"
   | Pigeon -> "pigeon"
   | Door -> "door"
+  | Enemy -> "enemy"
+  | Obstacle -> "obstacle"
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -47,6 +51,8 @@ module BaseEntityDeclarations :
     | Player -> "player"
     | Pigeon -> "pigeon"
     | Door -> "door"
+    | Enemy -> "enemy"
+    | Obstacle -> "obstacle"
 
   let string_of_status (_ : status_effect) = "generic"
 end
@@ -81,7 +87,15 @@ let create_default_at e_type pos : GameEntity.t =
     | Door ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          Door [] pos)
+          Door [] pos
+    | Enemy ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Enemy [] pos
+    | Obstacle ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Enemy [] pos)
 
 module GameWorld = World.Make (GameEntity)
 
