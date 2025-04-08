@@ -89,20 +89,20 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
                      pos),
                 acc_tiles )
           | Pgworld.Rock ->
-            ( GameWorld.put_entity acc_world (create_default_at Rock pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Rock pos),
+                acc_tiles )
           | Pgworld.Water ->
-            ( GameWorld.put_entity acc_world (create_default_at Water pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Water pos),
+                acc_tiles )
           | Pgworld.Lava ->
-            ( GameWorld.put_entity acc_world (create_default_at Lava pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Lava pos),
+                acc_tiles )
           | Pgworld.Fire ->
-            ( GameWorld.put_entity acc_world (create_default_at Fire pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Fire pos),
+                acc_tiles )
           | Pgworld.(WeakMob Pigeon) ->
-            ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
-            acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+                acc_tiles )
           | _ -> (acc_world, acc_tiles)
         in
         ( updated_world,
@@ -240,15 +240,27 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
            (((ground, entity), pos) : Pgworld.tile * vec2) ->
         let updated_world, update_tiles =
           match entity with
-          | Pgworld.Wall | Pgworld.Rock ->
+          | Pgworld.Wall ->
               ( GameWorld.put_entity acc_world
                   (create_default_at
                      (if Random.int 100 > 95 then Door else Wall)
                      pos),
                 acc_tiles )
+          | Pgworld.Rock ->
+              ( GameWorld.put_entity acc_world (create_default_at Rock pos),
+                acc_tiles )
           | Pgworld.Water ->
-              ( acc_world,
-                GameTiles.put_entity acc_tiles (create_tile_at Water pos) )
+              ( GameWorld.put_entity acc_world (create_default_at Water pos),
+                acc_tiles )
+          | Pgworld.Lava ->
+              ( GameWorld.put_entity acc_world (create_default_at Lava pos),
+                acc_tiles )
+          | Pgworld.Fire ->
+              ( GameWorld.put_entity acc_world (create_default_at Fire pos),
+                acc_tiles )
+          | Pgworld.(WeakMob Pigeon) ->
+              ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+                acc_tiles )
           | _ -> (acc_world, acc_tiles)
         in
         ( updated_world,
@@ -256,7 +268,7 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
           | Mud -> GameTiles.put_entity update_tiles (create_tile_at Mud pos)
           | Ground ->
               GameTiles.put_entity update_tiles (create_tile_at Ground pos)
-          | Void -> update_tiles ))
+          | _ -> update_tiles ))
       (world, tiles) source_entity_tile_pairs
   in
 

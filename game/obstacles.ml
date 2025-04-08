@@ -1,16 +1,18 @@
-open Root
+open Engine.Utils
 
 type obstacle =
   | Spreading_Fire of int * int * int
   (* fire patch is currently centered at c with radius r and growing at g
      rate *)
-  | Fence
+  | Fence of int (* fence t exists on the game board for t turns *)
 
+(** [string_of_obstacle] is the string representation of each obstacle type *)
 let string_of_obstacle (o : obstacle) =
   match o with
   | Spreading_Fire (c, r, g) -> "spreading fire"
-  | Fence -> "fence"
+  | Fence t -> "fence"
 
-let add_obstacle_to_world state world pos obstacle_type =
-  let new_obstacle = create_default_at Obstacle pos in
-  GameState.update_world state (GameWorld.put_entity world new_obstacle)
+let update_obstacle_age obstacle =
+  match obstacle with
+  | Fence t -> Fence (t - 1)
+  | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r, g)
