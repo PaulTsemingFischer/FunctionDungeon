@@ -50,10 +50,13 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
         GameState.add_event updated_state (ChangeHealth (entity, -.x))
     | ApplyFire x -> state
 
-(** Helper function for [apply_attack_to] *)
-let apply_single_attack_to (state : GameState.t) (entity : GameEntity.t)
-    (effect : action) =
-  apply_action_to state entity effect
+(** [apply_attack_to_entity] applies a single list of actions onto [entity] and
+    returns the updated game state. *)
+let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
+    (effects : action list) =
+  match effects with
+  | [] -> state
+  | h :: t -> apply_attack_to_entity (apply_action_to state entity h) entity t
 
 (** [apply_attack_to state actions] applies all actions in [actions] to the game
     state [state]. *)
@@ -62,8 +65,9 @@ let rec apply_attack_to (state : GameState.t) (actions : possible_action list) =
   | [] -> state
   | h :: t -> (
       match GameWorld.query_pos (GameState.get_world state) (fst h) with
+      (* TODO add attacker's position to the displacement *)
       | None -> state
-      | Some x -> apply_attack_to (apply_single_attack_to state x (snd h)) t)
+      | Some x -> apply_attack_to (apply_attack_to_entity state x (snd h)) t)
 
 (**[generate_normal_room state player] creates a new room with the given player*)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =

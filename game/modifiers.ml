@@ -5,7 +5,7 @@ type action =
   | DealDamage of float
   | ApplyFire of int
 
-type possible_action = vec2 * action
+type possible_action = vec2 * action list
 (**[possible_action] is an action associated with a tile*)
 
 type possible_move = vec2
@@ -26,4 +26,4 @@ let base_cross_moves : possible_move list = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
 
 (**[base_cross_actions] is a list containing the most basic acting pattern*)
 let base_cross_actions : possible_action list =
-  List.map (fun target -> (target, DealDamage 1.)) base_cross_moves
+  List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves

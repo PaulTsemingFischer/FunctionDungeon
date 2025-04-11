@@ -58,11 +58,11 @@ let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
 
 (** [do_damage_example] is a modifier example that adds 1 damage to all attacked
     tiles. *)
-let do_damage_example = fun tile -> [ (fst tile, DealDamage 1.0) ]
+let do_damage_example = fun tile -> [ (fst tile, [ DealDamage 1.0 ]) ]
 
 (** [add_fire_example] is a modifier example that causes all attacked tiles to
     deal fire damage for 3 turns. *)
-let add_fire_example = fun tile -> [ (fst tile, ApplyFire 3) ]
+let add_fire_example = fun tile -> [ (fst tile, [ ApplyFire 3 ]) ]
 
 (** [augment_to_above_example] is a modifier example that adds all tiles one
     step above currently attacked tiles. *)
