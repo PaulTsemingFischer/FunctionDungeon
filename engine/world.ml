@@ -43,9 +43,5 @@ module Make (E : Entity.S) : S with type e_t = E.t and type e_id = E.id = struct
     | None -> false
 
   let put_entity (world : t) (e : e_t) = EntityMap.add e.id e world
-
-  let remove_entity (world : t) (e_id : e_id) =
-    match query_id world e_id with
-    | Some e -> EntityMap.remove e.id world
-    | None -> world
+  let remove_entity (world : t) (e_id : e_id) = EntityMap.remove e_id world
 end
