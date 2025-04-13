@@ -71,7 +71,7 @@ let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
           (GameState.get_world state)
           (add_vec2 (fst h) player_pos)
       with
-      | None -> state
+      | None -> apply_attack_to state player_pos t
       | Some x ->
           apply_attack_to (apply_attack_to_entity state x (snd h)) player_pos t)
 
