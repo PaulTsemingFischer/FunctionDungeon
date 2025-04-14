@@ -19,7 +19,7 @@ let pigeon_action (state : GameState.t) (entity : GameEntity.t) _ =
             match e.entity_type with
             | Player -> Some (e, (add_vec2 pos entity.pos, attack))
             | _ -> None)
-        | None -> None)
+        | None -> player_opt)
       None possible_attacks
   in
 
