@@ -44,7 +44,7 @@ let get_at_vec_opt (arr : 'a matrix) (row, col) =
 let set_at_vec (arr : 'a matrix) (row, col) x = arr.(row).(col) <- x
 
 (*Misc*)
-let neighbors vec =
+let cardinal_neighbors vec =
   [
     add_vec2 vec (0, 1);
     add_vec2 vec (1, 0);
@@ -52,9 +52,32 @@ let neighbors vec =
     add_vec2 vec (-1, 0);
   ]
 
-let random_dir () =
+let random_cardinal_dir () =
   match Random.int 4 with
   | 0 -> (1, 0)
   | 1 -> (0, 1)
   | 2 -> (-1, 0)
   | _ -> (0, -1)
+
+let principal_neighbors vec =
+  [
+    add_vec2 vec (0, 1);
+    add_vec2 vec (1, 1);
+    add_vec2 vec (1, 0);
+    add_vec2 vec (1, -1);
+    add_vec2 vec (0, -1);
+    add_vec2 vec (-1, -1);
+    add_vec2 vec (-1, 0);
+    add_vec2 vec (-1, 1);
+  ]
+
+let random_principal_dir () =
+  match Random.int 8 with
+  | 0 -> (0, 1)
+  | 1 -> (1, 1)
+  | 2 -> (1, 0)
+  | 3 -> (1, -1)
+  | 4 -> (0, -1)
+  | 5 -> (-1, -1)
+  | 6 -> (-1, 0)
+  | _ -> (-1, 1)

@@ -39,7 +39,7 @@ let generate_aux world walkers nwalkers =
 
   let walker = random_walker () in
   let possible_tiles =
-    neighbors walker.coord
+    cardinal_neighbors walker.coord
     |> List.filter (fun c -> get_at_vec_opt world c = Some Void)
   in
   if List.is_empty possible_tiles then kill_walker walker
@@ -68,7 +68,7 @@ let post_process world fill_chance =
           else
             let neighbor_tiles =
               List.map (get_at_vec_opt world)
-                (neighbors (outer_index, inner_index))
+                (cardinal_neighbors (outer_index, inner_index))
               |> List.filter Option.is_some |> List.map Option.get
             in
             if List.mem Ground neighbor_tiles then Ground else tile)
@@ -101,7 +101,7 @@ let world_from_genworld gen_world =
       for j = 0 to cols - 1 do
         let tile = get_at_vec gen_world (i, j) in
         let neighbor_tiles =
-          List.map (get_at_vec_opt gen_world) (neighbors (i, j))
+          List.map (get_at_vec_opt gen_world) (cardinal_neighbors (i, j))
         in
         if tile = Void && List.mem (Some Ground) neighbor_tiles then
           (* print_endline ("Adding to " ^ string_of_int i ^ ", " ^
