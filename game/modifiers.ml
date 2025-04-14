@@ -4,6 +4,8 @@ open Engine.Utils
 type action =
   | DealDamage of float
   | ApplyFire of int
+  | BarrierAttack of int * Obstacles.obstacle
+  | StealAttack
 
 type possible_action = vec2 * action
 (**[possible_action] is an action associated with a tile*)
