@@ -80,6 +80,14 @@ val set_at_vec : 'a array array -> vec2 -> 'a -> unit
    [Invalid_argument "index out of bounds"] if [vec2] does not represent a valid
    location in [matrix]. *)
 
+val apply_at_vecs : 'a array array -> vec2 list -> (int -> int -> 'a) -> unit
+(**[apply_at_vecs matrix spots f] sets the locations [spots] in [matrix] to
+   [f row col]. Raises [Invalid_argument "index out of bounds"] if any of
+   [spots] does not represent a valid location in [matrix]. *)
+
+val dimensions : 'a array array -> int * int
+(**[dimensions matrix] is the pair [(width, height)] of [matrix]. *)
+
 val cardinal_neighbors : vec2 -> vec2 list
 (**[cardinal_neighbors vec] is the list of the 4 vec2s adjacent to [vec] in the
    cardinal directions. *)
@@ -91,6 +99,10 @@ val random_cardinal_dir : unit -> vec2
 val principal_neighbors : vec2 -> vec2 list
 (**[principal_neighbors vec] is the list of the 8 vec2s adjacent to [vec] in the
    principal directions. *)
+
+val principal_neighbors_gen2 : vec2 -> vec2 list
+(**[principal_neighbors vec] is the list of the 16 vec2s that are pricipal
+   neighbors to a principal neighbor of [vec].*)
 
 val random_principal_dir : unit -> vec2
 (**[random_principal_dir] is a random vec2 offset in one of the 8 principal

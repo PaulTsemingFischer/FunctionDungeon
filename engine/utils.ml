@@ -43,6 +43,14 @@ let get_at_vec_opt (arr : 'a matrix) (row, col) =
 
 let set_at_vec (arr : 'a matrix) (row, col) x = arr.(row).(col) <- x
 
+let apply_at_vecs (arr : 'a matrix) spots f =
+  List.iter (fun (row, col) -> arr.(row).(col) <- f row col) spots
+
+let dimensions (arr : 'a matrix) =
+  let rows = Array.length arr in
+  let cols = if rows > 0 then Array.length arr.(0) else 0 in
+  (rows, cols)
+
 (*Misc*)
 let cardinal_neighbors vec =
   [
@@ -69,6 +77,26 @@ let principal_neighbors vec =
     add_vec2 vec (-1, -1);
     add_vec2 vec (-1, 0);
     add_vec2 vec (-1, 1);
+  ]
+
+let principal_neighbors_gen2 vec =
+  [
+    add_vec2 vec (0, 2);
+    add_vec2 vec (1, 2);
+    add_vec2 vec (2, 2);
+    add_vec2 vec (2, 1);
+    add_vec2 vec (2, 0);
+    add_vec2 vec (2, -1);
+    add_vec2 vec (2, -2);
+    add_vec2 vec (1, -2);
+    add_vec2 vec (0, -2);
+    add_vec2 vec (-1, -2);
+    add_vec2 vec (-2, -2);
+    add_vec2 vec (-2, -1);
+    add_vec2 vec (-2, 0);
+    add_vec2 vec (-2, 1);
+    add_vec2 vec (-2, 2);
+    add_vec2 vec (-1, 2);
   ]
 
 let random_principal_dir () =
