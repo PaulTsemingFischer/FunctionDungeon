@@ -35,13 +35,11 @@ type room_gen_settings = {
   island_liquify_chance : float;
   island_lava_chance : float;
   island_rock_chance : float;
+  min_void_size : int;
   num_doors : int;
-}
-
-type private_gen_settings = {
   noise_room_wall_chance : float;
   rule_one_cave_merge_runs : int;
-  rule_two_cave_merge_runs : int;
+  rule_two_cave_merge_runs : int
 }
 
 let default_room_gen_settings =
@@ -53,19 +51,15 @@ let default_room_gen_settings =
     room_width = 30;
     room_height = 30;
     min_room_coverage = 0.2;
-    island_liquify_chance = 0.5;
+    island_liquify_chance = 0.3;
     island_lava_chance = 0.2;
-    island_rock_chance = 0.3;
+    island_rock_chance = 0.2;
+    min_void_size = 14;
     num_doors = 0;
-  }
-
-let private_gen_settings =
-  {
     noise_room_wall_chance = 0.45;
     rule_one_cave_merge_runs = 4;
     rule_two_cave_merge_runs = 1;
   }
-
 (*HELPERS*)
 
 (**[room_map f room] creates a new room with tiles created from applying [f] on
@@ -78,6 +72,12 @@ let room_map (f : t -> vec2 -> tile) room =
    neighbors of [spot]. Out of bounds accesses are ignored. *)
 let principal_neighbor_items room spot =
   let neighbors = principal_neighbors spot in
+  List.filter_map (get_at_vec_opt room) neighbors
+
+  (**[cardinal_neighbor_items room spot] is the list of items in the cardinal
+   neighbors of [spot]. Out of bounds accesses are ignored. *)
+let cardinal_neighbor_items room spot =
+  let neighbors = cardinal_neighbors spot in
   List.filter_map (get_at_vec_opt room) neighbors
 
 (**[principal_neighbor_gen2_items room spot] is the list of items in the gen2
@@ -181,10 +181,10 @@ let rec cave_merge original_room settings =
   in
   let room_ref = ref original_room in
   (*Perform the merges*)
-  for _ = 1 to private_gen_settings.rule_one_cave_merge_runs do
+  for _ = 1 to settings.rule_one_cave_merge_runs do
     room_ref := room_map rule_one !room_ref
   done;
-  for _ = 1 to private_gen_settings.rule_two_cave_merge_runs do
+  for _ = 1 to settings.rule_two_cave_merge_runs do
     room_ref := room_map rule_two !room_ref
   done;
   let room = !room_ref in
@@ -234,12 +234,14 @@ let liquify_islands room settings =
         |> not
       then
         let random = Random.float 1.0 in
+        
         let replacement =
-          if random < settings.island_liquify_chance then
+          if List.length lst > settings.min_void_size && Random.float 1.0 < 0.9 then (Void, Wall) (*10% chance to turn each big island into a void.*)
+          else if random < settings.island_liquify_chance then
             (Void, Water)
           else if random < settings.island_liquify_chance +. settings.island_rock_chance then (Ground, Rock)
           else if random < settings.island_liquify_chance +. settings.island_rock_chance +. settings.island_lava_chance then(Void, Lava)
-          else (Void, Empty)
+          else (Void, Wall)
         in
         apply_at_vecs room lst (fun _ _ -> replacement))
     walls;
@@ -256,7 +258,7 @@ let border_wall room =
 let remove_redundant_walls =
   room_map (fun room spot ->
       if
-        principal_neighbor_items room spot
+        cardinal_neighbor_items room spot
         |> List.filter (fun (_, e) -> e != Wall)
         |> List.length = 0
       then (Void, Empty)
@@ -265,7 +267,7 @@ let remove_redundant_walls =
 let generate_room (settings : room_gen_settings) : t =
   let room =
     noise_room settings.room_width settings.room_height
-      private_gen_settings.noise_room_wall_chance
+    settings.noise_room_wall_chance
   in
   let room = cave_merge room settings in
   let room = liquify_islands room settings in
