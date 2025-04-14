@@ -20,6 +20,10 @@ let string_of_enemy (e : enemy) =
   | Blinder t -> "blinder"
   | Fog_Cloud (r, t) -> "fog cloud"
 
+let add_obstacle_to_world state world pos obstacle_type =
+  let new_obstacle = create_default_at Obstacle pos in
+  GameState.update_world state (GameWorld.put_entity world new_obstacle)
+
 let positions_in_radius (center : vec2) (radius : int) : vec2 list =
   let center_x, center_y = center in
   let positions = ref [] in
@@ -42,13 +46,18 @@ let build_barrier (state : GameState.t) (world : GameWorld.t) (center : vec2)
     (radius : int) (objects : Obstacles.obstacle) =
   let positions = positions_in_radius center radius in
   List.fold_left
-    (fun current_state p ->
-      Obstacles.add_obstacle_to_world current_state world p objects)
+    (fun current_state p -> add_obstacle_to_world current_state world p objects)
     state positions
 
-let enemy_attack_type (e : enemy) =
+let enemy_attack_type (e : enemy) : Modifiers.action =
   match e with
-  | Jailer (r, t) -> "build_barrier (player's position) (r) (fence)"
-  | Thief -> "thief"
-  | Blinder t -> "build_barrier (player's position) (set radius) (blinder)"
-  | Fog_Cloud (r, t) -> "fog clouds"
+  | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence)
+  | Thief -> StealAttack
+  | Blinder t -> exit 0 (* Dummy for now *)
+  | Fog_Cloud (r, t) -> exit 0
+(* Dummy for now *)
+
+let enemy_cross_actions (e : enemy) : Modifiers.possible_action list =
+  List.map
+    (fun target -> (target, enemy_attack_type e))
+    Modifiers.base_cross_moves
