@@ -102,8 +102,9 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   in
   GameState.update_tiles (GameState.update_world state entity_world) tile_world
 
-(**[generate_normal_room state player] creates a new room with the given player*)
-let generate_complex_room (state : GameState.t) (player : GameEntity.t) =
+(**[generate_circular_room state player] creates a new room with the given
+   player*)
+let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity GameWorld.empty player)
