@@ -144,15 +144,15 @@ let compute_camera_target ((x, y) : vec2) =
     (Vector2.create (float_of_int x) (float_of_int (-y + 3)))
     tile_scaling_factor
 
-let update_render_state (renderer : t) (game_state : GameState.t) =
+let update_render_state (renderer : t) (entity_state : GameState.t) =
   let all_entitities =
-    GameWorld.all_entities (GameState.get_world game_state)
+    GameWorld.all_entities (GameState.get_world entity_state)
   in
   let filtered_renderables =
     RenderableSet.filter
       (fun renderable ->
         GameWorld.mem_id
-          (GameState.get_world game_state)
+          (GameState.get_world entity_state)
           renderable.source_entity.id)
       renderer.renderables
   in
@@ -186,9 +186,10 @@ let update_render_state (renderer : t) (game_state : GameState.t) =
   in
   {
     renderables = updated_renderables;
-    source_state = game_state;
+    source_state = entity_state;
     camera = renderer.camera;
-    camera_target = compute_camera_target (GameState.get_player game_state).pos;
+    camera_target =
+      compute_camera_target (GameState.get_player entity_state).pos;
   }
 
 let tick (renderer : t) =
@@ -253,13 +254,20 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
+               Color.black
+         | HorizontalBouncer is_moving_right ->
+             Raylib.draw_text
+               (if is_moving_right then ">" else "<")
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
                Color.black);
 
   end_mode_2d ();
   draw_ui renderer;
   end_drawing ()
 
-let rec loop_aux (renderer : t) (game_state : GameState.t)
+let rec loop_aux (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
   if Raylib.window_should_close () then Raylib.close_window ()
   else
@@ -276,36 +284,37 @@ let rec loop_aux (renderer : t) (game_state : GameState.t)
     | None ->
         let updated_renderer = tick renderer in
         render updated_renderer;
-        loop_aux updated_renderer game_state input_handler
+        loop_aux updated_renderer entity_state input_handler
     | Some input -> (
         try
-          let updated_game_state = input_handler game_state input in
+          let updated_entity_state = input_handler entity_state input in
           let updated_renderer =
-            update_render_state renderer updated_game_state
+            update_render_state renderer updated_entity_state
           in
           let ticked_renderer = tick updated_renderer in
           render ticked_renderer;
-          loop_aux ticked_renderer updated_game_state input_handler
+          loop_aux ticked_renderer updated_entity_state input_handler
         with GameState.Invalid_input _ ->
           let updated_renderer = tick renderer in
           render updated_renderer;
-          loop_aux updated_renderer game_state input_handler)
+          loop_aux updated_renderer entity_state input_handler)
 
-let loop (renderer : t) (game_state : GameState.t)
+let loop (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
   Raylib.init_window screen_width screen_height "Function Dungeon";
   Raylib.set_window_state [ Raylib.ConfigFlags.Window_undecorated ];
   Raylib.set_target_fps 60;
-  loop_aux renderer game_state input_handler
+  loop_aux renderer entity_state input_handler
 
-let make_from_state (game_state : GameState.t) =
+let make_from_state (entity_state : GameState.t) =
   {
     renderables =
-      GameWorld.all_entities (GameState.get_world game_state)
+      GameWorld.all_entities (GameState.get_world entity_state)
       |> List.map (fun (entity : GameEntity.t) ->
              { source_entity = entity; rendered_pos = vec2f_of_vec2 entity.pos })
       |> RenderableSet.of_list;
-    source_state = game_state;
+    source_state = entity_state;
     camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
-    camera_target = compute_camera_target (GameState.get_player game_state).pos;
+    camera_target =
+      compute_camera_target (GameState.get_player entity_state).pos;
   }

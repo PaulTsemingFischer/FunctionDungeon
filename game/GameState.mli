@@ -28,7 +28,7 @@ and transition = t -> GameEntity.t -> input -> t
 
 val string_of_event: event -> string
 
-val create : GameWorld.t -> transition list -> t
+val create : GameWorld.t -> ?tiles:GameTiles.t -> transition list -> t
 (**[create world transitions] returns a gamestate with the specified world and
     transition list*)
 
@@ -38,6 +38,13 @@ val step : t -> input -> t
 val get_world : t -> GameWorld.t
 (**[get_world state] returns a world of type [GameWorld.t] associated with
     [state]*)
+
+val get_tiles : t -> GameTiles.t
+(**[get_tiles state] returns a world of type [GameTiles.t] associated with
+    [state]*)
+
+val update_tiles : t -> GameTiles.t -> t
+(**[update_tiles state tiles] returns an updated state whose tiles is [tiles]*)
 
 val update_world : t -> GameWorld.t -> t
 (**[update_world state world] returns an updated state whose world is [world]*)

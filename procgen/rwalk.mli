@@ -1,4 +1,3 @@
-open Game.Transitions
 open Game.GameDefinitions
 
 type tile =

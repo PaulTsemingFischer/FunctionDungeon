@@ -41,6 +41,7 @@ let string_of_event event =
 
 type t = {
   world : GameWorld.t;
+  tiles : GameTiles.t;
   transitions : transition list;
   events : (int * event) list;
   turn : int;
@@ -54,9 +55,11 @@ type t = {
 
 and transition = t -> GameEntity.t -> input -> t
 
-let create (world : GameWorld.t) (transitions : transition list) : t =
+let create (world : GameWorld.t) ?(tiles : GameTiles.t = GameTiles.empty)
+    (transitions : transition list) : t =
   {
     world;
+    tiles;
     transitions;
     events = [];
     turn = 0;
@@ -105,6 +108,7 @@ let step (state : t) (input : input) =
 
   {
     world = new_state.world;
+    tiles = new_state.tiles;
     transitions = new_state.transitions;
     events = new_state.events;
     turn = new_state.turn + 1;
@@ -116,16 +120,23 @@ let step (state : t) (input : input) =
   }
 
 let get_world state = state.world
+let get_tiles state = state.tiles
 
-let update_world { world; transitions; events; turn; player; modifiers }
+let update_world { world; tiles; transitions; events; turn; player; modifiers }
     new_world : t =
-  { world = new_world; transitions; events; turn; player; modifiers }
+  { world = new_world; tiles; transitions; events; turn; player; modifiers }
+
+let update_tiles { world; tiles; transitions; events; turn; player; modifiers }
+    new_tiles : t =
+  { world; tiles = new_tiles; transitions; events; turn; player; modifiers }
 
 let get_events state = state.events
 
-let add_event { world; transitions; events; turn; player; modifiers } event =
+let add_event { world; tiles; transitions; events; turn; player; modifiers }
+    event =
   {
     world;
+    tiles;
     transitions;
     events = (turn, event) :: events;
     turn;
@@ -208,6 +219,7 @@ let add_actions_modifier state possible_action entity_type =
   | None ->
       {
         world = state.world;
+        tiles = state.tiles;
         transitions = state.transitions;
         events = state.events;
         player = state.player;
@@ -222,6 +234,7 @@ let add_actions_modifier state possible_action entity_type =
       in
       {
         world = state.world;
+        tiles = state.tiles;
         transitions = state.transitions;
         events = state.events;
         player = state.player;
@@ -237,6 +250,7 @@ let add_moves_modifier state movement_modifier entity_type =
   | None ->
       {
         world = state.world;
+        tiles = state.tiles;
         transitions = state.transitions;
         events = state.events;
         player = state.player;
@@ -251,6 +265,7 @@ let add_moves_modifier state movement_modifier entity_type =
       in
       {
         world = state.world;
+        tiles = state.tiles;
         transitions = state.transitions;
         events = state.events;
         player = state.player;
