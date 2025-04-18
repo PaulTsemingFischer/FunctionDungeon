@@ -73,26 +73,32 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   let generated_room =
     Pgworld.generate_room Pgworld.default_room_gen_settings
   in
+  print_endline (Pgworld.string_of_genworld generated_room);
 
   let source_entity_tile_pairs = Pgworld.to_tile_list generated_room in
   let entity_world, tile_world =
     List.fold_left
       (fun ((acc_world, acc_tiles) : GameWorld.t * GameTiles.t)
            (((ground, entity), pos) : Pgworld.tile * vec2) ->
-        let updated_world_with_entity =
+        let updated_world, update_tiles =
           match entity with
-          | Pgworld.Wall ->
-              GameWorld.put_entity acc_world
-                (create_default_at
-                   (if Random.int 10 > 8 then Door else Wall)
-                   pos)
-          | _ -> acc_world
+          | Pgworld.Wall | Pgworld.Rock ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at
+                     (if Random.int 100 > 95 then Door else Wall)
+                     pos),
+                acc_tiles )
+          | Pgworld.Water ->
+              ( acc_world,
+                GameTiles.put_entity acc_tiles (create_tile_at Water pos) )
+          | _ -> (acc_world, acc_tiles)
         in
-        ( updated_world_with_entity,
+        ( updated_world,
           match ground with
-          | Mud -> GameTiles.put_entity acc_tiles (create_tile_at Mud pos)
-          | Ground -> GameTiles.put_entity acc_tiles (create_tile_at Ground pos)
-          | Void -> acc_tiles ))
+          | Mud -> GameTiles.put_entity update_tiles (create_tile_at Mud pos)
+          | Ground ->
+              GameTiles.put_entity update_tiles (create_tile_at Ground pos)
+          | Void -> update_tiles ))
       (world, tiles) source_entity_tile_pairs
   in
 

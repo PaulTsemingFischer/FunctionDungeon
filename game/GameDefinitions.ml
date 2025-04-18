@@ -85,11 +85,13 @@ type tile_stat = unit
 type tile_types =
   | Ground
   | Mud
+  | Water
 
 let string_of_tile_type t_type =
   match t_type with
   | Ground -> "ground"
   | Mud -> "mud"
+  | Water -> "water"
 
 module BaseTileDeclarations :
   Entity.EntityData

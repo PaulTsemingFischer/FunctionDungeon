@@ -86,6 +86,25 @@ let print_latest_event state =
     print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
   else print_endline "No events"
 
+let query_update_player state =
+  let updated_player =
+    List.find_opt
+      (fun (e : GameEntity.t) -> e.entity_type = Player)
+      (GameWorld.all_entities state.world)
+  in
+  {
+    world = state.world;
+    tiles = state.tiles;
+    transitions = state.transitions;
+    events = state.events;
+    turn = state.turn;
+    player =
+      (match updated_player with
+      | Some p -> p
+      | None -> state.player);
+    modifiers = state.modifiers;
+  }
+
 let step (state : t) (input : input) =
   let new_state =
     List.fold_left
@@ -100,24 +119,18 @@ let step (state : t) (input : input) =
       state state.transitions
   in
   print_latest_event state;
-  let updated_player =
-    List.find_opt
-      (fun (e : GameEntity.t) -> e.entity_type = Player)
-      (GameWorld.all_entities new_state.world)
+  let updated_state =
+    {
+      world = new_state.world;
+      tiles = new_state.tiles;
+      transitions = new_state.transitions;
+      events = new_state.events;
+      turn = new_state.turn + 1;
+      player = new_state.player;
+      modifiers = new_state.modifiers;
+    }
   in
-
-  {
-    world = new_state.world;
-    tiles = new_state.tiles;
-    transitions = new_state.transitions;
-    events = new_state.events;
-    turn = new_state.turn + 1;
-    player =
-      (match updated_player with
-      | Some p -> p
-      | None -> state.player);
-    modifiers = new_state.modifiers;
-  }
+  query_update_player updated_state
 
 let get_world state = state.world
 let get_tiles state = state.tiles

@@ -62,6 +62,8 @@ val get_turn : t -> int
 val get_player : t -> GameEntity.t
 (**[get_player state] returns the player associated with [state]*)
 
+val query_update_player : t-> t
+
 val get_modifiers :
   t ->
   GameEntity.entity_type ->

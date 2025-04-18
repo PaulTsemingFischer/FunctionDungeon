@@ -239,7 +239,13 @@ let render_floor (renderer : t) =
             (fst screen_space_position)
             (snd screen_space_position)
             (int_of_float tile_scaling_factor)
-            Color.lightgray)
+            Color.lightgray
+      | Water ->
+          Raylib.draw_text "~"
+            (fst screen_space_position)
+            (snd screen_space_position)
+            (int_of_float tile_scaling_factor)
+            Color.blue)
     (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
 
 let render (renderer : t) =
@@ -333,19 +339,24 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
 let loop (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
   Raylib.init_window screen_width screen_height "Function Dungeon";
-  Raylib.set_window_state [ Raylib.ConfigFlags.Window_undecorated ];
   Raylib.set_target_fps 60;
   loop_aux renderer entity_state input_handler
 
 let make_from_state (entity_state : GameState.t) =
-  {
-    renderables =
-      GameWorld.all_entities (GameState.get_world entity_state)
-      |> List.map (fun (entity : GameEntity.t) ->
-             { source_entity = entity; rendered_pos = vec2f_of_vec2 entity.pos })
-      |> RenderableSet.of_list;
-    source_state = entity_state;
-    camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
-    camera_target =
-      compute_camera_target (GameState.get_player entity_state).pos;
-  }
+  let source =
+    {
+      renderables =
+        GameWorld.all_entities (GameState.get_world entity_state)
+        |> List.map (fun (entity : GameEntity.t) ->
+               {
+                 source_entity = entity;
+                 rendered_pos = vec2f_of_vec2 entity.pos;
+               })
+        |> RenderableSet.of_list;
+      source_state = entity_state;
+      camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
+      camera_target =
+        compute_camera_target (GameState.get_player entity_state).pos;
+    }
+  in
+  update_render_state source entity_state

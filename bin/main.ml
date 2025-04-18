@@ -9,17 +9,11 @@ open Rendering
 
 let generate_starting_state () =
   let player = create_default_at Player (0, 0) in
-  let pigeon = create_default_at Pigeon (3, 3) in
-  let wall = create_default_at Door (-5, -5) in
-  let world =
-    GameWorld.put_entity
-      (GameWorld.put_entity
-         (GameWorld.put_entity GameWorld.empty pigeon)
-         player)
-      wall
-  in
+  let world = GameWorld.put_entity GameWorld.empty player in
   let state = GameState.create world [ entity_action_runner ] in
-  GameState.add_moves_modifier state (ScaleMove 1) Pigeon
+  let generated_state = Transformations.generate_normal_room state player in
+  GameState.add_moves_modifier generated_state (ScaleMove 1) Pigeon
+  |> GameState.query_update_player
 
 let setup () =
   Raylib.init_window 1000 1000 "raylib [core] example - basic window";
