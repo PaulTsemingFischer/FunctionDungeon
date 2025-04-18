@@ -1,7 +1,7 @@
 open Engine
 open Engine.Utils
 open Game
-open Game.Entities
+open Game.GameDefinitions
 open Game.Transitions
 open Procgen
 open Raylib

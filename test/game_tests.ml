@@ -1,6 +1,6 @@
 open OUnit2
 open Game
-open Game.Entities
+open Game.GameDefinitions
 
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : GameEntity.t option) =

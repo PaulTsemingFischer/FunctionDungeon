@@ -3,7 +3,7 @@ open BatList
 open Seq
 open Game.Transitions
 open Engine
-open Game.Entities
+open Game.GameDefinitions
 
 type tile =
   | Void

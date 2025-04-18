@@ -1,4 +1,4 @@
-open Entities
+open GameDefinitions
 
 (**[entity_action_runner state entity input] executes the actions associated
    with some entity on the given [state]*)

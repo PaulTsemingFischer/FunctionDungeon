@@ -1,4 +1,4 @@
-open Entities
+open GameDefinitions
 open Engine.Utils
 open Transformations
 

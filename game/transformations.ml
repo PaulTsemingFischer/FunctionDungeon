@@ -1,4 +1,4 @@
-open Entities
+open GameDefinitions
 open Modifiers
 open Engine.Utils
 

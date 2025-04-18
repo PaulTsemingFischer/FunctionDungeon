@@ -1,7 +1,7 @@
 open Game
 open Raylib
 open Engine.Utils
-open Entities
+open GameDefinitions
 
 type renderable = {
   source_entity : GameEntity.t;

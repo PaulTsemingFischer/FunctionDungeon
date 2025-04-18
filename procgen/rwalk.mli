@@ -1,5 +1,5 @@
 open Game.Transitions
-open Game.Entities
+open Game.GameDefinitions
 
 type tile =
   | Void
