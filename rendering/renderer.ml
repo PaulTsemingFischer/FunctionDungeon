@@ -212,10 +212,41 @@ let tick (renderer : t) =
     camera_target = renderer.camera_target;
   }
 
+let render_floor (renderer : t) =
+  List.iter
+    (fun (tile : TileEntity.t) ->
+      let screen_space_position =
+        ( float_of_int (Raylib.get_screen_width () / 2),
+          float_of_int (Raylib.get_screen_height () / 2) )
+        |> add_vec2f
+             (mul_vec2f
+                (scale_vec2f (vec2f_of_vec2 tile.pos) tile_scaling_factor)
+                (1.0, -1.0))
+        |> add_vec2f
+             (neg_vec2f
+                (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
+        |> vec2_of_vec2f
+      in
+      match tile.entity_type with
+      | Mud ->
+          Raylib.draw_text "."
+            (fst screen_space_position)
+            (snd screen_space_position)
+            (int_of_float tile_scaling_factor)
+            Color.brown
+      | Ground ->
+          Raylib.draw_text "."
+            (fst screen_space_position)
+            (snd screen_space_position)
+            (int_of_float tile_scaling_factor)
+            Color.lightgray)
+    (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
+
 let render (renderer : t) =
   begin_drawing ();
   begin_mode_2d renderer.camera;
   clear_background Color.white;
+  render_floor renderer;
   RenderableSet.to_list renderer.renderables
   |> List.iter (fun (r : renderable) ->
          let screen_space_position =

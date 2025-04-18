@@ -14,10 +14,7 @@ let generate_starting_state () =
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity
-         (GameWorld.put_entity
-            (Procgen.Rwalk.world_from_genworld
-               (Rwalk.generate ~printing:false 20 20))
-            pigeon)
+         (GameWorld.put_entity GameWorld.empty pigeon)
          player)
       wall
   in

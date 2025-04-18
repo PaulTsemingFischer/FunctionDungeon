@@ -1,6 +1,7 @@
 open GameDefinitions
 open Modifiers
 open Engine.Utils
+open Procgen
 
 (**[apply_move state entity possible_move] moves an entity to [possible_move]
    relative to its current position. If the entity is not in the world when this
@@ -65,6 +66,44 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
 
 (**[generate_normal_room state player] creates a new room with the given player*)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
+  let world =
+    GameWorld.put_entity
+      (GameWorld.put_entity GameWorld.empty player)
+      (create_default_at Door
+         (add_vec2
+            ( random_element [ 1; -1 ] * (Random.int 3 + 1),
+              random_element [ 1; -1 ] * (Random.int 3 + 1) )
+            player.pos))
+  in
+
+  let tiles = GameTiles.empty in
+
+  let generated_room =
+    Pgworld.generate_room Pgworld.default_room_gen_settings
+  in
+
+  let entity_world, tile_world =
+    List.fold_left
+      (fun ((acc_world, acc_tiles) : GameWorld.t * GameTiles.t)
+           (((ground, entity), pos) : Pgworld.tile * vec2) ->
+        let updated_world_with_entity =
+          match entity with
+          | Pgworld.Wall ->
+              GameWorld.put_entity acc_world (create_default_at Wall pos)
+          | _ -> acc_world
+        in
+        ( updated_world_with_entity,
+          match ground with
+          | Mud -> GameTiles.put_entity acc_tiles (create_tile_at Mud pos)
+          | Ground -> GameTiles.put_entity acc_tiles (create_tile_at Ground pos)
+          | Void -> acc_tiles ))
+      (world, tiles)
+      (Pgworld.to_tile_list generated_room)
+  in
+  GameState.update_tiles (GameState.update_world state entity_world) tile_world
+
+(**[generate_normal_room state player] creates a new room with the given player*)
+let generate_complex_room (state : GameState.t) (player : GameEntity.t) =
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity GameWorld.empty player)
