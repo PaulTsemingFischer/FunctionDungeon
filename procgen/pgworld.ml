@@ -39,7 +39,7 @@ type room_gen_settings = {
   num_doors : int;
   noise_room_wall_chance : float;
   rule_one_cave_merge_runs : int;
-  rule_two_cave_merge_runs : int
+  rule_two_cave_merge_runs : int;
 }
 
 let default_room_gen_settings =
@@ -74,7 +74,7 @@ let principal_neighbor_items room spot =
   let neighbors = principal_neighbors spot in
   List.filter_map (get_at_vec_opt room) neighbors
 
-  (**[cardinal_neighbor_items room spot] is the list of items in the cardinal
+(**[cardinal_neighbor_items room spot] is the list of items in the cardinal
    neighbors of [spot]. Out of bounds accesses are ignored. *)
 let cardinal_neighbor_items room spot =
   let neighbors = cardinal_neighbors spot in
@@ -234,13 +234,20 @@ let liquify_islands room settings =
         |> not
       then
         let random = Random.float 1.0 in
-        
+
         let replacement =
-          if List.length lst > settings.min_void_size && Random.float 1.0 < 0.9 then (Void, Wall) (*10% chance to turn each big island into a void.*)
-          else if random < settings.island_liquify_chance then
-            (Void, Water)
-          else if random < settings.island_liquify_chance +. settings.island_rock_chance then (Ground, Rock)
-          else if random < settings.island_liquify_chance +. settings.island_rock_chance +. settings.island_lava_chance then(Void, Lava)
+          if List.length lst > settings.min_void_size && Random.float 1.0 < 0.9
+          then (Void, Wall) (*10% chance to turn each big island into a void.*)
+          else if random < settings.island_liquify_chance then (Void, Water)
+          else if
+            random
+            < settings.island_liquify_chance +. settings.island_rock_chance
+          then (Ground, Rock)
+          else if
+            random
+            < settings.island_liquify_chance +. settings.island_rock_chance
+              +. settings.island_lava_chance
+          then (Void, Lava)
           else (Void, Wall)
         in
         apply_at_vecs room lst (fun _ _ -> replacement))
@@ -267,10 +274,21 @@ let remove_redundant_walls =
 let generate_room (settings : room_gen_settings) : t =
   let room =
     noise_room settings.room_width settings.room_height
-    settings.noise_room_wall_chance
+      settings.noise_room_wall_chance
   in
   let room = cave_merge room settings in
   let room = liquify_islands room settings in
   let room = border_wall room in
   let room = remove_redundant_walls room in
   room
+
+(**[to_tile_list room] collects all tiles and their coords into a list*)
+let to_tile_list (room : t) : (tile * vec2) list =
+  let width, height = dimensions room in
+  List.fold_left
+    (fun (acc_ext : (tile * vec2) list) (y : int) ->
+      List.fold_left
+        (fun (acc : (tile * vec2) list) (x : int) ->
+          (room.(y).(x), (x, y)) :: acc)
+        acc_ext (List.init width Fun.id))
+    [] (List.init height Fun.id)

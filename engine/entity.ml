@@ -30,6 +30,7 @@ module type S = sig
   val create : stats -> entity_type -> status_effect list -> vec2 -> t
   val set_pos : t -> vec2 -> t
   val update_stats : t -> stats -> t
+  val update_type : t -> entity_type -> t
   val string_of_entity : t -> string
 
   include Set.OrderedType with type t := t
@@ -62,6 +63,15 @@ module Make (ED : EntityData) :
       pos = e.pos;
       stats;
       entity_type = e.entity_type;
+      statuses = e.statuses;
+    }
+
+  let update_type (e : t) (e_type : entity_type) =
+    {
+      id = e.id;
+      pos = e.pos;
+      stats = e.stats;
+      entity_type = e_type;
       statuses = e.statuses;
     }
 

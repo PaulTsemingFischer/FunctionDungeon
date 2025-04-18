@@ -1,10 +1,8 @@
 open Engine
 open Engine.Utils
-open Game.Root
-open Game.Entities
-open Game.Player
-open Game.Transformations
-open Game.Modifiers
+open Game
+open Game.GameDefinitions
+open Game.Transitions
 open Procgen
 open Raylib
 open Rendering
@@ -16,10 +14,7 @@ let generate_starting_state () =
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity
-         (GameWorld.put_entity
-            (Procgen.Rwalk.world_from_genworld
-               (Rwalk.generate ~printing:false 20 20))
-            pigeon)
+         (GameWorld.put_entity GameWorld.empty pigeon)
          player)
       wall
   in

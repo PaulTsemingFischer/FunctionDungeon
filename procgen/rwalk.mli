@@ -1,5 +1,4 @@
-open Game.Root
-open Game.Entities
+(* open Game.GameDefinitions
 
 type tile =
   | Void
@@ -32,3 +31,4 @@ val generate :
 
 val world_from_genworld : t -> GameWorld.t
 (**[world_from_genworld] is the usable world from the temporary creation world.*)
+d *)
