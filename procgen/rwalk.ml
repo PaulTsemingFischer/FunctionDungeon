@@ -1,9 +1,9 @@
 open Engine.Utils
 open BatList
 open Seq
-open Game.Root
-open Game.Entities
+open Game.Transitions
 open Engine
+open Game.Entities
 
 type tile =
   | Void

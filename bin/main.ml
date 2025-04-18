@@ -1,10 +1,8 @@
 open Engine
 open Engine.Utils
-open Game.Root
+open Game
 open Game.Entities
-open Game.Player
-open Game.Transformations
-open Game.Modifiers
+open Game.Transitions
 open Procgen
 open Raylib
 open Rendering

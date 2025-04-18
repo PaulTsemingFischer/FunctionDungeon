@@ -1,7 +1,7 @@
 open Game
-open Game.Root
 open Raylib
 open Engine.Utils
+open Entities
 
 type renderable = {
   source_entity : GameEntity.t;
@@ -24,7 +24,7 @@ type t = {
   camera_target : Vector2.t;
 }
 
-type input_handler = GameState.t -> input -> GameState.t
+type input_handler = GameState.t -> GameState.input -> GameState.t
 
 let screen_width = 1000
 let screen_height = 800
@@ -264,12 +264,13 @@ let rec loop_aux (renderer : t) (game_state : GameState.t)
   if Raylib.window_should_close () then Raylib.close_window ()
   else
     let frame_input_opt =
-      match Raylib.get_key_pressed () with
-      | Raylib.Key.W -> Some (MovePlayer (0, 1))
-      | Raylib.Key.A -> Some (MovePlayer (-1, 0))
-      | Raylib.Key.S -> Some (MovePlayer (0, -1))
-      | Raylib.Key.D -> Some (MovePlayer (1, 0))
-      | _ -> None
+      GameState.(
+        match Raylib.get_key_pressed () with
+        | Raylib.Key.W -> Some (MovePlayer (0, 1))
+        | Raylib.Key.A -> Some (MovePlayer (-1, 0))
+        | Raylib.Key.S -> Some (MovePlayer (0, -1))
+        | Raylib.Key.D -> Some (MovePlayer (1, 0))
+        | _ -> None)
     in
     match frame_input_opt with
     | None ->
@@ -285,7 +286,7 @@ let rec loop_aux (renderer : t) (game_state : GameState.t)
           let ticked_renderer = tick updated_renderer in
           render ticked_renderer;
           loop_aux ticked_renderer updated_game_state input_handler
-        with Invalid_input _ ->
+        with GameState.Invalid_input _ ->
           let updated_renderer = tick renderer in
           render updated_renderer;
           loop_aux updated_renderer game_state input_handler)

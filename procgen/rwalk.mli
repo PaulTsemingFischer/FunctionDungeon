@@ -1,4 +1,4 @@
-open Game.Root
+open Game.Transitions
 open Game.Entities
 
 type tile =
