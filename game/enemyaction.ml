@@ -1,9 +1,6 @@
-open GameDefinitions
-open GameState
+open Root
 open Engine.Utils
 
-(** [enemy_action] is the updated state after an [entity] of a certain enemy
-    type [enemy] takes an action *)
 let enemy_action (state : GameState.t) (entity : GameEntity.t)
     (enemy : Enemytype.enemy) _ =
   let possible_attacks = Modifiers.enemy_cross_actions enemy in
@@ -25,7 +22,7 @@ let enemy_action (state : GameState.t) (entity : GameEntity.t)
   in
 
   match nearby_entity_action_pairs with
-  | Some (p, (_, a)) -> Transformations.apply_attack_to_entity state p a
+  | Some (p, (_, a)) -> Transformations.apply_action_to state p a
   | None ->
       let updated_state, possible_moves =
         GameState.apply_move_modifiers state entity entity.stats.base_moves
