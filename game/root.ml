@@ -90,7 +90,7 @@ let create_default_at e_type pos : GameEntity.t =
           Door [] pos
     | Enemy ->
         GameEntity.create
-          { health = 10.0; base_moves = []; base_actions = [] }
+          { health = 10.0; base_moves = base_cross_moves; base_actions = [] }
           Enemy [] pos
     | Obstacle ->
         GameEntity.create
@@ -219,6 +219,10 @@ module type GameStateSignature = sig
 
   val add_moves_modifier :
     t -> Modifiers.possible_moves_modifier -> entity_types -> t
+
+  val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> 'a -> t
+  val positions_in_radius : vec2 -> int -> vec2 list
+  val build_barrier : t -> GameWorld.t -> vec2 -> int -> Obstacles.obstacle -> t
 end
 
 module GameState : GameStateSignature = struct
@@ -465,4 +469,35 @@ module GameState : GameStateSignature = struct
             )
             :: removed_modifier_assoc;
         }
+
+  let add_obstacle_to_world state world pos obstacle_type =
+    let new_obstacle = create_default_at Obstacle pos in
+    update_world state (GameWorld.put_entity world new_obstacle)
+
+  let positions_in_radius (center : vec2) (radius : int) : vec2 list =
+    let center_x, center_y = center in
+    let positions = ref [] in
+
+    for x = center_x - radius to center_x + radius do
+      for y = center_y - radius to center_y + radius do
+        let pos = (x, y) in
+
+        let dx = x - center_x in
+        let dy = y - center_y in
+        let distance_squared = (dx * dx) + (dy * dy) in
+
+        if distance_squared <= radius * radius then
+          positions := pos :: !positions
+      done
+    done;
+
+    !positions
+
+  let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
+      (radius : int) (objects : Obstacles.obstacle) =
+    let positions = positions_in_radius center radius in
+    List.fold_left
+      (fun current_state p ->
+        add_obstacle_to_world current_state world p objects)
+      state positions
 end
