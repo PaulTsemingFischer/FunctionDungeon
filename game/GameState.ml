@@ -289,3 +289,63 @@ let add_moves_modifier state movement_modifier entity_type =
           )
           :: removed_modifier_assoc;
       }
+
+let remove_actions_modifier state entity_type =
+  match List.assoc_opt (string_of_type entity_type) state.modifiers with
+  | None ->
+      {
+        world = state.world;
+        tiles = state.tiles;
+        transitions = state.transitions;
+        events = state.events;
+        player = state.player;
+        turn = state.turn;
+        modifiers = state.modifiers;
+      }
+  | Some (possible_action_list, movement_modifier_list) ->
+      let removed_modifier_assoc =
+        List.remove_assoc (string_of_type entity_type) state.modifiers
+      in
+      {
+        world = state.world;
+        tiles = state.tiles;
+        transitions = state.transitions;
+        events = state.events;
+        player = state.player;
+        turn = state.turn;
+        modifiers =
+          ( string_of_type entity_type,
+            match possible_action_list with
+            | h :: t -> (t, movement_modifier_list)
+            | [] -> ([], movement_modifier_list) )
+          :: removed_modifier_assoc;
+      }
+
+let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle) =
+  let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
+  update_world state (GameWorld.put_entity world new_obstacle)
+
+let positions_in_radius (center : vec2) (radius : int) : vec2 list =
+  let center_x, center_y = center in
+  let positions = ref [] in
+
+  for x = center_x - radius to center_x + radius do
+    for y = center_y - radius to center_y + radius do
+      let pos = (x, y) in
+
+      let dx = x - center_x in
+      let dy = y - center_y in
+      let distance_squared = (dx * dx) + (dy * dy) in
+
+      if distance_squared <= radius * radius then positions := pos :: !positions
+    done
+  done;
+
+  !positions
+
+let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
+    (radius : int) (objects : Obstacles.obstacle) (turns : int) =
+  let positions = positions_in_radius center radius in
+  List.fold_left
+    (fun current_state p -> add_obstacle_to_world current_state world p objects)
+    state positions

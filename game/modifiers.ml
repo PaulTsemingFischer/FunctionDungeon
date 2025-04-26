@@ -4,6 +4,8 @@ open Engine.Utils
 type action =
   | DealDamage of float
   | ApplyFire of int
+  | BarrierAttack of int * Obstacles.obstacle
+  | StealAttack
 
 type possible_action = vec2 * action
 (**[possible_action] is an action associated with a tile*)
@@ -27,3 +29,13 @@ let base_cross_moves : possible_move list = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
 (**[base_cross_actions] is a list containing the most basic acting pattern*)
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, DealDamage 1.)) base_cross_moves
+
+let enemy_attack_type (e : Enemytype.enemy) : action =
+  match e with
+  | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
+  | Thief -> StealAttack
+  | Blinder t -> exit 0 (* Dummy for now *)
+  | Fog_Cloud (r, t) -> exit 0 (* Dummy for now *)
+
+let enemy_cross_actions e : possible_action list =
+  List.map (fun target -> (target, enemy_attack_type e)) base_cross_moves
