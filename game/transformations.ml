@@ -212,6 +212,61 @@ let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
 
 (**[generate_normal_room state player] creates a new room with the given player*)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
+  let world = GameWorld.empty in
+
+  let tiles = GameTiles.empty in
+
+  let generated_room =
+    Pgworld.generate_room Pgworld.default_room_gen_settings
+  in
+  print_endline (Pgworld.string_of_genworld generated_room);
+
+  let source_entity_tile_pairs = Pgworld.to_tile_list generated_room in
+  let entity_world, tile_world =
+    List.fold_left
+      (fun ((acc_world, acc_tiles) : GameWorld.t * GameTiles.t)
+           (((ground, entity), pos) : Pgworld.tile * vec2) ->
+        let updated_world, update_tiles =
+          match entity with
+          | Pgworld.Wall | Pgworld.Rock ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at
+                     (if Random.int 100 > 95 then Door else Wall)
+                     pos),
+                acc_tiles )
+          | Pgworld.Water ->
+              ( acc_world,
+                GameTiles.put_entity acc_tiles (create_tile_at Water pos) )
+          | _ -> (acc_world, acc_tiles)
+        in
+        ( updated_world,
+          match ground with
+          | Mud -> GameTiles.put_entity update_tiles (create_tile_at Mud pos)
+          | Ground ->
+              GameTiles.put_entity update_tiles (create_tile_at Ground pos)
+          | Void -> update_tiles ))
+      (world, tiles) source_entity_tile_pairs
+  in
+
+  (* pick random tile, put player there so they're actually in the map; assuming
+     no entity on tile *)
+  let all_tiles = GameTiles.all_entities tile_world in
+  let random_tile_pos =
+    if all_tiles = [] then player.pos
+    else (random_element (GameTiles.all_entities tile_world)).pos
+  in
+  let world_with_moved_player =
+    GameWorld.put_entity entity_world
+      (GameEntity.set_pos player random_tile_pos)
+  in
+
+  GameState.update_tiles
+    (GameState.update_world state world_with_moved_player)
+    tile_world
+
+(**[generate_circular_room state player] creates a new room with the given
+   player*)
+let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity GameWorld.empty player)
