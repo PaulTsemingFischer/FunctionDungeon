@@ -14,17 +14,12 @@ type event =
   | Move of GameEntity.t * vec2 * vec2
   | Say of GameEntity.t * string
   | ChangeHealth of GameEntity.t * float
-  | ActivateActionModifier of
-      GameEntity.t
-      * Modifiers.possible_action list
-      * Modifiers.possible_action list
   | ActivateMoveModifier of
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
   | EntityDeath of GameEntity.t
 
 and transition = t -> GameEntity.t -> input -> t
 
-val string_of_event : event -> string
 val string_of_event : event -> string
 
 val create : GameWorld.t -> ?tiles:GameTiles.t -> transition list -> t
@@ -51,8 +46,6 @@ val update_world : t -> GameWorld.t -> t
 val get_events : t -> (int * event) list
 (**[get_events state] returns a list of tuples with each tuple being a turn and
    an event that occurred on that turn*)
-(**[get_events state] returns a list of tuples with each tuple being a turn and
-   an event that occurred on that turn*)
 
 val add_event : t -> event -> t
 (**[add_event turn event] adds [event] to the stack of events in [t]*)
@@ -63,7 +56,6 @@ val get_turn : t -> int
 val get_player : t -> GameEntity.t
 (**[get_player state] returns the player associated with [state]*)
 
-val query_update_player : t -> t
 val query_update_player : t -> t
 
 val get_modifiers :
@@ -118,6 +110,10 @@ val add_actions_modifier :
 val add_moves_modifier :
   t -> Modifiers.possible_moves_modifier -> entity_types -> t
 
+val remove_actions_modifier : t -> entity_types -> t
+val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> Obstacles.obstacle -> t
+val positions_in_radius : vec2 -> int -> vec2 list
+val build_barrier : t -> GameWorld.t -> vec2 -> int -> Obstacles.obstacle -> t
 val remove_actions_modifier : t -> entity_types -> t
 val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> Obstacles.obstacle -> t
 val positions_in_radius : vec2 -> int -> vec2 list
