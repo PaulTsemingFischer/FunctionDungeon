@@ -192,7 +192,10 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
                   }))
         in
         GameState.add_event updated_state (ChangeHealth (entity, -.x))
+    (* TODO: missing actions? *)
     | ApplyFire x -> state
+    | StealAttack -> state
+    | BarrierAttack (_, _) -> state
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and
     returns the updated game state. *)

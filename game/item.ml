@@ -37,7 +37,9 @@ let rec effects_to_string lst =
   | h :: t -> (
       match h with
       | DealDamage x -> "Damage " ^ string_of_float x
-      | ApplyFire x -> "Fire " ^ string_of_int x ^ "; " ^ effects_to_string t)
+      | ApplyFire x -> "Fire " ^ string_of_int x ^ "; " ^ effects_to_string t
+      | StealAttack -> "Steal"
+      | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
 
 let rec bindings_to_string_helper lst =
   match lst with
