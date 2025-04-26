@@ -4,18 +4,20 @@ type ground =
   | Ground
   | Mud
 
-type weak_mob = PlaceHolderWeakMob
-type strong_mob = PlaceHolderStrongMob
-
-type entity =
-  | Empty
-  | Water
-  | Lava
-  | Fire
-  | Wall
-  | Rock
-  | WeakMob of weak_mob
-  | StrongMob of strong_mob
+  type weak_mob = PlaceHolderWeakMob
+  type strong_mob = PlaceHolderStrongMob
+  type item = PlaceHolderItem
+  
+  type entity =
+    | Empty
+    | Water
+    | Lava
+    | Fire
+    | Wall
+    | Rock
+    | WeakMob of weak_mob
+    | StrongMob of strong_mob
+    | Item of item
 
 type tile = ground * entity
 type t = tile array array
@@ -27,6 +29,7 @@ type room_gen_settings = {
   gen_strong_mob : unit -> strong_mob;
   weak_mob_rate : float;
   strong_mob_rate : float;
+  item_rate : float;
   room_width : int;
   room_height : int;
   min_room_coverage : float;

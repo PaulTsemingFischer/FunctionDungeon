@@ -8,5 +8,9 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | Player -> Player.player_action state entity input
   | Pigeon -> Pigeon.pigeon_action state entity input
   | Wall -> state
+  | Rock -> state
+  | Water -> state
+  | Lava -> state
+  | Fire -> state
   | Door -> state
   | HorizontalBouncer _ -> Bouncers.bouncer_action state entity input

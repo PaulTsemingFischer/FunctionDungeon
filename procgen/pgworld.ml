@@ -8,6 +8,7 @@ type ground =
 
 type weak_mob = PlaceHolderWeakMob
 type strong_mob = PlaceHolderStrongMob
+type item = PlaceHolderItem
 
 type entity =
   | Empty
@@ -18,6 +19,7 @@ type entity =
   | Rock
   | WeakMob of weak_mob
   | StrongMob of strong_mob
+  | Item of item
 
 type tile = ground * entity
 type t = tile array array
@@ -29,6 +31,7 @@ type room_gen_settings = {
   gen_strong_mob : unit -> strong_mob;
   weak_mob_rate : float;
   strong_mob_rate : float;
+  item_rate : float;
   room_width : int;
   room_height : int;
   min_room_coverage : float;
@@ -48,6 +51,7 @@ let default_room_gen_settings =
     gen_strong_mob = (fun () -> PlaceHolderStrongMob);
     weak_mob_rate = 0.0;
     strong_mob_rate = 0.0;
+    item_rate = 0.0;
     room_width = 30;
     room_height = 30;
     min_room_coverage = 0.2;
@@ -270,6 +274,8 @@ let remove_redundant_walls =
         |> List.length = 0
       then (Void, Empty)
       else get_at_vec room spot)
+
+
 
 let generate_room (settings : room_gen_settings) : t =
   let room =
