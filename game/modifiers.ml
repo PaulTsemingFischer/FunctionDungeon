@@ -8,16 +8,16 @@ type action =
 type possible_action = vec2 * action list
 (**[possible_action] is an action associated with a tile*)
 
-type modifier = possible_action -> possible_action list
-(** [modifier] is an item that modifies an action *)
-
 type possible_move = vec2
 (**[possible_move] is an movement to a tile*)
 
 type possible_actions_modifier =
   | ScaleAction of int
-      (**[possible_action_function] is a function that changes a list of action
-         modifiers in some way*)
+  | AddFire of int
+  | AugmentToAdjacent
+
+(**[possible_action_function] is a function that changes a list of action
+   modifiers in some way*)
 
 type possible_moves_modifier =
   | ScaleMove of int

@@ -336,28 +336,28 @@ let attack_tests =
          make_modify_test "Add 1 damage to empty"
            AttackMap.(empty |> add (0, 0) [ Modifiers.DealDamage 1. ])
            Item.do_damage_example
-           [ ((0, 0), []) ];
+           AttackMap.(empty |> add (0, 0) []);
          make_modify_test "Add 1 damage on top of existing effects"
            AttackMap.(
              empty
              |> add (0, 0) [ Modifiers.ApplyFire 2; Modifiers.DealDamage 1. ])
            Item.do_damage_example
-           [ ((0, 0), [ Modifiers.ApplyFire 2 ]) ];
+           AttackMap.(empty |> add (0, 0) [ Modifiers.ApplyFire 2 ]);
          make_modify_test "Augment to above tile"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [])
            Item.augment_to_above_example
-           [ ((0, 0), []) ];
+           AttackMap.(empty |> add (0, 0) []);
          make_modify_test "Augment to above tile with duplicates"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [] |> add (0, 2) [])
            Item.augment_to_above_example
-           [ ((0, 0), []); ((0, 1), []) ];
+           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) []);
          make_modify_test "Augment to above tile and copy effects"
            AttackMap.(
              empty
              |> add (0, 0) [ Modifiers.DealDamage 1. ]
              |> add (0, 1) [ Modifiers.DealDamage 1. ])
            Item.augment_to_above_example
-           [ ((0, 0), [ Modifiers.DealDamage 1. ]) ];
+           AttackMap.(empty |> add (0, 0) [ Modifiers.DealDamage 1. ]);
          make_modify_test "Augment to above tile and add new effects"
            AttackMap.(
              empty
@@ -365,10 +365,10 @@ let attack_tests =
              |> add (0, 1) [ Modifiers.DealDamage 1.; Modifiers.DealDamage 1. ]
              |> add (0, 2) [ Modifiers.DealDamage 1. ])
            Item.augment_to_above_example
-           [
-             ((0, 0), [ Modifiers.DealDamage 1. ]);
-             ((0, 1), [ Modifiers.DealDamage 1. ]);
-           ];
+           AttackMap.(
+             empty
+             |> add (0, 0) [ Modifiers.DealDamage 1. ]
+             |> add (0, 1) [ Modifiers.DealDamage 1. ]);
        ]
 
 let _ =
