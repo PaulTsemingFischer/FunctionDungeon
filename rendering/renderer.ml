@@ -320,7 +320,7 @@ let render (renderer : t) =
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.black
-             | Fence ->
+             | Fence t ->
                  Raylib.draw_text "fn"
                    (fst screen_space_position)
                    (snd screen_space_position)
