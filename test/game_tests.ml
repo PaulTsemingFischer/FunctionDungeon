@@ -1,6 +1,6 @@
 open OUnit2
 open Game
-open Game.Root
+open Game.GameDefinitions
 
 (**[string_of_entity_option op] converts [op] into a string*)
 let string_of_entity_option (op : GameEntity.t option) =
@@ -9,7 +9,8 @@ let string_of_entity_option (op : GameEntity.t option) =
   | None -> "none"
 
 let simple_transition : GameState.transition =
- fun (start_state : GameState.t) (entity : GameEntity.t) (_ : input) ->
+ fun (start_state : GameState.t) (entity : GameEntity.t)
+     (_ : GameState.input) ->
   let updated =
     GameEntity.update_stats entity
       {
