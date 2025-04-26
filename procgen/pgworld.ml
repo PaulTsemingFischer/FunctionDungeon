@@ -6,8 +6,9 @@ type ground =
   | Ground
   | Mud
 
-type weak_mob = PlaceHolderWeakMob
+type weak_mob = PlaceHolderWeakMob | Pigeon
 type strong_mob = PlaceHolderStrongMob
+type item = PlaceHolderItem
 
 type entity =
   | Empty
@@ -18,6 +19,7 @@ type entity =
   | Rock
   | WeakMob of weak_mob
   | StrongMob of strong_mob
+  | Item of item
 
 type tile = ground * entity
 type t = tile array array
@@ -29,6 +31,7 @@ type room_gen_settings = {
   gen_strong_mob : unit -> strong_mob;
   weak_mob_rate : float;
   strong_mob_rate : float;
+  item_rate : float;
   room_width : int;
   room_height : int;
   min_room_coverage : float;
@@ -46,8 +49,9 @@ let default_room_gen_settings =
   {
     gen_weak_mob = (fun () -> PlaceHolderWeakMob);
     gen_strong_mob = (fun () -> PlaceHolderStrongMob);
-    weak_mob_rate = 0.0;
+    weak_mob_rate = 0.02;
     strong_mob_rate = 0.0;
+    item_rate = 0.0;
     room_width = 30;
     room_height = 30;
     min_room_coverage = 0.2;
@@ -129,6 +133,7 @@ let string_of_genworld (world : t) =
     | Void, Water -> "≈"
     | Void, Lava -> "♨"
     | Ground, Empty -> "·"
+    | Ground, WeakMob Pigeon -> "P"
     | _, Rock -> "♦"
     | _ -> " "
   in
@@ -270,6 +275,14 @@ let remove_redundant_walls =
         |> List.length = 0
       then (Void, Empty)
       else get_at_vec room spot)
+  
+let random_pigeon room settings =
+  room_map
+    (fun room spot ->
+      let spot_data = get_at_vec room spot in
+      if spot_data = (Ground, Empty) && Random.float 1.0 < settings.weak_mob_rate then (Ground, WeakMob Pigeon) else spot_data)
+    room
+      
 
 let generate_room (settings : room_gen_settings) : t =
   let room =
@@ -280,9 +293,9 @@ let generate_room (settings : room_gen_settings) : t =
   let room = liquify_islands room settings in
   let room = border_wall room in
   let room = remove_redundant_walls room in
+  let room = random_pigeon room settings in
   room
 
-(**[to_tile_list room] collects all tiles and their coords into a list*)
 let to_tile_list (room : t) : (tile * vec2) list =
   let width, height = dimensions room in
   List.fold_left

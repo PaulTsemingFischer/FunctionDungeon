@@ -11,6 +11,10 @@ type entity_types =
   | Player
   | Pigeon
   | Door
+  | Rock
+  | Fire
+  | Water
+  | Lava
   | HorizontalBouncer of bool
   | Enemy of Enemytype.enemy
   | Obstacle of Obstacles.obstacle
@@ -23,6 +27,10 @@ let string_of_type e_type =
   | Player -> "player"
   | Pigeon -> "pigeon"
   | Door -> "door"
+  | Rock -> "rock"
+  | Fire -> "fire"
+  | Water -> "water"
+  | Lava -> "lava"
   | HorizontalBouncer _ -> "h-bouncer"
   | Enemy e -> Enemytype.string_of_enemy e
   | Obstacle o -> Obstacles.string_of_obstacle o
@@ -61,6 +69,22 @@ let create_default_at e_type pos : GameEntity.t =
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
           Wall [] pos
+    | Rock ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Rock [] pos
+    | Water ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Water [] pos
+    | Fire ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Fire [] pos
+    | Lava ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          Lava [] pos
     | Pigeon ->
         GameEntity.create
           {
@@ -101,13 +125,12 @@ type tile_stat = unit
 type tile_types =
   | Ground
   | Mud
-  | Water
+
 
 let string_of_tile_type t_type =
   match t_type with
   | Ground -> "ground"
   | Mud -> "mud"
-  | Water -> "water"
 
 module BaseTileDeclarations :
   Entity.EntityData
