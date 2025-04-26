@@ -13,7 +13,7 @@ type entity_types =
   | Pigeon
   | Door
   | Enemy of Enemytype.enemy
-  | Obstacle
+  | Obstacle of Obstacles.obstacle
 
 type status_effects = Fire of int
 
@@ -23,8 +23,8 @@ let string_of_type e_type =
   | Player -> "player"
   | Pigeon -> "pigeon"
   | Door -> "door"
-  | Enemy e -> "enemy"
-  | Obstacle -> "obstacle"
+  | Enemy e -> Enemytype.string_of_enemy e
+  | Obstacle o -> Obstacles.string_of_obstacle o
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -51,8 +51,8 @@ module BaseEntityDeclarations :
     | Player -> "player"
     | Pigeon -> "pigeon"
     | Door -> "door"
-    | Enemy e -> "enemy"
-    | Obstacle -> "obstacle"
+    | Enemy e -> Enemytype.string_of_enemy e
+    | Obstacle o -> Obstacles.string_of_obstacle o
 
   let string_of_status (_ : status_effect) = "generic"
 end
@@ -96,10 +96,10 @@ let create_default_at e_type pos : GameEntity.t =
             base_actions = enemy_cross_actions e;
           }
           (Enemy e) [] pos
-    | Obstacle ->
+    | Obstacle o ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          Obstacle [] pos)
+          (Obstacle o) [] pos)
 
 module GameWorld = World.Make (GameEntity)
 
@@ -224,7 +224,9 @@ module type GameStateSignature = sig
   val add_moves_modifier :
     t -> Modifiers.possible_moves_modifier -> entity_types -> t
 
-  val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> 'a -> t
+  val add_obstacle_to_world :
+    t -> GameWorld.t -> vec2 -> Obstacles.obstacle -> t
+
   val positions_in_radius : vec2 -> int -> vec2 list
   val build_barrier : t -> GameWorld.t -> vec2 -> int -> Obstacles.obstacle -> t
 end
@@ -474,8 +476,9 @@ module GameState : GameStateSignature = struct
             :: removed_modifier_assoc;
         }
 
-  let add_obstacle_to_world state world pos obstacle_type =
-    let new_obstacle = create_default_at Obstacle pos in
+  let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle)
+      =
+    let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
     update_world state (GameWorld.put_entity world new_obstacle)
 
   let positions_in_radius (center : vec2) (radius : int) : vec2 list =
