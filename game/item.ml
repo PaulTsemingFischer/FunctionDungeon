@@ -56,10 +56,6 @@ let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
 
 (* EXAMPLE ITEMS *)
 
-(** [default_item] is essentially an identity function (mapping each tile to
-    itself), given to all entities by default at the start of the game. *)
-let default_item = fun tile -> [ tile ]
-
 (** [do_damage_example] is a modifier example that adds 1 damage to all attacked
     tiles. *)
 let do_damage_example = fun tile -> [ (fst tile, [ DealDamage 1.0 ]) ]
