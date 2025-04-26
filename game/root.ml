@@ -89,6 +89,7 @@ type input =
   | MovePlayer of vec2
   | Wait
   | Attack
+  | SwapItem of int
 
 exception Invalid_input of input
 

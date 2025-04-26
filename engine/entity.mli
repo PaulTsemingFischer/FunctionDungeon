@@ -8,8 +8,9 @@ module type EntityData = sig
   (**[entity_type] describes the behavior of entities in game and optionally
      contains state related to that entity type*)
 
-   type status_effect
-   (**[status_effect] includes effects like fire, slow, poison, etc. that may last over several turns when applied to an entity*)
+  type status_effect
+  (**[status_effect] includes effects like fire, slow, poison, etc. that may
+     last over several turns when applied to an entity*)
 
   val zeroed_stats : t
   (**[zeroed_stats] is the default 'zeroed' instance of the given stat type*)
@@ -20,8 +21,9 @@ module type EntityData = sig
   val string_of_type : entity_type -> string
   (**[string_of_type] returns a string representation of some [entity_type]*)
 
-   val string_of_status : status_effect -> string
-   (**[string_of_status status_effect] returns a string representation of [status_effect]*)
+  val string_of_status : status_effect -> string
+  (**[string_of_status status_effect] returns a string representation of
+     [status_effect]*)
 end
 
 module type S = sig
@@ -57,8 +59,8 @@ module type S = sig
      rendering rules, and statuses*)
 
   val create : stats -> entity_type -> status_effect list -> vec2 -> t
-  (**[create stats entity_type statuses pos] creates an entity with a
-     unique id and the given entity information*)
+  (**[create stats entity_type statuses pos] creates an entity with a unique id
+     and the given entity information*)
 
   val set_pos : t -> vec2 -> t
   (**[set_pos entity pos] changes an entity's position to the [pos]*)
@@ -67,13 +69,15 @@ module type S = sig
   (**[update_stats source stats] is a utility method that returns an entity with
      stats equal to [stats] and other parameters being equal to that of [source]*)
 
-  val string_of_entity :
-    t ->
-    string
+  val string_of_entity : t -> string
   (**[string_of_entity entity string_of_type string_of_rendering
       string_of_status] converts [entity] into a string*)
 
   include Set.OrderedType with type t := t
 end
 
-module Make (ED : EntityData) : S with type stats = ED.t and type entity_type = ED.entity_type and type status_effect = ED.status_effect
+module Make (ED : EntityData) :
+  S
+    with type stats = ED.t
+     and type entity_type = ED.entity_type
+     and type status_effect = ED.status_effect
