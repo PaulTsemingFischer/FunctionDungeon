@@ -1,4 +1,5 @@
-open Root
+open GameDefinitions
+open GameState
 open Engine.Utils
 
 (** [enemy_action] is the updated state after an [entity] of a certain enemy

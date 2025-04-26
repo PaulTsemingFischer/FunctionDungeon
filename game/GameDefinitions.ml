@@ -12,6 +12,8 @@ type entity_types =
   | Pigeon
   | Door
   | HorizontalBouncer of bool
+  | Enemy of Enemytype.enemy
+  | Obstacle of Obstacles.obstacle
 
 type status_effects = Fire of int
 
@@ -22,6 +24,8 @@ let string_of_type e_type =
   | Pigeon -> "pigeon"
   | Door -> "door"
   | HorizontalBouncer _ -> "h-bouncer"
+  | Enemy e -> Enemytype.string_of_enemy e
+  | Obstacle o -> Obstacles.string_of_obstacle o
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -72,7 +76,19 @@ let create_default_at e_type pos : GameEntity.t =
     | HorizontalBouncer x ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          (HorizontalBouncer x) [] pos)
+          (HorizontalBouncer x) [] pos
+    | Enemy e ->
+        GameEntity.create
+          {
+            health = 10.0;
+            base_moves = base_cross_moves;
+            base_actions = enemy_cross_actions e;
+          }
+          (Enemy e) [] pos
+    | Obstacle o ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          (Obstacle o) [] pos)
 
 (**[print_entities entity_list] prints all entities in given entity_list*)
 let print_entities entity_list =
