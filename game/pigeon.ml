@@ -1,4 +1,4 @@
-open Root
+open GameDefinitions
 open Engine.Utils
 
 let pigeon_action (state : GameState.t) (entity : GameEntity.t) _ =

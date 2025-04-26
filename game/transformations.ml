@@ -1,6 +1,7 @@
-open Root
+open GameDefinitions
 open Modifiers
 open Engine.Utils
+open Procgen
 
 (**[apply_move state entity possible_move] moves an entity to [possible_move]
    relative to its current position. If the entity is not in the world when this
@@ -36,24 +37,92 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     raise (Entity_not_found entity)
   else
     match action with
-    | DealDamage x ->
-        let updated_state =
-          GameState.update_world state
-            (GameWorld.put_entity world
-               (GameEntity.update_stats entity
-                  {
-                    health = entity.stats.health -. x;
-                    base_moves = entity.stats.base_moves;
-                    base_actions = entity.stats.base_actions;
-                  }))
-        in
-        GameState.add_event updated_state (ChangeHealth (entity, -.x))
+    | DealDamage x -> (
+        match entity.entity_type with
+        | Wall | Door -> state
+        | _ ->
+            let updated_entity =
+              GameEntity.update_stats entity
+                {
+                  health = entity.stats.health -. x;
+                  base_moves = entity.stats.base_moves;
+                  base_actions = entity.stats.base_actions;
+                }
+            in
+            if updated_entity.stats.health <= 0. then
+              let updated_state =
+                GameState.update_world state
+                  (GameWorld.remove_entity world entity.id)
+              in
+              GameState.add_event updated_state (EntityDeath entity)
+            else
+              let updated_state =
+                GameState.update_world state
+                  (GameWorld.put_entity world updated_entity)
+              in
+
+              GameState.add_event updated_state (ChangeHealth (entity, -.x)))
     | ApplyFire x -> state
     | BarrierAttack (r, o) -> GameState.build_barrier state world (0, 0) r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
 (**[generate_normal_room state player] creates a new room with the given player*)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
+  let world = GameWorld.empty in
+
+  let tiles = GameTiles.empty in
+
+  let generated_room =
+    Pgworld.generate_room Pgworld.default_room_gen_settings
+  in
+  print_endline (Pgworld.string_of_genworld generated_room);
+
+  let source_entity_tile_pairs = Pgworld.to_tile_list generated_room in
+  let entity_world, tile_world =
+    List.fold_left
+      (fun ((acc_world, acc_tiles) : GameWorld.t * GameTiles.t)
+           (((ground, entity), pos) : Pgworld.tile * vec2) ->
+        let updated_world, update_tiles =
+          match entity with
+          | Pgworld.Wall | Pgworld.Rock ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at
+                     (if Random.int 100 > 95 then Door else Wall)
+                     pos),
+                acc_tiles )
+          | Pgworld.Water ->
+              ( acc_world,
+                GameTiles.put_entity acc_tiles (create_tile_at Water pos) )
+          | _ -> (acc_world, acc_tiles)
+        in
+        ( updated_world,
+          match ground with
+          | Mud -> GameTiles.put_entity update_tiles (create_tile_at Mud pos)
+          | Ground ->
+              GameTiles.put_entity update_tiles (create_tile_at Ground pos)
+          | Void -> update_tiles ))
+      (world, tiles) source_entity_tile_pairs
+  in
+
+  (* pick random tile, put player there so they're actually in the map; assuming
+     no entity on tile *)
+  let all_tiles = GameTiles.all_entities tile_world in
+  let random_tile_pos =
+    if all_tiles = [] then player.pos
+    else (random_element (GameTiles.all_entities tile_world)).pos
+  in
+  let world_with_moved_player =
+    GameWorld.put_entity entity_world
+      (GameEntity.set_pos player random_tile_pos)
+  in
+
+  GameState.update_tiles
+    (GameState.update_world state world_with_moved_player)
+    tile_world
+
+(**[generate_circular_room state player] creates a new room with the given
+   player*)
+let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
   let world =
     GameWorld.put_entity
       (GameWorld.put_entity GameWorld.empty player)
