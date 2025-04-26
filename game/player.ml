@@ -9,7 +9,8 @@ let player_action (state : GameState.t) (entity : GameEntity.t) input =
       match GameWorld.query_pos (GameState.get_world state) target_pos with
       | Some e -> (
           match e.entity_type with
-          | Wall -> GameState.(raise (Invalid_input input))
+          | Wall | Rock | Water | Lava ->
+              GameState.(raise (Invalid_input input))
           | Door -> generate_normal_room state entity
           | _ -> apply_action_to state e (DealDamage 1.))
       | None -> apply_move state entity dir)
