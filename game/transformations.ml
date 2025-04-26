@@ -60,20 +60,25 @@ let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
 
 (** [apply_attack_to state actions] applies all actions in [actions] to the game
     state [state]. Since attack coordinates are relative to player position, the
-    value of [player_pos] determines the actual tiles affected. *)
+    value of [player_pos] determines the actual tiles affected. Attacks cannot
+    hit the player itself; that is, any action on tile (0,0) will be skipped. *)
 let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
     (actions : possible_action list) =
   match actions with
   | [] -> state
   | h :: t -> (
-      match
-        GameWorld.query_pos
-          (GameState.get_world state)
-          (add_vec2 (fst h) player_pos)
-      with
-      | None -> apply_attack_to state player_pos t
-      | Some x ->
-          apply_attack_to (apply_attack_to_entity state x (snd h)) player_pos t)
+      if fst h = (0, 0) then apply_attack_to state player_pos t
+      else
+        match
+          GameWorld.query_pos
+            (GameState.get_world state)
+            (add_vec2 (fst h) player_pos)
+        with
+        | None -> apply_attack_to state player_pos t
+        | Some x ->
+            apply_attack_to
+              (apply_attack_to_entity state x (snd h))
+              player_pos t)
 
 (**[generate_normal_room state player] creates a new room with the given player*)
 let generate_normal_room (state : GameState.t) (player : GameEntity.t) =

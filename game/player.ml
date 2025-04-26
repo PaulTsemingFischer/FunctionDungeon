@@ -15,4 +15,10 @@ let player_action (state : GameState.t) (entity : GameEntity.t) input =
       | None -> apply_move state entity dir)
   | Wait -> state
   | Attack -> apply_attack_to state entity.pos Modifiers.base_cross_actions
+  (* EX: applying augment_to_adjacents_example modifier to the base attack *)
+  (* apply_attack_to state entity.pos
+        Item.(
+          AttackMap.to_list
+            (modify_attack augment_to_adjacents_example
+               Modifiers.base_cross_actions)) *)
   | SwapItem x -> state

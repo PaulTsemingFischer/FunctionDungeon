@@ -8,7 +8,7 @@ type action =
 type possible_action = vec2 * action list
 (**[possible_action] is an action associated with a tile*)
 
-type modifier = possible_action -> possible_action
+type modifier = possible_action -> possible_action list
 (** [modifier] is an item that modifies an action *)
 
 type possible_move = vec2

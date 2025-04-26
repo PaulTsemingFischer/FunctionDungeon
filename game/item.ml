@@ -22,7 +22,8 @@ let rec modify_attack_helper func atk_lst atk =
 (** [modify_attack func atk] applies the modification [func] to the attack
     [atk]. New effects are appended TO THE BACK of each tile's effect list. *)
 let modify_attack func atk =
-  modify_attack_helper func (AttackMap.bindings atk) atk
+  let atkmap = AttackMap.of_list atk in
+  modify_attack_helper func (AttackMap.bindings atkmap) atkmap
 
 (** [compare_effects a b] is true if [a] and [b] are equal. *)
 let compare_effects a b =
