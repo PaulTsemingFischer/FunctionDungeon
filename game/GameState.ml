@@ -344,7 +344,7 @@ let positions_in_radius (center : vec2) (radius : int) : vec2 list =
   !positions
 
 let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
-    (radius : int) (objects : Obstacles.obstacle) (turns : int) =
+    (radius : int) (objects : Obstacles.obstacle) =
   let positions = positions_in_radius center radius in
   List.fold_left
     (fun current_state p -> add_obstacle_to_world current_state world p objects)
