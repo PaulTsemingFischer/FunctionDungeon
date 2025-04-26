@@ -1,9 +1,9 @@
-open Game.Root
+open Game
 
 type t
 (**[t] represents the renderer's type*)
 
-type input_handler = GameState.t -> input -> GameState.t
+type input_handler = GameState.t -> GameState.input -> GameState.t
 (**[input_handler state input] is the signature of a function that handles inputs from the GUI*)
 
 val loop : t -> GameState.t -> input_handler -> unit
