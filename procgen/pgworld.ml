@@ -282,7 +282,6 @@ let generate_room (settings : room_gen_settings) : t =
   let room = remove_redundant_walls room in
   room
 
-(**[to_tile_list room] collects all tiles and their coords into a list*)
 let to_tile_list (room : t) : (tile * vec2) list =
   let width, height = dimensions room in
   List.fold_left
