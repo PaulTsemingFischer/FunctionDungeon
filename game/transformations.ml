@@ -100,6 +100,9 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
           | Pgworld.Fire ->
             ( GameWorld.put_entity acc_world (create_default_at Fire pos),
               acc_tiles )
+          | Pgworld.(WeakMob Pigeon) ->
+            ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+            acc_tiles )
           | _ -> (acc_world, acc_tiles)
         in
         ( updated_world,

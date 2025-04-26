@@ -4,7 +4,7 @@ type ground =
   | Ground
   | Mud
 
-  type weak_mob = PlaceHolderWeakMob
+  type weak_mob = PlaceHolderWeakMob | Pigeon
   type strong_mob = PlaceHolderStrongMob
   type item = PlaceHolderItem
   

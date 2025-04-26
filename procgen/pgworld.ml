@@ -6,7 +6,7 @@ type ground =
   | Ground
   | Mud
 
-type weak_mob = PlaceHolderWeakMob
+type weak_mob = PlaceHolderWeakMob | Pigeon
 type strong_mob = PlaceHolderStrongMob
 type item = PlaceHolderItem
 
@@ -49,7 +49,7 @@ let default_room_gen_settings =
   {
     gen_weak_mob = (fun () -> PlaceHolderWeakMob);
     gen_strong_mob = (fun () -> PlaceHolderStrongMob);
-    weak_mob_rate = 0.0;
+    weak_mob_rate = 0.02;
     strong_mob_rate = 0.0;
     item_rate = 0.0;
     room_width = 30;
@@ -133,6 +133,7 @@ let string_of_genworld (world : t) =
     | Void, Water -> "≈"
     | Void, Lava -> "♨"
     | Ground, Empty -> "·"
+    | Ground, WeakMob Pigeon -> "P"
     | _, Rock -> "♦"
     | _ -> " "
   in
@@ -274,8 +275,14 @@ let remove_redundant_walls =
         |> List.length = 0
       then (Void, Empty)
       else get_at_vec room spot)
-
-
+  
+let random_pigeon room settings =
+  room_map
+    (fun room spot ->
+      let spot_data = get_at_vec room spot in
+      if spot_data = (Ground, Empty) && Random.float 1.0 < settings.weak_mob_rate then (Ground, WeakMob Pigeon) else spot_data)
+    room
+      
 
 let generate_room (settings : room_gen_settings) : t =
   let room =
@@ -286,6 +293,7 @@ let generate_room (settings : room_gen_settings) : t =
   let room = liquify_islands room settings in
   let room = border_wall room in
   let room = remove_redundant_walls room in
+  let room = random_pigeon room settings in
   room
 
 let to_tile_list (room : t) : (tile * vec2) list =
