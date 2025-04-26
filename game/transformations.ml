@@ -63,7 +63,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
 
               GameState.add_event updated_state (ChangeHealth (entity, -.x)))
     | ApplyFire x -> state
-    | BarrierAttack (r, o) -> GameState.build_barrier state world (0, 0) r o
+    | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
 (**[generate_normal_room state player] creates a new room with the given player*)
