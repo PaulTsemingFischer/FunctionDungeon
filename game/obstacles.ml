@@ -6,6 +6,7 @@ type obstacle =
      rate *)
   | Fence
 
+(** [string_of_obstacle] is the string representation of each obstacle type *)
 let string_of_obstacle (o : obstacle) =
   match o with
   | Spreading_Fire (c, r, g) -> "spreading fire"

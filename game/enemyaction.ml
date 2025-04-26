@@ -1,6 +1,8 @@
 open Root
 open Engine.Utils
 
+(** [enemy_action] is the updated state after an [entity] of a certain enemy
+    type [enemy] takes an action *)
 let enemy_action (state : GameState.t) (entity : GameEntity.t)
     (enemy : Enemytype.enemy) _ =
   let possible_attacks = Modifiers.enemy_cross_actions enemy in

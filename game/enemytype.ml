@@ -11,6 +11,8 @@ type enemy =
   | Fog_Cloud of int * int
 (* player can't see more than r radius around current position for t turns *)
 
+(** [string_of_enemy] is the string representation describing each type of enemy
+*)
 let string_of_enemy (e : enemy) =
   match e with
   | Jailer (r, t) -> "jailer"
