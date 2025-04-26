@@ -32,7 +32,7 @@ let base_cross_actions : possible_action list =
 
 let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
-  | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence)
+  | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
   | Thief -> StealAttack
   | Blinder t -> exit 0 (* Dummy for now *)
   | Fog_Cloud (r, t) -> exit 0 (* Dummy for now *)
