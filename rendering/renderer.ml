@@ -239,13 +239,7 @@ let render_floor (renderer : t) =
             (fst screen_space_position)
             (snd screen_space_position)
             (int_of_float tile_scaling_factor)
-            Color.lightgray
-      | Water ->
-          Raylib.draw_text "~"
-            (fst screen_space_position)
-            (snd screen_space_position)
-            (int_of_float tile_scaling_factor)
-            Color.blue)
+            Color.lightgray)
     (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
 
 let render (renderer : t) =
@@ -292,6 +286,30 @@ let render (renderer : t) =
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
                Color.black
+         | Water ->
+             Raylib.draw_text "~"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
+               Color.blue
+         | Lava ->
+             Raylib.draw_text "~"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
+               Color.orange
+         | Fire ->
+             Raylib.draw_text "♨"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
+               Color.red
+         | Rock ->
+             Raylib.draw_text "o"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
+               Color.gray
          | HorizontalBouncer is_moving_right ->
              Raylib.draw_text
                (if is_moving_right then ">" else "<")
