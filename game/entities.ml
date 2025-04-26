@@ -8,4 +8,4 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | Wall -> state
   | Door -> state
   | Enemy e -> Enemyaction.enemy_action state entity e input
-  | Obstacle -> state
+  | Obstacle o -> state
