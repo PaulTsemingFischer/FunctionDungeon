@@ -59,5 +59,5 @@ let enemy_attack_type (e : enemy) : Modifiers.action =
 
 let enemy_cross_actions (e : enemy) : Modifiers.possible_action list =
   List.map
-    (fun target -> (target, enemy_attack_type e))
+    (fun target -> (target, [ enemy_attack_type e ]))
     Modifiers.base_cross_moves
