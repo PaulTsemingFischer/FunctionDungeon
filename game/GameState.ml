@@ -3,6 +3,7 @@ open Engine.Utils
 
 type input =
   | MovePlayer of vec2
+  | Attack
   | Wait
 
 exception Invalid_input of input
@@ -166,16 +167,33 @@ let activate_action_modifiers state (entity_type : entity_types)
     (possible_actions : Modifiers.possible_action list) =
   match List.assoc_opt (string_of_type entity_type) state.modifiers with
   | Some (possible_actions_modifiers, _) ->
-      List.fold_left
-        (fun (possible_actions_acc : Modifiers.possible_action list)
-             (action_modifier : Modifiers.possible_actions_modifier) ->
-          match action_modifier with
-          | ScaleAction factor ->
-              List.map
-                (fun ((pos, action) : Modifiers.possible_action) ->
-                  (scale_vec2 pos factor, action))
-                possible_actions_acc)
-        possible_actions possible_actions_modifiers
+      Item.AttackMap.to_list
+        (List.fold_left
+           (fun possible_actions_acc
+                (action_modifier : Modifiers.possible_actions_modifier) ->
+             match action_modifier with
+             | ScaleAction factor ->
+                 Item.modify_attack
+                   (fun ((pos, action) : Modifiers.possible_action) ->
+                     [ (scale_vec2 pos factor, action) ])
+                   possible_actions_acc
+             | AddFire factor ->
+                 Item.modify_attack
+                   (fun ((pos, action) : Modifiers.possible_action) ->
+                     [ (pos, Modifiers.ApplyFire factor :: action) ])
+                   possible_actions_acc
+             | AugmentToAdjacent ->
+                 Item.modify_attack
+                   (fun ((pos, action) : Modifiers.possible_action) ->
+                     [
+                       (add_vec2 pos (1, 0), action);
+                       (add_vec2 pos (-1, 0), action);
+                       (add_vec2 pos (0, 1), action);
+                       (add_vec2 pos (0, -1), action);
+                     ])
+                   possible_actions_acc)
+           (Item.AttackMap.of_list possible_actions)
+           possible_actions_modifiers)
   | None -> possible_actions
 
 let apply_action_modifiers state (entity : GameEntity.t)

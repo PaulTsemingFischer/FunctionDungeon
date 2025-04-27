@@ -24,7 +24,7 @@ let pigeon_action (state : GameState.t) (entity : GameEntity.t) _ =
   in
 
   match nearby_entity_action_pairs with
-  | Some (p, (_, a)) -> Transformations.apply_action_to state p a
+  | Some (p, (_, a)) -> Transformations.apply_attack_to_entity state p a
   | None ->
       let updated_state, possible_moves =
         GameState.apply_move_modifiers state entity entity.stats.base_moves

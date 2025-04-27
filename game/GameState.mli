@@ -5,6 +5,7 @@ type t
 
 type input =
   | MovePlayer of vec2
+  | Attack
   | Wait
 
 exception Invalid_input of input
@@ -113,6 +114,10 @@ val add_actions_modifier :
 val add_moves_modifier :
   t -> Modifiers.possible_moves_modifier -> entity_types -> t
 
+val remove_actions_modifier : t -> entity_types -> t
+val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> Obstacles.obstacle -> t
+val positions_in_radius : vec2 -> int -> vec2 list
+val build_barrier : t -> GameWorld.t -> vec2 -> int -> Obstacles.obstacle -> t
 val remove_actions_modifier : t -> entity_types -> t
 val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> Obstacles.obstacle -> t
 val positions_in_radius : vec2 -> int -> vec2 list

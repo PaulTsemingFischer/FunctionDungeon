@@ -91,20 +91,155 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
                      pos),
                 acc_tiles )
           | Pgworld.Rock ->
-            ( GameWorld.put_entity acc_world (create_default_at Rock pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Rock pos),
+                acc_tiles )
           | Pgworld.Water ->
-            ( GameWorld.put_entity acc_world (create_default_at Water pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Water pos),
+                acc_tiles )
           | Pgworld.Lava ->
-            ( GameWorld.put_entity acc_world (create_default_at Lava pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Lava pos),
+                acc_tiles )
           | Pgworld.Fire ->
-            ( GameWorld.put_entity acc_world (create_default_at Fire pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Fire pos),
+                acc_tiles )
           | Pgworld.(WeakMob Pigeon) ->
-            ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
-            acc_tiles )
+              ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+                acc_tiles )
+          | _ -> (acc_world, acc_tiles)
+        in
+        ( updated_world,
+          match ground with
+          | Mud -> GameTiles.put_entity update_tiles (create_tile_at Mud pos)
+          | Ground ->
+              GameTiles.put_entity update_tiles (create_tile_at Ground pos)
+          | _ -> update_tiles ))
+      (world, tiles) source_entity_tile_pairs
+  in
+
+  (* pick random tile, put player there so they're actually in the map; assuming
+     no entity on tile *)
+  let all_tiles = GameTiles.all_entities tile_world in
+  let random_tile_pos =
+    if all_tiles = [] then player.pos
+    else (random_element (GameTiles.all_entities tile_world)).pos
+  in
+  let world_with_moved_player =
+    GameWorld.put_entity entity_world
+      (GameEntity.set_pos player random_tile_pos)
+  in
+
+  GameState.update_tiles
+    (GameState.update_world state world_with_moved_player)
+    tile_world
+
+(**[generate_circular_room state player] creates a new room with the given
+   player*)
+let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
+  let world =
+    GameWorld.put_entity
+      (GameWorld.put_entity GameWorld.empty player)
+      (create_default_at Door
+         (add_vec2
+            ( random_element [ 1; -1 ] * (Random.int 3 + 1),
+              random_element [ 1; -1 ] * (Random.int 3 + 1) )
+            player.pos))
+  in
+
+  let room_radius = 5 + Random.int 7 in
+
+  let updated_world =
+    List.fold_left
+      (fun (acc : GameWorld.t) (current_x : int) ->
+        let pos_y =
+          sqrt
+            (float_of_int (room_radius * room_radius)
+            -. float_of_int (current_x * current_x))
+        in
+        GameWorld.put_entity
+          (GameWorld.put_entity acc
+             (create_default_at Wall
+                (add_vec2 player.pos
+                   (current_x, int_of_float (Float.round pos_y)))))
+          (create_default_at Wall
+             (add_vec2 player.pos
+                (current_x, -int_of_float (Float.round pos_y)))))
+      world
+      (List.init ((room_radius * 2) + 1) (fun x -> x - room_radius))
+  in
+  GameState.update_world state updated_world
+
+let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
+  GameState.add_event state (Say (entity, message))
+
+(** [apply_attack_to_entity] applies a single list of actions onto [entity] and
+    returns the updated game state. *)
+let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
+    (effects : action list) =
+  match effects with
+  | [] -> state
+  | h :: t -> apply_attack_to_entity (apply_action_to state entity h) entity t
+
+(** [apply_attack_to state actions] applies all actions in [actions] to the game
+    state [state]. Since attack coordinates are relative to player position, the
+    value of [player_pos] determines the actual tiles affected. Attacks cannot
+    hit the player itself; that is, any action on tile (0,0) will be skipped. *)
+let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
+    (actions : possible_action list) =
+  match actions with
+  | [] -> state
+  | h :: t -> (
+      if fst h = (0, 0) then apply_attack_to state player_pos t
+      else
+        match
+          GameWorld.query_pos
+            (GameState.get_world state)
+            (add_vec2 (fst h) player_pos)
+        with
+        | None -> apply_attack_to state player_pos t
+        | Some x ->
+            apply_attack_to
+              (apply_attack_to_entity state x (snd h))
+              player_pos t)
+
+(**[generate_normal_room state player] creates a new room with the given player*)
+let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
+  let world = GameWorld.empty in
+
+  let tiles = GameTiles.empty in
+
+  let generated_room =
+    Pgworld.generate_room Pgworld.default_room_gen_settings
+  in
+  print_endline (Pgworld.string_of_genworld generated_room);
+
+  let source_entity_tile_pairs = Pgworld.to_tile_list generated_room in
+  let entity_world, tile_world =
+    List.fold_left
+      (fun ((acc_world, acc_tiles) : GameWorld.t * GameTiles.t)
+           (((ground, entity), pos) : Pgworld.tile * vec2) ->
+        let updated_world, update_tiles =
+          match entity with
+          | Pgworld.Wall ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at
+                     (if Random.int 100 > 95 then Door else Wall)
+                     pos),
+                acc_tiles )
+          | Pgworld.Rock ->
+              ( GameWorld.put_entity acc_world (create_default_at Rock pos),
+                acc_tiles )
+          | Pgworld.Water ->
+              ( GameWorld.put_entity acc_world (create_default_at Water pos),
+                acc_tiles )
+          | Pgworld.Lava ->
+              ( GameWorld.put_entity acc_world (create_default_at Lava pos),
+                acc_tiles )
+          | Pgworld.Fire ->
+              ( GameWorld.put_entity acc_world (create_default_at Fire pos),
+                acc_tiles )
+          | Pgworld.(WeakMob Pigeon) ->
+              ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+                acc_tiles )
           | _ -> (acc_world, acc_tiles)
         in
         ( updated_world,

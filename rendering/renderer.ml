@@ -373,6 +373,7 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
         | Raylib.Key.A -> Some (MovePlayer (-1, 0))
         | Raylib.Key.S -> Some (MovePlayer (0, -1))
         | Raylib.Key.D -> Some (MovePlayer (1, 0))
+        | Raylib.Key.Z -> Some Attack
         | _ -> None)
     in
     match frame_input_opt with

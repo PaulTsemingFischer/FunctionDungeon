@@ -126,7 +126,6 @@ type tile_types =
   | Ground
   | Mud
 
-
 let string_of_tile_type t_type =
   match t_type with
   | Ground -> "ground"
