@@ -30,7 +30,6 @@ val string_of_event : event -> string
 val create : GameWorld.t -> ?tiles:GameTiles.t -> transition list -> t
 (**[create world transitions] returns a gamestate with the specified world and
    transition list*)
-   transition list*)
 
 val step : t -> input -> t
 (**[step state input] takes an in-game turn and returns the updated state*)
@@ -38,11 +37,9 @@ val step : t -> input -> t
 val get_world : t -> GameWorld.t
 (**[get_world state] returns a world of type [GameWorld.t] associated with
    [state]*)
-   [state]*)
 
 val get_tiles : t -> GameTiles.t
 (**[get_tiles state] returns a world of type [GameTiles.t] associated with
-   [state]*)
    [state]*)
 
 val update_tiles : t -> GameTiles.t -> t
@@ -76,7 +73,6 @@ val get_modifiers :
   * Modifiers.possible_moves_modifier list
 (**[get_modifiers state entity_type] returns a tuple of tile and movement
    modifiers associated with that entity type*)
-   modifiers associated with that entity type*)
 
 val activate_action_modifiers :
   t ->
@@ -86,8 +82,6 @@ val activate_action_modifiers :
 (**[activate_action_modifiers state entity_type possible_actions] applies all
    action modifiers associated with [entity_type] to [possible_actions] and
    returns the modified result (Does not change state in any way)*)
-   action modifiers associated with [entity_type] to [possible_actions] and
-   returns the modified result (Does not change state in any way)*)
 
 val activate_move_modifiers :
   t ->
@@ -95,8 +89,6 @@ val activate_move_modifiers :
   Modifiers.possible_move list ->
   Modifiers.possible_move list
 (**[activate_move_modifiers state entity_type possible_moves] applies all move
-   modifiers associated with [entity_type] to [possible_moves] and returns the
-   modified result (Does not change state in any way)*)
    modifiers associated with [entity_type] to [possible_moves] and returns the
    modified result (Does not change state in any way)*)
 
@@ -109,19 +101,12 @@ val apply_action_modifiers :
    modifiers associated with [entity.entity_type] to [possible_actions],
    returning a list of new actions and the updated state, with the activation of
    the modifiers pushed to the event stack*)
-   modifiers associated with [entity.entity_type] to [possible_actions],
-   returning a list of new actions and the updated state, with the activation of
-   the modifiers pushed to the event stack*)
 
 val apply_move_modifiers :
   t ->
   GameEntity.t ->
   Modifiers.possible_move list ->
   t * Modifiers.possible_move list
-(**[apply_move_modifiers state entity possible_moves] applies the move modifiers
-   associated with [entity.entity_type] to [possible_moves], returning a list of
-   new actions and the updated state, with the activation of the modifiers
-   pushed to the event stack*)
 (**[apply_move_modifiers state entity possible_moves] applies the move modifiers
    associated with [entity.entity_type] to [possible_moves], returning a list of
    new actions and the updated state, with the activation of the modifiers
