@@ -12,6 +12,8 @@ type event =
   | Move of GameEntity.t * vec2 * vec2
   | Say of GameEntity.t * string
   | ChangeHealth of GameEntity.t * float
+  | ApplyFire of GameEntity.t * int
+  | TakeFireDamage of GameEntity.t
   | ActivateActionModifier of
       GameEntity.t
       * Modifiers.possible_action list
@@ -38,6 +40,13 @@ let string_of_event event =
       Printf.sprintf "%s's health changed by %.2f"
         (string_of_type e.entity_type)
         amt
+  | ApplyFire (e, amt) ->
+      Printf.sprintf "%s received fire status effect for %d turns"
+        (string_of_type e.entity_type)
+        amt
+  | TakeFireDamage e ->
+      Printf.sprintf "%s took damage from fire status effect"
+        (string_of_type e.entity_type)
   | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
 
 type t = {

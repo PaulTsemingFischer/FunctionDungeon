@@ -34,12 +34,14 @@ let compare_effects a b =
 let rec effects_to_string lst =
   match lst with
   | [] -> ""
-  | h :: t -> (
-      match h with
+  | h :: t ->
+      (match h with
       | DealDamage x -> "Damage " ^ string_of_float x
-      | ApplyFire x -> "Fire " ^ string_of_int x ^ "; " ^ effects_to_string t
+      | ApplyFire x -> "Apply fire " ^ string_of_int x
+      | DealFireDamage -> "Deal fire damage"
       | StealAttack -> "Steal"
       | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
+      ^ "; " ^ effects_to_string t
 
 let rec bindings_to_string_helper lst =
   match lst with

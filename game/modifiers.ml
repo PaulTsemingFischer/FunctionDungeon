@@ -4,6 +4,7 @@ open Engine.Utils
 type action =
   | DealDamage of float
   | ApplyFire of int
+  | DealFireDamage
   | BarrierAttack of int * Obstacles.obstacle
   | StealAttack
 

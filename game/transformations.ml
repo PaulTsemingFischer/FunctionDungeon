@@ -28,6 +28,13 @@ let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
 
 exception Entity_not_found of GameEntity.t
 
+(** [is_killable_entity entity] is true if [entity] can take damage/die,
+    otherwise false. *)
+let is_killable_entity (entity : GameEntity.t) =
+  match entity.entity_type with
+  | Wall | Door | Rock | Fire | Water | Lava -> false
+  | _ -> true
+
 (**[apply_action_to state entity action] applies [action] to [entity], returning
    an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
@@ -37,32 +44,68 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     raise (Entity_not_found entity)
   else
     match action with
-    | DealDamage x -> (
-        match entity.entity_type with
-        | Wall | Door -> state
-        | _ ->
-            let updated_entity =
-              GameEntity.update_stats entity
-                {
-                  health = entity.stats.health -. x;
-                  base_moves = entity.stats.base_moves;
-                  base_actions = entity.stats.base_actions;
-                }
+    | DealDamage x ->
+        if is_killable_entity entity then
+          let updated_entity =
+            GameEntity.update_stats entity
+              {
+                health = entity.stats.health -. x;
+                base_moves = entity.stats.base_moves;
+                base_actions = entity.stats.base_actions;
+              }
+          in
+          if updated_entity.stats.health <= 0. then
+            let updated_state =
+              GameState.update_world state
+                (GameWorld.remove_entity world entity.id)
             in
-            if updated_entity.stats.health <= 0. then
-              let updated_state =
-                GameState.update_world state
-                  (GameWorld.remove_entity world entity.id)
-              in
-              GameState.add_event updated_state (EntityDeath entity)
-            else
-              let updated_state =
-                GameState.update_world state
-                  (GameWorld.put_entity world updated_entity)
-              in
+            GameState.add_event updated_state (EntityDeath entity)
+          else
+            let updated_state =
+              GameState.update_world state
+                (GameWorld.put_entity world updated_entity)
+            in
 
-              GameState.add_event updated_state (ChangeHealth (entity, -.x)))
-    | ApplyFire x -> state
+            GameState.add_event updated_state (ChangeHealth (entity, -.x))
+        else state
+    | DealFireDamage ->
+        if is_killable_entity entity then
+          let x = base_fire_dmg in
+          let updated_entity =
+            GameEntity.update_stats entity
+              {
+                health = entity.stats.health -. x;
+                base_moves = entity.stats.base_moves;
+                base_actions = entity.stats.base_actions;
+              }
+          in
+          let fire_state = GameState.add_event state (TakeFireDamage entity) in
+          if updated_entity.stats.health <= 0. then
+            let updated_state =
+              GameState.update_world fire_state
+                (GameWorld.remove_entity world entity.id)
+            in
+            GameState.add_event updated_state (EntityDeath entity)
+          else
+            let updated_state =
+              GameState.update_world fire_state
+                (GameWorld.put_entity world updated_entity)
+            in
+
+            GameState.add_event updated_state (ChangeHealth (entity, -.x))
+        else state
+    | ApplyFire x ->
+        if is_killable_entity entity then
+          let updated_entity =
+            GameEntity.update_statuses entity
+              (GameDefinitions.Fire x :: entity.statuses)
+          in
+          let updated_state =
+            GameState.update_world state
+              (GameWorld.put_entity world updated_entity)
+          in
+          GameState.add_event updated_state (ApplyFire (entity, x))
+        else state
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 

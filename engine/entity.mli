@@ -63,6 +63,11 @@ module type S = sig
   (**[update_stats source stats] is a utility method that returns an entity with
      stats equal to [stats] and other parameters being equal to that of [source]*)
 
+  val update_statuses : t -> status_effect list -> t
+  (** [update_statuses source statuses] is a utility method that returns an
+      entity with status effects equal to [statuses] and other parameters being
+      equal to that of [source] *)
+
   val update_type : t -> entity_type -> t
   (**[update_type source e_type] changes the [source] entity's type to [e_type]*)
 

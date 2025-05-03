@@ -14,6 +14,8 @@ type event =
   | Move of GameEntity.t * vec2 * vec2
   | Say of GameEntity.t * string
   | ChangeHealth of GameEntity.t * float
+  | ApplyFire of GameEntity.t * int
+  | TakeFireDamage of GameEntity.t
   | ActivateActionModifier of
       GameEntity.t
       * Modifiers.possible_action list

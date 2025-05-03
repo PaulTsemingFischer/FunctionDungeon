@@ -157,3 +157,6 @@ let print_tiles tile_list =
   List.iter (fun x -> print_endline (TileEntity.string_of_entity x)) tile_list
 
 module GameTiles = World.Make (TileEntity)
+
+(* Represents damage-per-turn done by fire status effect *)
+let base_fire_dmg = 1.0

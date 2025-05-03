@@ -10,7 +10,9 @@ open Rendering
 let generate_starting_state () =
   let player = create_default_at Player (0, 0) in
   let world = GameWorld.put_entity GameWorld.empty player in
-  let state = GameState.create world [ entity_action_runner ] in
+  let state =
+    GameState.create world [ entity_status_runner; entity_action_runner ]
+  in
   let generated_state = Transformations.generate_normal_room state player in
   GameState.add_moves_modifier generated_state (ScaleMove 1) Pigeon
   |> GameState.query_update_player
