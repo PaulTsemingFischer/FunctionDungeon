@@ -15,9 +15,9 @@ let obstacle_action (state : GameState.t) (entity : GameEntity.t)
           in
           GameWorld.put_entity this_world new_entity
       in
-     set_room state new_world
+      update_world state new_world
   | Spreading_Fire (c, r, g) ->
-      let this_world = room state in
+      let this_world = get_world state in
       let new_entity_world =
         let new_obstacle = Obstacles.grow_fire obstacle in
         let new_entity =
