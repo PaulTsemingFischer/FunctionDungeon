@@ -10,6 +10,12 @@ let random_element list =
 
 type vec2 = int * int
 
+type cardinal_dir =
+  | N
+  | E
+  | S
+  | W
+
 (*Translation methods*)
 (*Translation methods*)
 let add_vec2 (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
