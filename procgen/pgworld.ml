@@ -6,7 +6,10 @@ type ground =
   | Ground
   | Mud
 
-type weak_mob = PlaceHolderWeakMob | Pigeon
+type weak_mob =
+  | PlaceHolderWeakMob
+  | Pigeon
+
 type strong_mob = PlaceHolderStrongMob
 type item = PlaceHolderItem
 
@@ -16,15 +19,17 @@ type entity =
   | Lava
   | Fire
   | Wall
+  | Door of t
   | Rock
   | WeakMob of weak_mob
   | StrongMob of strong_mob
   | Item of item
 
-type tile = ground * entity
-type t = tile array array
+and t = tile array array
+and tile = ground * entity
 
 let default_entity : tile = (Void, Empty)
+let blank_room = [||]
 
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
@@ -71,6 +76,14 @@ let default_room_gen_settings =
 let room_map (f : t -> vec2 -> tile) room =
   let width, height = dimensions room in
   Array.init width (fun x -> Array.init height (fun y -> f room (x, y)))
+
+(** [room_tiles room] is a list of pairs of all [(tile coord, tile)] in the
+    room. *)
+let room_tiles (room : t) : (vec2 * tile) list =
+  room |> Array.to_list
+  |> List.mapi (fun i row ->
+         row |> Array.to_list |> List.mapi (fun j cell -> ((i, j), cell)))
+  |> List.flatten
 
 (**[principal_neighbor_items room spot] is the list of items in the principal
    neighbors of [spot]. Out of bounds accesses are ignored. *)
@@ -275,16 +288,41 @@ let remove_redundant_walls =
         |> List.length = 0
       then (Void, Empty)
       else get_at_vec room spot)
-  
+
 let random_pigeon room settings =
   room_map
     (fun room spot ->
       let spot_data = get_at_vec room spot in
-      if spot_data = (Ground, Empty) && Random.float 1.0 < settings.weak_mob_rate then (Ground, WeakMob Pigeon) else spot_data)
+      if
+        spot_data = (Ground, Empty) && Random.float 1.0 < settings.weak_mob_rate
+      then (Ground, WeakMob Pigeon)
+      else spot_data)
     room
-      
 
-let generate_room (settings : room_gen_settings) : t =
+let rec generate_doors room settings entrance prev_room =
+  let ground_tiles =
+    room_tiles room
+    |> List.filter (function
+         | _, (Ground, _) -> true
+         | _ -> false)
+  in
+  let find_extreme selector comparator lst =
+    match lst with
+    | [] -> failwith "No ground tiles"
+    | hd :: tl ->
+        List.fold_left
+          (fun v1 v2 ->
+            if comparator (selector v1) (selector v2) then v1 else v2)
+          hd tl
+  in
+  let tile_coords = List.map fst ground_tiles in
+  let max_x = find_extreme fst ( > ) tile_coords |> add_vec2 (1, 0) in
+  let min_x = find_extreme fst ( < ) tile_coords |> sub_vec2 (1, 0) in
+  let max_y = find_extreme snd ( > ) tile_coords |> add_vec2 (0, 1) in
+  let min_y = find_extreme snd ( < ) tile_coords |> sub_vec2 (0, 1) in
+  List.iter (fun vec -> set_at_vec room vec (Void, Door blank_room)) [max_x; min_x; max_y; min_y]
+
+and generate_room (settings : room_gen_settings) : t =
   let room =
     noise_room settings.room_width settings.room_height
       settings.noise_room_wall_chance
