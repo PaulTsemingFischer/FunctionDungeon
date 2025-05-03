@@ -1,3 +1,4 @@
 (library
  (name game)
- (libraries engine procgen))
+ (libraries engine procgen)
+ (instrumentation (backend bisect_ppx)))
