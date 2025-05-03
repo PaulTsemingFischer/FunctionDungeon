@@ -56,6 +56,8 @@ let rec bindings_to_string_helper lst =
 
 let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
 
+[@@@coverage off]
+
 (* EXAMPLE ITEMS *)
 
 (** [do_damage_example] is a modifier example that adds 1 damage to all attacked
@@ -82,3 +84,5 @@ let augment_to_adjacents_example =
     (Utils.add_vec2 (fst tile) (1, 0), snd tile);
     (Utils.add_vec2 (fst tile) (1, 0), snd tile);
   ]
+
+[@@@coverage on]
