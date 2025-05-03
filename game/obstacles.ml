@@ -37,4 +37,4 @@ let update_obstacle_age obstacle =
 let grow_fire obstacle =
   match obstacle with
   | Fence t -> raise WrongObsType
-  | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r + 1, g)
+  | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r + g, g)
