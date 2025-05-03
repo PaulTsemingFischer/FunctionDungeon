@@ -1,5 +1,6 @@
 open Engine.Utils
 
+
 exception WrongObsType
 
 type obstacle =
@@ -14,31 +15,28 @@ let string_of_obstacle (o : obstacle) =
   | Spreading_Fire (c, r, g) -> "spreading fire"
   | Fence t -> "fence"
 
-(** [get_c] is the center of an obstacle *)
 let get_c obstacle =
   match obstacle with
   | Fence t -> raise WrongObsType
   | Spreading_Fire (c, r, g) -> c
 
-(** [get_r] is the radius of an obstacle *)
 let get_r obstacle =
   match obstacle with
   | Fence t -> raise WrongObsType
   | Spreading_Fire (c, r, g) -> r
 
-(** [get_g] is the growth rate of a dynamically sized obstacle *)
 let get_g obstacle =
   match obstacle with
   | Fence t -> raise WrongObsType
   | Spreading_Fire (c, r, g) -> g
 
-(** [update_obstacle_age] increases the age of an obstacle by one *)
 let update_obstacle_age obstacle =
   match obstacle with
   | Fence t -> Fence (t - 1)
   | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r, g)
 
 let grow_fire obstacle =
+  match obstacle with
   match obstacle with
   | Fence t -> raise WrongObsType
   | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r + g, g)
