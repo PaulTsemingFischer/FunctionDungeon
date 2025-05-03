@@ -4,23 +4,27 @@ type ground =
   | Ground
   | Mud
 
-  type weak_mob = PlaceHolderWeakMob | Pigeon
-  type strong_mob = PlaceHolderStrongMob
-  type item = PlaceHolderItem
-  
-  type entity =
-    | Empty
-    | Water
-    | Lava
-    | Fire
-    | Wall
-    | Rock
-    | WeakMob of weak_mob
-    | StrongMob of strong_mob
-    | Item of item
+type weak_mob =
+  | PlaceHolderWeakMob
+  | Pigeon
 
-type tile = ground * entity
-type t = tile array array
+type strong_mob = PlaceHolderStrongMob
+type item = PlaceHolderItem
+
+type entity =
+  | Empty
+  | Water
+  | Lava
+  | Fire
+  | Wall
+  | Door of t
+  | Rock
+  | WeakMob of weak_mob
+  | StrongMob of strong_mob
+  | Item of item
+
+and t = tile array array
+and tile = ground * entity
 
 val default_entity : tile
 
@@ -45,11 +49,13 @@ type room_gen_settings = {
 
 val default_room_gen_settings : room_gen_settings
 
-(**[string_of_genworld world] is a string representation of the proc gen world [world]*)
-val string_of_genworld:  t -> string
+val string_of_genworld : t -> string
+(**[string_of_genworld world] is a string representation of the proc gen world
+   [world]*)
 
-(**[generate_room settings] is a randomly generated room with the provided settings*)
 val generate_room : room_gen_settings -> t
+(**[generate_room settings] is a randomly generated room with the provided
+   settings*)
 
-(**[to_tile_list room] collects all tiles and their coords into a list*)
 val to_tile_list : t -> (tile * Engine.Utils.vec2) list
+(**[to_tile_list room] collects all tiles and their coords into a list*)
