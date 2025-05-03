@@ -2,7 +2,7 @@ open Engine.Utils
 exception WrongObsType
 
 type obstacle =
-  | Spreading_Fire of int * int * int
+  | Spreading_Fire of vec2 * int * int
   (* fire patch is currently centered at c with radius r and growing at g
      rate *)
   | Fence of int (* fence t exists on the game board for t turns *)
@@ -21,4 +21,4 @@ let update_obstacle_age obstacle =
 let grow_fire obstacle =
   match obstacle with 
   | Fence t -> raise WrongObsType
-  | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r + 1, g)
+  | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r + g, g)
