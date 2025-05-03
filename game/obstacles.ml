@@ -1,4 +1,5 @@
 open Engine.Utils
+exception WrongObsType
 
 type obstacle =
   | Spreading_Fire of int * int * int
@@ -16,3 +17,8 @@ let update_obstacle_age obstacle =
   match obstacle with
   | Fence t -> Fence (t - 1)
   | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r, g)
+
+let grow_fire obstacle =
+  match obstacle with 
+  | Fence t -> raise WrongObsType
+  | Spreading_Fire (c, r, g) -> Spreading_Fire (c, r + 1, g)
