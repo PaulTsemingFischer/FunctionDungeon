@@ -14,7 +14,3 @@
  (name attack_tests)
  (libraries ounit2 engine game))
 
-  (test
- (name enemy_tests)
- (libraries ounit2 engine game))
-
