@@ -27,7 +27,8 @@ let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
   List.fold_left
     (fun state_acc status ->
       match status with
-      | Fire _ -> Transformations.apply_action_to state entity DealFireDamage)
+      | Fire _ ->
+          Transformations.apply_action_to state_acc entity DealFireDamage)
     new_state decremented_statuses
 
 (**[entity_action_runner state entity input] executes the actions associated

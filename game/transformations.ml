@@ -40,8 +40,8 @@ let is_killable_entity (entity : GameEntity.t) =
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     (action : Modifiers.action) =
   let world = GameState.get_world state in
-  if GameWorld.query_id world entity.id = None then
-    raise (Entity_not_found entity)
+  if GameWorld.query_id world entity.id = None then state
+    (* raise (Entity_not_found entity) *)
   else
     match action with
     | DealDamage x ->
