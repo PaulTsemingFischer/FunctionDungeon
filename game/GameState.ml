@@ -105,6 +105,14 @@ let print_latest_events (state : t) =
       else ())
     state.events
 
+let print_latest_events (state : t) =
+  List.iter
+    (fun ((turn, event) : int * event) : unit ->
+      if turn = state.turn - 1 then
+        print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
+      else ())
+    state.events
+
 let query_update_player state =
   let updated_player =
     List.find_opt
@@ -133,8 +141,18 @@ let step (state : t) (input : input) =
           (GameWorld.all_entities (room state_ext)))
       state state.transitions
   in
-  print_latest_event state;
-  let updated_state = { new_state with turn = new_state.turn + 1 } in
+  print_latest_events state;
+  let updated_state =
+    {
+      world = new_state.world;
+      tiles = new_state.tiles;
+      transitions = new_state.transitions;
+      events = new_state.events;
+      turn = new_state.turn + 1;
+      player = new_state.player;
+      modifiers = new_state.modifiers;
+    }
+  in
   query_update_player updated_state
 
 let get_tiles state =
