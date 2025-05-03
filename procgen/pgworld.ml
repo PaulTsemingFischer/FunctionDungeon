@@ -74,8 +74,11 @@ let default_room_gen_settings =
 (**[room_map f room] creates a new room with tiles created from applying [f] on
    the tiles of the old room.*)
 let room_map (f : t -> vec2 -> tile) room =
-  let width, height = dimensions room in
-  Array.init width (fun x -> Array.init height (fun y -> f room (x, y)))
+  let rows, cols = dimensions room in
+  Array.init rows (fun x -> Array.init cols (fun y -> f room (x, y)))
+
+  (** [copy_room room] is a shallow copy of [room]. *)
+let copy_room = room_map get_at_vec
 
 (** [room_tiles room] is a list of pairs of all [(tile coord, tile)] in the
     room. *)
@@ -299,7 +302,8 @@ let random_pigeon room settings =
       else spot_data)
     room
 
-let rec generate_doors room settings entrance prev_room =
+let rec generate_door room cardinal_dir linking_room =
+  let new_room = copy_room room in
   let ground_tiles =
     room_tiles room
     |> List.filter (function
@@ -316,11 +320,14 @@ let rec generate_doors room settings entrance prev_room =
           hd tl
   in
   let tile_coords = List.map fst ground_tiles in
-  let max_x = find_extreme fst ( > ) tile_coords |> add_vec2 (1, 0) in
-  let min_x = find_extreme fst ( < ) tile_coords |> sub_vec2 (1, 0) in
-  let max_y = find_extreme snd ( > ) tile_coords |> add_vec2 (0, 1) in
-  let min_y = find_extreme snd ( < ) tile_coords |> sub_vec2 (0, 1) in
-  List.iter (fun vec -> set_at_vec room vec (Void, Door blank_room)) [max_x; min_x; max_y; min_y]
+  let door_coord = match cardinal_dir with
+  |N -> find_extreme snd ( < ) tile_coords |> fun x -> sub_vec2 x (0, 1)
+  |E -> find_extreme fst ( > ) tile_coords |> fun x -> add_vec2 x (1, 0)
+  |S -> find_extreme snd ( > ) tile_coords |> fun x -> add_vec2 x (0, 1)
+  |W -> find_extreme fst ( < ) tile_coords |> fun x -> sub_vec2 x (1, 0)
+in
+  set_at_vec new_room door_coord (Void, Door linking_room);
+  new_room
 
 and generate_room (settings : room_gen_settings) : t =
   let room =

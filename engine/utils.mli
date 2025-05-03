@@ -4,6 +4,12 @@ val random_element : 'a list -> 'a
 type vec2 = int * int
 (**[vec2] describes the location of an entity in 2D cartesian space*)
 
+type cardinal_dir =
+  | N
+  | E
+  | S
+  | W  (** [cardinal_dir] describes one of the 4 cardinal directions. *)
+
 val add_vec2 : vec2 -> vec2 -> vec2
 (**[add_vec2 vec1 vec2] is the sum of two positions*)
 
