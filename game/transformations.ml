@@ -220,7 +220,12 @@ let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
     (effects : action list) =
   match effects with
   | [] -> state
-  | h :: t -> apply_attack_to_entity (apply_action_to state entity h) entity t
+  | h :: t -> (
+      let updated_state = apply_action_to state entity h in
+      let world = GameState.get_world updated_state in
+      match GameWorld.query_id world entity.id with
+      | None -> updated_state
+      | Some e -> apply_attack_to_entity updated_state e t)
 
 (** [apply_attack_to state actions] applies all actions in [actions] to the game
     state [state]. Since attack coordinates are relative to player position, the

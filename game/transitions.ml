@@ -18,17 +18,17 @@ let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
         | Fire x -> Fire (x - 1))
       filtered_statuses
   in
+  let updated_entity = GameEntity.update_statuses entity decremented_statuses in
   let world = GameState.get_world state in
   let new_state =
-    GameState.update_world state
-      (GameWorld.put_entity world
-         (GameEntity.update_statuses entity decremented_statuses))
+    GameState.update_world state (GameWorld.put_entity world updated_entity)
   in
   List.fold_left
     (fun state_acc status ->
       match status with
       | Fire _ ->
-          Transformations.apply_action_to state_acc entity DealFireDamage)
+          Transformations.apply_action_to state_acc updated_entity
+            DealFireDamage)
     new_state decremented_statuses
 
 (**[entity_action_runner state entity input] executes the actions associated
