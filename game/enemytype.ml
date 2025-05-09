@@ -10,11 +10,7 @@ type enemy =
       int (* player can't see any of the board/must go by memory for t turns *)
   | Fog_Cloud of int * int
   (* player can't see more than r radius around current position for t turns *)
-  | Variable_Range of int (* can attack within r range *)
-  | Variable_Damage of float (* attacks with d damage *)
-  | Variable_Range_and_Damage of
-      int
-      * float (* extra powerful enemy, attacks with d damage within r range *)
+  | Long_Range of int (* can attack within r range *)
 
 (** [string_of_enemy] is the string representation describing each type of enemy
 *)
@@ -24,6 +20,4 @@ let string_of_enemy (e : enemy) =
   | Thief -> "thief"
   | Blinder t -> "blinder"
   | Fog_Cloud (r, t) -> "fog cloud"
-  | Variable_Range r -> "variable range enemy"
-  | Variable_Damage d -> "variable damage enemy"
-  | Variable_Range_and_Damage (r, d) -> "variable range and damage enemy"
+  | Long_Range r -> "long range weak enemy"
