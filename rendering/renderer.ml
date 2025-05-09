@@ -358,6 +358,12 @@ let render (renderer : t) =
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
+                   Color.black
+             | Long_Range r ->
+                 Raylib.draw_text "r"
+                   (fst screen_space_position)
+                   (snd screen_space_position)
+                   (int_of_float tile_scaling_factor)
                    Color.black)
          | Obstacle o -> (
              match o with

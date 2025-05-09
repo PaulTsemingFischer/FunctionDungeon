@@ -9,7 +9,8 @@ type enemy =
   | Blinder of
       int (* player can't see any of the board/must go by memory for t turns *)
   | Fog_Cloud of int * int
-(* player can't see more than r radius around current position for t turns *)
+  (* player can't see more than r radius around current position for t turns *)
+  | Long_Range of int (* can attack within r range *)
 
 (** [string_of_enemy] is the string representation describing each type of enemy
 *)
@@ -19,3 +20,4 @@ let string_of_enemy (e : enemy) =
   | Thief -> "thief"
   | Blinder t -> "blinder"
   | Fog_Cloud (r, t) -> "fog cloud"
+  | Long_Range r -> "long range weak enemy"

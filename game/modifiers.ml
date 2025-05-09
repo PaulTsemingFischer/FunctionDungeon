@@ -30,9 +30,25 @@ type possible_moves_modifier =
 (**[base_cross_moves] is a list containing the most basic movement pattern*)
 let base_cross_moves : possible_move list = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
 
+let rec range_cross_moves (r : int) : possible_move list =
+  match r with
+  | 0 -> []
+  | n1 ->
+      let rec n2_loop n2 acc =
+        if n2 < 0 then acc
+        else
+          let new_moves = [ (n1, n2); (-n1, n2); (n1, -n2); (-n1, -n2) ] in
+          n2_loop (n2 - 1) (new_moves @ acc)
+      in
+      let moves_for_n1 = n2_loop n1 [] in
+      moves_for_n1 @ range_cross_moves (n1 - 1)
+
 (**[base_cross_actions] is a list containing the most basic acting pattern*)
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves
+
+let range_cross_actions r : possible_action list =
+  List.map (fun target -> (target, [ DealDamage 1. ])) (range_cross_moves r)
 
 let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
@@ -40,9 +56,15 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
   | Thief -> StealAttack
   | Blinder t -> exit 0 (* Dummy for now *)
   | Fog_Cloud (r, t) -> exit 0 (* Dummy for now *)
+  | Long_Range r -> DealDamage 1.
 
-let enemy_cross_actions e : possible_action list =
-  List.map (fun target -> (target, [ enemy_attack_type e ])) base_cross_moves
+let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
+  match e with
+  | Long_Range r -> range_cross_actions r
+  | _ ->
+      List.map
+        (fun target -> (target, [ enemy_attack_type e ]))
+        base_cross_moves
 
 let string_of_modifier m =
   match m with
