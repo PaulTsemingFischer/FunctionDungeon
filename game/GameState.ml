@@ -50,7 +50,8 @@ let string_of_event event =
   | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
 
 type t = {
-  world : GameWorld.t;
+  room_id : int;
+  rooms: GameWorld.t list;
   tiles : GameTiles.t;
   transitions : transition list;
   events : (int * event) list;
@@ -65,10 +66,19 @@ type t = {
 
 and transition = t -> GameEntity.t -> input -> t
 
-let create (world : GameWorld.t) ?(tiles : GameTiles.t = GameTiles.empty)
+let room state = List.nth state.rooms state.room_id
+
+let set_room state room = {state with rooms = List.mapi (fun i x -> if i = state.room_id then room else x) state.rooms}
+
+let move_room state id = 
+  if id >= List.length state.rooms then failwith ("Attempting to move to room " ^ string_of_int id ^ " but there are only " ^ string_of_int (List.length state.rooms) ^ " rooms") else
+  {state with room_id = id}
+
+let create (rooms : GameWorld.t list) ?(tiles : GameTiles.t = GameTiles.empty)
     (transitions : transition list) : t =
   {
-    world;
+    room_id = 0;
+    rooms;
     tiles;
     transitions;
     events = [];
@@ -102,14 +112,10 @@ let query_update_player state =
   let updated_player =
     List.find_opt
       (fun (e : GameEntity.t) -> e.entity_type = Player)
-      (GameWorld.all_entities state.world)
+      (GameWorld.all_entities (room state))
   in
   {
-    world = state.world;
-    tiles = state.tiles;
-    transitions = state.transitions;
-    events = state.events;
-    turn = state.turn;
+    state with
     player =
       (match updated_player with
       | Some p -> p
@@ -123,50 +129,35 @@ let step (state : t) (input : input) =
       (fun (state_ext : t) (transition : transition) ->
         List.fold_left
           (fun (acc : t) (entity : GameEntity.t) ->
-            if GameWorld.mem_id acc.world entity.id then
+            if GameWorld.mem_id (room acc) entity.id then
               transition acc entity input
             else acc)
           state_ext
-          (GameWorld.all_entities state_ext.world))
+          (GameWorld.all_entities (room state_ext)))
       state state.transitions
   in
   print_latest_events state;
   let updated_state =
     {
-      world = new_state.world;
-      tiles = new_state.tiles;
-      transitions = new_state.transitions;
-      events = new_state.events;
-      turn = new_state.turn + 1;
-      player = new_state.player;
-      modifiers = new_state.modifiers;
+      state with
+      turn = new_state.turn + 1
     }
   in
   query_update_player updated_state
 
-let get_world state = state.world
 let get_tiles state = state.tiles
 
-let update_world { world; tiles; transitions; events; turn; player; modifiers }
-    new_world : t =
-  { world = new_world; tiles; transitions; events; turn; player; modifiers }
-
-let update_tiles { world; tiles; transitions; events; turn; player; modifiers }
+let update_tiles state
     new_tiles : t =
-  { world; tiles = new_tiles; transitions; events; turn; player; modifiers }
+  { state with tiles = new_tiles }
 
 let get_events state = state.events
 
-let add_event { world; tiles; transitions; events; turn; player; modifiers }
+let add_event state
     event =
   {
-    world;
-    tiles;
-    transitions;
-    events = (turn, event) :: events;
-    turn;
-    player;
-    modifiers;
+    state with
+    events = (state.turn, event) :: state.events;
   }
 
 let get_turn state = state.turn
@@ -260,12 +251,7 @@ let add_actions_modifier state possible_action entity_type =
   match List.assoc_opt (string_of_type entity_type) state.modifiers with
   | None ->
       {
-        world = state.world;
-        tiles = state.tiles;
-        transitions = state.transitions;
-        events = state.events;
-        player = state.player;
-        turn = state.turn;
+        state with
         modifiers =
           (string_of_type entity_type, ([ possible_action ], []))
           :: state.modifiers;
@@ -275,12 +261,7 @@ let add_actions_modifier state possible_action entity_type =
         List.remove_assoc (string_of_type entity_type) state.modifiers
       in
       {
-        world = state.world;
-        tiles = state.tiles;
-        transitions = state.transitions;
-        events = state.events;
-        player = state.player;
-        turn = state.turn;
+        state with
         modifiers =
           ( string_of_type entity_type,
             (possible_action :: possible_action_list, movement_modifier_list) )
@@ -291,12 +272,7 @@ let add_moves_modifier state movement_modifier entity_type =
   match List.assoc_opt (string_of_type entity_type) state.modifiers with
   | None ->
       {
-        world = state.world;
-        tiles = state.tiles;
-        transitions = state.transitions;
-        events = state.events;
-        player = state.player;
-        turn = state.turn;
+        state with
         modifiers =
           (string_of_type entity_type, ([], [ movement_modifier ]))
           :: state.modifiers;
@@ -306,12 +282,7 @@ let add_moves_modifier state movement_modifier entity_type =
         List.remove_assoc (string_of_type entity_type) state.modifiers
       in
       {
-        world = state.world;
-        tiles = state.tiles;
-        transitions = state.transitions;
-        events = state.events;
-        player = state.player;
-        turn = state.turn;
+        state with
         modifiers =
           ( string_of_type entity_type,
             (possible_action_list, movement_modifier :: movement_modifier_list)
@@ -323,12 +294,7 @@ let remove_actions_modifier state entity_type =
   match List.assoc_opt (string_of_type entity_type) state.modifiers with
   | None ->
       {
-        world = state.world;
-        tiles = state.tiles;
-        transitions = state.transitions;
-        events = state.events;
-        player = state.player;
-        turn = state.turn;
+        state with
         modifiers = state.modifiers;
       }
   | Some (possible_action_list, movement_modifier_list) ->
@@ -336,12 +302,7 @@ let remove_actions_modifier state entity_type =
         List.remove_assoc (string_of_type entity_type) state.modifiers
       in
       {
-        world = state.world;
-        tiles = state.tiles;
-        transitions = state.transitions;
-        events = state.events;
-        player = state.player;
-        turn = state.turn;
+        state with
         modifiers =
           ( string_of_type entity_type,
             match possible_action_list with
@@ -352,7 +313,7 @@ let remove_actions_modifier state entity_type =
 
 let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle) =
   let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
-  update_world state (GameWorld.put_entity world new_obstacle)
+  set_room state (GameWorld.put_entity world new_obstacle)
 
 let positions_in_radius (center : vec2) (radius : int) : vec2 list =
   let center_x, center_y = center in

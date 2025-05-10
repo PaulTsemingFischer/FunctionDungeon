@@ -11,13 +11,13 @@ open Procgen
 let apply_move (state : GameState.t) (entity : GameEntity.t)
     (move : possible_move) =
   let target_pos = add_vec2 entity.pos move in
-  let world = GameState.get_world state in
+  let world = GameState.room state in
   if not (GameWorld.mem_id world entity.id) then state
   else if GameWorld.mem_pos world target_pos then state
   else
     let updated_entity = GameEntity.set_pos entity target_pos in
     let updated_state =
-      GameWorld.put_entity world updated_entity |> GameState.update_world state
+      GameWorld.put_entity world updated_entity |> GameState.set_room state
     in
     GameState.add_event updated_state (Move (entity, entity.pos, target_pos))
 
@@ -32,80 +32,84 @@ exception Entity_not_found of GameEntity.t
     otherwise false. *)
 let is_killable_entity (entity : GameEntity.t) =
   match entity.entity_type with
-  | Wall | Door | Rock | Fire | Water | Lava -> false
+  | Wall | Door _ | Rock | Fire | Water | Lava -> false
   | _ -> true
 
 (**[apply_action_to state entity action] applies [action] to [entity], returning
    an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     (action : Modifiers.action) =
-  let world = GameState.get_world state in
+  let world = GameState.room state in
   if GameWorld.query_id world entity.id = None then state
-    (* raise (Entity_not_found entity) *)
   else
     match action with
-    | DealDamage x ->
-        if is_killable_entity entity then
-          let updated_entity =
-            GameEntity.update_stats entity
-              {
-                health = entity.stats.health -. x;
-                base_moves = entity.stats.base_moves;
-                base_actions = entity.stats.base_actions;
-              }
-          in
-          if updated_entity.stats.health <= 0. then
-            let updated_state =
-              GameState.update_world state
-                (GameWorld.remove_entity world entity.id)
+    | DealDamage x -> (
+        match entity.entity_type with
+        | Wall | Door _ -> state
+        | _ ->
+            let updated_entity =
+              GameEntity.update_stats entity
+                {
+                  health = entity.stats.health -. x;
+                  base_moves = entity.stats.base_moves;
+                  base_actions = entity.stats.base_actions;
+                }
             in
-            GameState.add_event updated_state (EntityDeath entity)
-          else
+            if updated_entity.stats.health <= 0. then
+              let updated_state =
+                GameState.set_room state
+                  (GameWorld.remove_entity world entity.id)
+              in
+              GameState.add_event updated_state (EntityDeath entity)
+            else
+              let updated_state =
+                GameState.set_room state
+                  (GameWorld.put_entity world updated_entity)
+              in
+
+              GameState.add_event updated_state (ChangeHealth (entity, -.x)))
+    | DealFireDamage -> (
+        match entity.entity_type with
+        | Wall | Door _ -> state
+        | _ ->
+            let x = base_fire_dmg in
+            let updated_entity =
+              GameEntity.update_stats entity
+                {
+                  health = entity.stats.health -. x;
+                  base_moves = entity.stats.base_moves;
+                  base_actions = entity.stats.base_actions;
+                }
+            in
+            let fire_state =
+              GameState.add_event state (TakeFireDamage entity)
+            in
+            if updated_entity.stats.health <= 0. then
+              let updated_state =
+                GameState.set_room fire_state
+                  (GameWorld.remove_entity world entity.id)
+              in
+              GameState.add_event updated_state (EntityDeath entity)
+            else
+              let updated_state =
+                GameState.set_room fire_state
+                  (GameWorld.put_entity world updated_entity)
+              in
+
+              GameState.add_event updated_state (ChangeHealth (entity, -.x)))
+    | ApplyFire x -> (
+        match entity.entity_type with
+        | Wall | Door _ -> state
+        | _ ->
+            let updated_entity =
+              GameEntity.update_statuses entity
+                (GameDefinitions.Fire x :: entity.statuses)
+            in
             let updated_state =
-              GameState.update_world state
+              GameState.set_room state
                 (GameWorld.put_entity world updated_entity)
             in
-
-            GameState.add_event updated_state (ChangeHealth (entity, -.x))
-        else state
-    | DealFireDamage ->
-        if is_killable_entity entity then
-          let x = base_fire_dmg in
-          let updated_entity =
-            GameEntity.update_stats entity
-              {
-                health = entity.stats.health -. x;
-                base_moves = entity.stats.base_moves;
-                base_actions = entity.stats.base_actions;
-              }
-          in
-          let fire_state = GameState.add_event state (TakeFireDamage entity) in
-          if updated_entity.stats.health <= 0. then
-            let updated_state =
-              GameState.update_world fire_state
-                (GameWorld.remove_entity world entity.id)
-            in
-            GameState.add_event updated_state (EntityDeath entity)
-          else
-            let updated_state =
-              GameState.update_world fire_state
-                (GameWorld.put_entity world updated_entity)
-            in
-
-            GameState.add_event updated_state (ChangeHealth (entity, -.x))
-        else state
-    | ApplyFire x ->
-        if is_killable_entity entity then
-          let updated_entity =
-            GameEntity.update_statuses entity
-              (GameDefinitions.Fire x :: entity.statuses)
-          in
-          let updated_state =
-            GameState.update_world state
-              (GameWorld.put_entity world updated_entity)
-          in
-          GameState.add_event updated_state (ApplyFire (entity, x))
-        else state
+            GameState.add_event updated_state (ApplyFire (entity, x)))
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
@@ -128,10 +132,7 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
         let updated_world, update_tiles =
           match entity with
           | Pgworld.Wall ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at
-                     (if Random.int 100 > 95 then Door else Wall)
-                     pos),
+              ( GameWorld.put_entity acc_world (create_default_at Wall pos),
                 acc_tiles )
           | Pgworld.Rock ->
               ( GameWorld.put_entity acc_world (create_default_at Rock pos),
@@ -172,44 +173,26 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   in
 
   GameState.update_tiles
-    (GameState.update_world state world_with_moved_player)
+    (GameState.set_room state world_with_moved_player)
     tile_world
 
-(**[generate_circular_room state player] creates a new room with the given
-   player*)
-let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
-  let world =
-    GameWorld.put_entity
-      (GameWorld.put_entity GameWorld.empty player)
-      (create_default_at Door
-         (add_vec2
-            ( random_element [ 1; -1 ] * (Random.int 3 + 1),
-              random_element [ 1; -1 ] * (Random.int 3 + 1) )
-            player.pos))
-  in
+(* (**[generate_circular_room state player] creates a new room with the given
+   player*) let generate_circular_room (state : GameState.t) (player :
+   GameEntity.t) = let world = GameWorld.put_entity (GameWorld.put_entity
+   GameWorld.empty player) (create_default_at Door (add_vec2 ( random_element [
+   1; -1 ] * (Random.int 3 + 1), random_element [ 1; -1 ] * (Random.int 3 + 1) )
+   player.pos)) in
 
-  let room_radius = 5 + Random.int 7 in
+   let room_radius = 5 + Random.int 7 in
 
-  let updated_world =
-    List.fold_left
-      (fun (acc : GameWorld.t) (current_x : int) ->
-        let pos_y =
-          sqrt
-            (float_of_int (room_radius * room_radius)
-            -. float_of_int (current_x * current_x))
-        in
-        GameWorld.put_entity
-          (GameWorld.put_entity acc
-             (create_default_at Wall
-                (add_vec2 player.pos
-                   (current_x, int_of_float (Float.round pos_y)))))
-          (create_default_at Wall
-             (add_vec2 player.pos
-                (current_x, -int_of_float (Float.round pos_y)))))
-      world
-      (List.init ((room_radius * 2) + 1) (fun x -> x - room_radius))
-  in
-  GameState.update_world state updated_world
+   let updated_world = List.fold_left (fun (acc : GameWorld.t) (current_x : int)
+   -> let pos_y = sqrt (float_of_int (room_radius * room_radius) -. float_of_int
+   (current_x * current_x)) in GameWorld.put_entity (GameWorld.put_entity acc
+   (create_default_at Wall (add_vec2 player.pos (current_x, int_of_float
+   (Float.round pos_y))))) (create_default_at Wall (add_vec2 player.pos
+   (current_x, -int_of_float (Float.round pos_y))))) world (List.init
+   ((room_radius * 2) + 1) (fun x -> x - room_radius)) in GameState.set_room
+   state updated_world *)
 
 let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
   GameState.add_event state (Say (entity, message))
@@ -222,7 +205,7 @@ let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
   | [] -> state
   | h :: t -> (
       let updated_state = apply_action_to state entity h in
-      let world = GameState.get_world updated_state in
+      let world = GameState.room updated_state in
       match GameWorld.query_id world entity.id with
       | None -> updated_state
       | Some e -> apply_attack_to_entity updated_state e t)
@@ -239,8 +222,7 @@ let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
       if fst h = (0, 0) then apply_attack_to state player_pos t
       else
         match
-          GameWorld.query_pos
-            (GameState.get_world state)
+          GameWorld.query_pos (GameState.room state)
             (add_vec2 (fst h) player_pos)
         with
         | None -> apply_attack_to state player_pos t
@@ -268,10 +250,7 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
         let updated_world, update_tiles =
           match entity with
           | Pgworld.Wall ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at
-                     (if Random.int 100 > 95 then Door else Wall)
-                     pos),
+              ( GameWorld.put_entity acc_world (create_default_at Wall pos),
                 acc_tiles )
           | Pgworld.Rock ->
               ( GameWorld.put_entity acc_world (create_default_at Rock pos),
@@ -312,41 +291,23 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   in
 
   GameState.update_tiles
-    (GameState.update_world state world_with_moved_player)
+    (GameState.set_room state world_with_moved_player)
     tile_world
 
-(**[generate_circular_room state player] creates a new room with the given
-   player*)
-let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
-  let world =
-    GameWorld.put_entity
-      (GameWorld.put_entity GameWorld.empty player)
-      (create_default_at Door
-         (add_vec2
-            ( random_element [ 1; -1 ] * (Random.int 3 + 1),
-              random_element [ 1; -1 ] * (Random.int 3 + 1) )
-            player.pos))
-  in
+(* (**[generate_circular_room state player] creates a new room with the given
+   player*) let generate_circular_room (state : GameState.t) (player :
+   GameEntity.t) = let world = GameWorld.put_entity (GameWorld.put_entity
+   GameWorld.empty player) (create_default_at Door (add_vec2 ( random_element [
+   1; -1 ] * (Random.int 3 + 1), random_element [ 1; -1 ] * (Random.int 3 + 1) )
+   player.pos)) in
 
-  let room_radius = 5 + Random.int 7 in
+   let room_radius = 5 + Random.int 7 in
 
-  let updated_world =
-    List.fold_left
-      (fun (acc : GameWorld.t) (current_x : int) ->
-        let pos_y =
-          sqrt
-            (float_of_int (room_radius * room_radius)
-            -. float_of_int (current_x * current_x))
-        in
-        GameWorld.put_entity
-          (GameWorld.put_entity acc
-             (create_default_at Wall
-                (add_vec2 player.pos
-                   (current_x, int_of_float (Float.round pos_y)))))
-          (create_default_at Wall
-             (add_vec2 player.pos
-                (current_x, -int_of_float (Float.round pos_y)))))
-      world
-      (List.init ((room_radius * 2) + 1) (fun x -> x - room_radius))
-  in
-  GameState.update_world state updated_world
+   let updated_world = List.fold_left (fun (acc : GameWorld.t) (current_x : int)
+   -> let pos_y = sqrt (float_of_int (room_radius * room_radius) -. float_of_int
+   (current_x * current_x)) in GameWorld.put_entity (GameWorld.put_entity acc
+   (create_default_at Wall (add_vec2 player.pos (current_x, int_of_float
+   (Float.round pos_y))))) (create_default_at Wall (add_vec2 player.pos
+   (current_x, -int_of_float (Float.round pos_y))))) world (List.init
+   ((room_radius * 2) + 1) (fun x -> x - room_radius)) in GameState.set_room
+   state updated_world *)

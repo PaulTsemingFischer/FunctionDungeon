@@ -7,7 +7,7 @@ let bouncer_action (state : GameState.t) (bouncer : GameEntity.t)
   | HorizontalBouncer is_moving_right -> (
       match
         GameWorld.query_pos
-          (GameState.get_world state)
+          (GameState.room state)
           (add_vec2 bouncer.pos (if is_moving_right then (1, 0) else (-1, 0)))
       with
       | Some e ->
@@ -15,8 +15,8 @@ let bouncer_action (state : GameState.t) (bouncer : GameEntity.t)
             GameEntity.update_type bouncer
               (HorizontalBouncer (not is_moving_right))
           in
-          GameState.update_world state
-            (GameWorld.put_entity (GameState.get_world state) reversed_bouncer)
+          GameState.set_room state
+            (GameWorld.put_entity (GameState.room state) reversed_bouncer)
       | None ->
           Transformations.apply_move state bouncer
             (if is_moving_right then (1, 0) else (-1, 0)))

@@ -19,9 +19,9 @@ let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
       filtered_statuses
   in
   let updated_entity = GameEntity.update_statuses entity decremented_statuses in
-  let world = GameState.get_world state in
+  let world = GameState.room state in
   let new_state =
-    GameState.update_world state (GameWorld.put_entity world updated_entity)
+    GameState.set_room state (GameWorld.put_entity world updated_entity)
   in
   List.fold_left
     (fun state_acc status ->
@@ -43,7 +43,7 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | Water -> state
   | Lava -> state
   | Fire -> state
-  | Door -> state
+  | Door _ -> state
   | Enemy e -> Enemyaction.enemy_action state entity e input
   | Obstacle o -> Obstacleaction.obstacle_action state entity o input
   | HorizontalBouncer _ -> Bouncers.bouncer_action state entity input
