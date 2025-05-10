@@ -13,7 +13,7 @@ let enemy_action (state : GameState.t) (entity : GameEntity.t)
       (fun player_opt (pos, attack) ->
         match
           GameWorld.query_pos
-            (GameState.get_world state)
+            (GameState.room state)
             (add_vec2 pos entity.pos)
         with
         | Some e -> (
@@ -32,6 +32,6 @@ let enemy_action (state : GameState.t) (entity : GameEntity.t)
       in
       let random_direction = random_element possible_moves in
       let target_position = add_vec2 random_direction entity.pos in
-      if GameWorld.mem_pos (GameState.get_world updated_state) target_position
+      if GameWorld.mem_pos (GameState.room updated_state) target_position
       then Transformations.say updated_state entity "<enemy noises>"
       else Transformations.apply_move updated_state entity random_direction

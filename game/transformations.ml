@@ -11,13 +11,13 @@ open Procgen
 let apply_move (state : GameState.t) (entity : GameEntity.t)
     (move : possible_move) =
   let target_pos = add_vec2 entity.pos move in
-  let world = GameState.get_world state in
+  let world = GameState.room state in
   if not (GameWorld.mem_id world entity.id) then state
   else if GameWorld.mem_pos world target_pos then state
   else
     let updated_entity = GameEntity.set_pos entity target_pos in
     let updated_state =
-      GameWorld.put_entity world updated_entity |> GameState.update_world state
+      GameWorld.put_entity world updated_entity |> GameState.set_room state
     in
     GameState.add_event updated_state (Move (entity, entity.pos, target_pos))
 
@@ -32,14 +32,14 @@ exception Entity_not_found of GameEntity.t
    an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     (action : Modifiers.action) =
-  let world = GameState.get_world state in
+  let world = GameState.room state in
   if GameWorld.query_id world entity.id = None then
     raise (Entity_not_found entity)
   else
     match action with
     | DealDamage x -> (
         match entity.entity_type with
-        | Wall | Door -> state
+        | Wall | Door _ -> state
         | _ ->
             let updated_entity =
               GameEntity.update_stats entity
@@ -51,13 +51,13 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
             in
             if updated_entity.stats.health <= 0. then
               let updated_state =
-                GameState.update_world state
+                GameState.set_room state
                   (GameWorld.remove_entity world entity.id)
               in
               GameState.add_event updated_state (EntityDeath entity)
             else
               let updated_state =
-                GameState.update_world state
+                GameState.set_room state
                   (GameWorld.put_entity world updated_entity)
               in
 
@@ -87,7 +87,7 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
           | Pgworld.Wall ->
               ( GameWorld.put_entity acc_world
                   (create_default_at
-                     (if Random.int 100 > 95 then Door else Wall)
+                     Wall
                      pos),
                 acc_tiles )
           | Pgworld.Rock ->
@@ -129,9 +129,10 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   in
 
   GameState.update_tiles
-    (GameState.update_world state world_with_moved_player)
+    (GameState.set_room state world_with_moved_player)
     tile_world
 
+    (*
 (**[generate_circular_room state player] creates a new room with the given
    player*)
 let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
@@ -166,7 +167,8 @@ let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
       world
       (List.init ((room_radius * 2) + 1) (fun x -> x - room_radius))
   in
-  GameState.update_world state updated_world
+  GameState.set_room state updated_world
+  *)
 
 let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
   GameState.add_event state (Say (entity, message))
@@ -192,7 +194,7 @@ let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
       else
         match
           GameWorld.query_pos
-            (GameState.get_world state)
+            (GameState.room state)
             (add_vec2 (fst h) player_pos)
         with
         | None -> apply_attack_to state player_pos t
@@ -222,7 +224,7 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
           | Pgworld.Wall ->
               ( GameWorld.put_entity acc_world
                   (create_default_at
-                     (if Random.int 100 > 95 then Door else Wall)
+                     Wall
                      pos),
                 acc_tiles )
           | Pgworld.Rock ->
@@ -264,9 +266,10 @@ let generate_normal_room (state : GameState.t) (player : GameEntity.t) =
   in
 
   GameState.update_tiles
-    (GameState.update_world state world_with_moved_player)
+    (GameState.set_room state world_with_moved_player)
     tile_world
 
+    (*
 (**[generate_circular_room state player] creates a new room with the given
    player*)
 let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
@@ -301,4 +304,5 @@ let generate_circular_room (state : GameState.t) (player : GameEntity.t) =
       world
       (List.init ((room_radius * 2) + 1) (fun x -> x - room_radius))
   in
-  GameState.update_world state updated_world
+  GameState.set_room state updated_world
+*)

@@ -10,7 +10,7 @@ type entity_types =
   | Wall
   | Player
   | Pigeon
-  | Door
+  | Door of int (* Index in room arr *)
   | Rock
   | Fire
   | Water
@@ -26,7 +26,7 @@ let string_of_type e_type =
   | Wall -> "wall"
   | Player -> "player"
   | Pigeon -> "pigeon"
-  | Door -> "door"
+  | Door i -> "door" ^ string_of_int i
   | Rock -> "rock"
   | Fire -> "fire"
   | Water -> "water"
@@ -93,10 +93,10 @@ let create_default_at e_type pos : GameEntity.t =
             base_actions = base_cross_actions;
           }
           Pigeon [] pos
-    | Door ->
+    | Door i ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          Door [] pos
+          (Door i) [] pos
     | HorizontalBouncer x ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }

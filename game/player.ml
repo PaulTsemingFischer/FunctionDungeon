@@ -7,12 +7,12 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
   match input with
   | MovePlayer dir -> (
       let target_pos = add_vec2 entity.pos dir in
-      match GameWorld.query_pos (GameState.get_world state) target_pos with
+      match GameWorld.query_pos (GameState.room state) target_pos with
       | Some e -> (
           match e.entity_type with
           | Wall | Rock | Water | Lava ->
               GameState.(raise (Invalid_input input))
-          | Door -> generate_normal_room state entity
+          | Door i -> GameState.move_room state i
           | _ -> apply_action_to state e (DealDamage 1.))
       | None -> apply_move state entity dir)
   | Wait -> state
