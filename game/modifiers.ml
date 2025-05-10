@@ -43,3 +43,9 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
 
 let enemy_cross_actions e : possible_action list =
   List.map (fun target -> (target, [ enemy_attack_type e ])) base_cross_moves
+
+let string_of_modifier m =
+  match m with
+  | ScaleAction x -> "Scale tiles by " ^ string_of_int x
+  | AddFire x -> "Apply fire for " ^ string_of_int x ^ " turns"
+  | AugmentToAdjacent -> "Augment to adjacent tiles"

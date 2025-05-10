@@ -403,6 +403,16 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
+               Color.black
+         | ModifierItem m ->
+             Raylib.draw_text
+               (match m with
+               | ScaleAction _ -> "S"
+               | AddFire _ -> "F"
+               | AugmentToAdjacent -> "A")
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
                Color.black);
 
   List.iter

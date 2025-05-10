@@ -47,3 +47,4 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | Enemy e -> Enemyaction.enemy_action state entity e input
   | Obstacle o -> Obstacleaction.obstacle_action state entity o input
   | HorizontalBouncer _ -> Bouncers.bouncer_action state entity input
+  | ModifierItem _ -> state
