@@ -74,6 +74,14 @@ let cardinal_neighbors vec =
     add_vec2 vec (-1, 0);
   ]
 
+let cardinal_neighbors_with_dir vec =
+  [
+    add_vec2 vec (0, 1), S;
+    add_vec2 vec (1, 0), E;
+    add_vec2 vec (0, -1), N;
+    add_vec2 vec (-1, 0), W;
+  ]
+
 let random_cardinal_dir () =
   match Random.int 4 with
   | 0 -> (1, 0)
