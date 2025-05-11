@@ -357,8 +357,20 @@ let render (renderer : t) =
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.black
-             | Long_Range r ->
+             | Variable_Range r ->
                  Raylib.draw_text "r"
+                   (fst screen_space_position)
+                   (snd screen_space_position)
+                   (int_of_float tile_scaling_factor)
+                   Color.black
+             | Variable_Damage d ->
+                 Raylib.draw_text "d"
+                   (fst screen_space_position)
+                   (snd screen_space_position)
+                   (int_of_float tile_scaling_factor)
+                   Color.black
+             | Variable_Damage_and_Range (r, d) ->
+                 Raylib.draw_text "p"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
