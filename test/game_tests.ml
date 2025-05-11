@@ -46,7 +46,7 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
-           let state_start = GameState.create [world] [] in
+           let state_start = GameState.create [ world ] [] 0 in
            assert_equal (Some e1)
              (GameWorld.query_id (GameState.room state_start) e1.id);
            assert_equal 0 (GameState.get_turn state_start);
@@ -63,7 +63,9 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
-           let state_start = GameState.create [world] [ simple_transition ] in
+           let state_start =
+             GameState.create [ world ] [ simple_transition ] 0
+           in
            print_all_entities (GameState.room state_start);
            assert_equal (Some e1)
              (GameWorld.query_id (GameState.room state_start) e1.id);
@@ -89,7 +91,9 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
-           let state_start = GameState.create [world] [ useless_transition ] in
+           let state_start =
+             GameState.create [ world ] [ useless_transition ] 0
+           in
            print_all_entities (GameState.room state_start);
            assert_equal (Some e1)
              (GameWorld.query_id (GameState.room state_start) e1.id);

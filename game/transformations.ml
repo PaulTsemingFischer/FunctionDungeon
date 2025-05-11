@@ -125,7 +125,7 @@ let generate_floor (player : GameEntity.t)
       GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t) =
   let player_room_id, proc_gen = Pgworld.generate_floor settings in
   let real_rooms = List.map (normal_room player) proc_gen in
-  GameState.create real_rooms [ entity_action_runner ]
+  GameState.create real_rooms [ entity_action_runner ] player_room_id
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and
     returns the updated game state. *)
