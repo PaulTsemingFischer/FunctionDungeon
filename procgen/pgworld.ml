@@ -59,7 +59,7 @@ let default_room_gen_settings =
     weak_mob_rate = 0.02;
     strong_mob_rate = 0.0;
     item_rate = 0.0;
-    room_width = (10, 70);
+    room_width = (20, 70);
     room_height = (10, 50);
     min_room_coverage = 0.2;
     island_liquify_chance = 0.3;
@@ -69,7 +69,7 @@ let default_room_gen_settings =
     noise_room_wall_chance = 0.45;
     rule_one_cave_merge_runs = 4;
     rule_two_cave_merge_runs = 1;
-    num_rooms = 15;
+    num_rooms = 10;
   }
 (*HELPERS*)
 
@@ -153,6 +153,8 @@ let string_of_genworld (world : t) =
     | Ground, Empty -> "·"
     | Ground, WeakMob Pigeon -> "P"
     | _, Rock -> "♦"
+    | _, Door _ -> ">"
+    | _, Player -> "@"
     | _ -> " "
   in
   String.concat "\n"
@@ -173,70 +175,6 @@ let noise_room width height wall_chance =
     if Random.float 1.0 < wall_chance then (Void, Wall) else (Ground, Empty)
   in
   Array.init width (fun _ -> Array.init height (fun _ -> spot ()))
-
-(**[cave_merge room settings] is a room with cellular-automata cave merge
-   applied. All Empty tiles are guarenteed to be connected. *)
-let rec cave_merge original_room settings =
-  let self_wall room spot =
-    if get_at_vec room spot = (Void, Wall) then 1 else 0
-  in
-  let num_neighbor_walls room spot =
-    8
-    - (principal_neighbor_items room spot
-      |> List.filter (fun (tile, _) -> tile = Ground)
-      |> List.length)
-  in
-  let num_second_neighbor_walls room spot =
-    16
-    - (principal_neighbor_gen2_items room spot
-      |> List.filter (fun (tile, _) -> tile = Ground)
-      |> List.length)
-  in
-  let rule_one (room : t) (spot : vec2) : tile =
-    let n0 = self_wall room spot in
-    let n1 = num_neighbor_walls room spot + n0 in
-    let n2 = num_second_neighbor_walls room spot + n1 in
-    if n1 >= 5 || n2 <= 2 then (Void, Wall) else (Ground, Empty)
-  in
-  let rule_two (room : t) (spot : vec2) : tile =
-    let n1 = num_neighbor_walls room spot in
-    if n1 >= 5 then (Void, Wall) else (Ground, Empty)
-  in
-  let room_ref = ref original_room in
-  (*Perform the merges*)
-  for _ = 1 to settings.rule_one_cave_merge_runs do
-    room_ref := room_map rule_one !room_ref
-  done;
-  for _ = 1 to settings.rule_two_cave_merge_runs do
-    room_ref := room_map rule_two !room_ref
-  done;
-  let room = !room_ref in
-  let classification = flood_fill_classification room in
-  let sorted_classification =
-    List.sort
-      (fun l1 l2 -> compare (List.length l1) (List.length l2) |> ( ~- ))
-      classification
-  in
-  let open_areas =
-    List.filter (*Only look at areas full of [Empty] tiles *)
-      (fun lst -> lst |> List.hd |> get_at_vec room = (Ground, Empty))
-      sorted_classification
-    @ [ []; [] ]
-  in
-  (*Dummy areas to prevent out of bounds access *)
-  let width, height = dimensions room in
-  let desired_area =
-    float_of_int (width * height) *. settings.min_room_coverage
-    |> floor |> int_of_float
-  in
-  if List.length (List.hd open_areas) >= desired_area then (
-    List.iter
-      (fun lst_to_clear ->
-        apply_at_vecs room lst_to_clear (fun _ _ -> (Void, Wall))
-        (*Clear disconnected areas*))
-      (List.tl open_areas);
-    room)
-  else cave_merge original_room settings (*Not enough open area, try again*)
 
 (** [liquify_islands room settings] is the room [room] with all isolated islands
     of walls replaced by rocks, water, lave, or void*)
@@ -340,18 +278,106 @@ let rec generate_door room cardinal_dir linking_room =
   set_at_vec new_room door_coord (Void, Door linking_room);
   new_room
 
-let generate_room (settings : room_gen_settings) : t =
+(** [transpose matrix] is the transposed matrix *)
+let transpose matrix =
+  let rows = Array.length matrix in
+  let cols = Array.length matrix.(0) in
+  Array.init cols (fun col -> Array.init rows (fun row -> matrix.(row).(col)))
+
+(**[cave_merge room settings] is a room with cellular-automata cave merge
+   applied. All Empty tiles are guarenteed to be connected. *)
+let rec cave_merge original_room settings =
+  let self_wall room spot =
+    if get_at_vec room spot = (Void, Wall) then 1 else 0
+  in
+  let num_neighbor_walls room spot =
+    8
+    - (principal_neighbor_items room spot
+      |> List.filter (fun (tile, _) -> tile = Ground)
+      |> List.length)
+  in
+  let num_second_neighbor_walls room spot =
+    16
+    - (principal_neighbor_gen2_items room spot
+      |> List.filter (fun (tile, _) -> tile = Ground)
+      |> List.length)
+  in
+  let rule_one (room : t) (spot : vec2) : tile =
+    let n0 = self_wall room spot in
+    let n1 = num_neighbor_walls room spot + n0 in
+    let n2 = num_second_neighbor_walls room spot + n1 in
+    if n1 >= 5 || n2 <= 2 then (Void, Wall) else (Ground, Empty)
+  in
+  let rule_two (room : t) (spot : vec2) : tile =
+    let n1 = num_neighbor_walls room spot in
+    if n1 >= 5 then (Void, Wall) else (Ground, Empty)
+  in
+  let room_ref = ref original_room in
+  (*Perform the merges*)
+  for _ = 1 to settings.rule_one_cave_merge_runs do
+    room_ref := room_map rule_one !room_ref
+  done;
+  for _ = 1 to settings.rule_two_cave_merge_runs do
+    room_ref := room_map rule_two !room_ref
+  done;
+  let room = !room_ref in
+  let classification = flood_fill_classification room in
+  let sorted_classification =
+    List.sort
+      (fun l1 l2 -> compare (List.length l1) (List.length l2) |> ( ~- ))
+      classification
+  in
+  let open_areas =
+    List.filter (*Only look at areas full of [Empty] tiles *)
+      (fun lst -> lst |> List.hd |> get_at_vec room = (Ground, Empty))
+      sorted_classification
+    @ [ []; [] ]
+  in
+  (*Dummy areas to prevent out of bounds access *)
+  let width, height = dimensions room in
+  let desired_area =
+    float_of_int (width * height) *. settings.min_room_coverage
+    |> floor |> int_of_float
+  in
+  if List.length (List.hd open_areas) >= desired_area then (
+    List.iter
+      (fun lst_to_clear ->
+        apply_at_vecs room lst_to_clear (fun _ _ -> (Void, Wall))
+        (*Clear disconnected areas*))
+      (List.tl open_areas);
+    room)
+  else begin
+    print_endline "| Cave merge failed, retrying ";
+    generate_room settings
+  end
+
+and generate_room (settings : room_gen_settings) : t =
   let w_low, w_high = settings.room_width in
   let w = Random.int_in_range ~min:w_low ~max:w_high in
   let h_low, h_high = settings.room_height in
   let h = Random.int_in_range ~min:h_low ~max:h_high in
+  print_endline
+    ("Generating room with width: " ^ string_of_int w ^ " and height: "
+   ^ string_of_int h);
   let room = noise_room w h settings.noise_room_wall_chance in
+  print_string "\t - noise";
+  flush stdout;
   let room = cave_merge room settings in
+  print_string ", caves";
+  flush stdout;
   let room = liquify_islands room settings in
+  print_string ", islands";
+  flush stdout;
   let room = border_wall room in
+  print_string ", border";
+  flush stdout;
   let room = remove_redundant_walls room in
+  print_string ", redundant walls";
+  flush stdout;
   let room = random_pigeon room settings in
-  room
+  print_string ", pigeons";
+  print_endline "Room generated";
+  transpose room
 
 let to_tile_list (room : t) : (tile * vec2) list =
   let width, height = dimensions room in
@@ -359,44 +385,51 @@ let to_tile_list (room : t) : (tile * vec2) list =
     (fun (acc_ext : (tile * vec2) list) (y : int) ->
       List.fold_left
         (fun (acc : (tile * vec2) list) (x : int) ->
-          (room.(y).(x), (x, y)) :: acc)
+          (room.(x).(y), (x, y)) :: acc)
         acc_ext (List.init width Fun.id))
     [] (List.init height Fun.id)
 
-    (** [add_player room] is [room] with a player added to a random square *)
-let add_player room = 
+(** [add_player room] is [room] with a player added to a random square *)
+let add_player room =
   let new_room = copy_room room in
   let ground_tiles =
     room_tiles room
     |> List.filter (function
          | _, (Ground, _) -> true
-         | _ -> false) |> List.map fst
+         | _ -> false)
+    |> List.map fst
   in
-  set_at_vec new_room (List.nth ground_tiles (Random.int (List.length ground_tiles))) (Ground, Player);
+  set_at_vec new_room
+    (List.nth ground_tiles (Random.int (List.length ground_tiles)))
+    (Ground, Player);
   new_room
-
 
 let generate_floor (settings : room_gen_settings) =
   let layout = gen_layout settings.num_rooms in
+  print_endline "Layout generated";
   let floor =
     Array.map
       (Array.map (fun b -> if b then Some (generate_room settings) else None))
       layout
   in
+  print_endline "Rooms generated";
   let counter = ref 0 in
-  let indices = Array.map (fun row ->
-    Array.map (fun b ->
-      if b then 
-        (let idx = !counter in
-        counter := !counter + 1;
-        Some idx)
-       else
-        None
-    ) row
-  ) layout in
+  let indices =
+    Array.map
+      (fun row ->
+        Array.map
+          (fun b ->
+            if b then (
+              let idx = !counter in
+              counter := !counter + 1;
+              Some idx)
+            else None)
+          row)
+      layout
+  in
   let rooms = ref [] in
   for row = Array.length indices - 1 downto 0 do
-    for col = Array.length indices.(0) - 1 downto 0 do
+    for col = Array.length indices.(row) - 1 downto 0 do
       let vec = (row, col) in
       let curr_room_opt = get_at_vec floor vec in
       match curr_room_opt with
@@ -420,11 +453,8 @@ let generate_floor (settings : room_gen_settings) =
           rooms := new_room :: !rooms
     done
   done;
+  print_endline "Rooms linked";
   let player_room_id = Random.int (List.length !rooms) in
-  rooms := List.mapi (fun i x -> if i = player_room_id then add_player x else x) !rooms;
-  0, !rooms
-(* let connected_floor = Array.fold_lefti (fun master row -> (Array.fold_left
-   (fun rooms spot -> match spot with None -> rooms | Some t -> ) [] row) @
-   master) [] floor in () *)
-
-(* in *)
+  rooms :=
+    List.mapi (fun i x -> if i = player_room_id then add_player x else x) !rooms;
+  (0, !rooms)
