@@ -36,8 +36,14 @@ val move_room : t -> int -> t
 (**[move_room room_id] is the state with the current room in focus changed to
    the room specified by [room_id]*)
 
-val create : GameWorld.t list -> GameTiles.t list -> transition list -> int -> t
-(**[create rooms transitions player_room_id] returns a gamestate with the
+val create :
+  GameWorld.t list ->
+  GameTiles.t list ->
+  transition list ->
+  GameWorld.e_t ->
+  int ->
+  t
+(**[create rooms transitions player player_room_id] returns a gamestate with the
    specified rooms and transition list. The current room is set to
    player_room_id. *)
 
