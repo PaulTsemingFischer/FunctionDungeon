@@ -98,6 +98,10 @@ val cardinal_neighbors : vec2 -> vec2 list
 (**[cardinal_neighbors vec] is the list of the 4 vec2s adjacent to [vec] in the
    cardinal directions. *)
 
+val cardinal_neighbors_with_dir : vec2 -> (vec2 * cardinal_dir) list
+(** [cardinal_neighbors_with_dir vec] is the list of the 4 vec2, direction pairs adjacent to [vec] in the
+   cardinal directions.*)
+
 val random_cardinal_dir : unit -> vec2
 (**[random_cardinal_dir] is a random vec2 offset in one of the 4 cardinal
    directions. *)

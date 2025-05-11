@@ -1,4 +1,5 @@
 open Engine.Utils
+open Layout
 
 (*TYPES*)
 type ground =
@@ -19,17 +20,18 @@ type entity =
   | Lava
   | Fire
   | Wall
-  | Door of t
+  | Door of int
   | Rock
   | WeakMob of weak_mob
   | StrongMob of strong_mob
   | Item of item
+  | Player
 
-and t = tile array array
-and tile = ground * entity
+type tile = ground * entity
+type t = tile array array
+type world = t list
 
 let default_entity : tile = (Void, Empty)
-let blank_room = [||]
 
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
@@ -37,17 +39,17 @@ type room_gen_settings = {
   weak_mob_rate : float;
   strong_mob_rate : float;
   item_rate : float;
-  room_width : int;
-  room_height : int;
+  room_width : int * int;
+  room_height : int * int;
   min_room_coverage : float;
   island_liquify_chance : float;
   island_lava_chance : float;
   island_rock_chance : float;
   min_void_size : int;
-  num_doors : int;
   noise_room_wall_chance : float;
   rule_one_cave_merge_runs : int;
   rule_two_cave_merge_runs : int;
+  num_rooms : int;
 }
 
 let default_room_gen_settings =
@@ -57,17 +59,17 @@ let default_room_gen_settings =
     weak_mob_rate = 0.02;
     strong_mob_rate = 0.0;
     item_rate = 0.0;
-    room_width = 30;
-    room_height = 30;
+    room_width = (10, 70);
+    room_height = (10, 50);
     min_room_coverage = 0.2;
     island_liquify_chance = 0.3;
     island_lava_chance = 0.2;
     island_rock_chance = 0.2;
     min_void_size = 14;
-    num_doors = 0;
     noise_room_wall_chance = 0.45;
     rule_one_cave_merge_runs = 4;
     rule_two_cave_merge_runs = 1;
+    num_rooms = 15;
   }
 (*HELPERS*)
 
@@ -77,7 +79,7 @@ let room_map (f : t -> vec2 -> tile) room =
   let rows, cols = dimensions room in
   Array.init rows (fun x -> Array.init cols (fun y -> f room (x, y)))
 
-  (** [copy_room room] is a shallow copy of [room]. *)
+(** [copy_room room] is a shallow copy of [room]. *)
 let copy_room = room_map get_at_vec
 
 (** [room_tiles room] is a list of pairs of all [(tile coord, tile)] in the
@@ -236,6 +238,8 @@ let rec cave_merge original_room settings =
     room)
   else cave_merge original_room settings (*Not enough open area, try again*)
 
+(** [liquify_islands room settings] is the room [room] with all isolated islands
+    of walls replaced by rocks, water, lave, or void*)
 let liquify_islands room settings =
   let room = room_map get_at_vec room in
   (*Copy room*)
@@ -275,6 +279,8 @@ let liquify_islands room settings =
     walls;
   room
 
+(** [border_wall room] is the room [room] with a border of walls around the
+    outside of the map *)
 let border_wall room =
   let width, height = dimensions room in
   room_map
@@ -283,6 +289,8 @@ let border_wall room =
       else get_at_vec room (x, y))
     room
 
+(** [remove_redundant_walls room] is the room [room] with all walls touching
+    only other walls replaced by void *)
 let remove_redundant_walls =
   room_map (fun room spot ->
       if
@@ -302,6 +310,8 @@ let random_pigeon room settings =
       else spot_data)
     room
 
+(** [generate_door room cardinal_dir linking_room] is the room [room] with a
+    door added on [cardinal_dir] that links to [linking_room] *)
 let rec generate_door room cardinal_dir linking_room =
   let new_room = copy_room room in
   let ground_tiles =
@@ -320,20 +330,22 @@ let rec generate_door room cardinal_dir linking_room =
           hd tl
   in
   let tile_coords = List.map fst ground_tiles in
-  let door_coord = match cardinal_dir with
-  |N -> find_extreme snd ( < ) tile_coords |> fun x -> sub_vec2 x (0, 1)
-  |E -> find_extreme fst ( > ) tile_coords |> fun x -> add_vec2 x (1, 0)
-  |S -> find_extreme snd ( > ) tile_coords |> fun x -> add_vec2 x (0, 1)
-  |W -> find_extreme fst ( < ) tile_coords |> fun x -> sub_vec2 x (1, 0)
-in
+  let door_coord =
+    match cardinal_dir with
+    | N -> find_extreme snd ( < ) tile_coords |> fun x -> sub_vec2 x (0, 1)
+    | E -> find_extreme fst ( > ) tile_coords |> fun x -> add_vec2 x (1, 0)
+    | S -> find_extreme snd ( > ) tile_coords |> fun x -> add_vec2 x (0, 1)
+    | W -> find_extreme fst ( < ) tile_coords |> fun x -> sub_vec2 x (1, 0)
+  in
   set_at_vec new_room door_coord (Void, Door linking_room);
   new_room
 
-and generate_room (settings : room_gen_settings) : t =
-  let room =
-    noise_room settings.room_width settings.room_height
-      settings.noise_room_wall_chance
-  in
+let generate_room (settings : room_gen_settings) : t =
+  let w_low, w_high = settings.room_width in
+  let w = Random.int_in_range ~min:w_low ~max:w_high in
+  let h_low, h_high = settings.room_height in
+  let h = Random.int_in_range ~min:h_low ~max:h_high in
+  let room = noise_room w h settings.noise_room_wall_chance in
   let room = cave_merge room settings in
   let room = liquify_islands room settings in
   let room = border_wall room in
@@ -350,3 +362,69 @@ let to_tile_list (room : t) : (tile * vec2) list =
           (room.(y).(x), (x, y)) :: acc)
         acc_ext (List.init width Fun.id))
     [] (List.init height Fun.id)
+
+    (** [add_player room] is [room] with a player added to a random square *)
+let add_player room = 
+  let new_room = copy_room room in
+  let ground_tiles =
+    room_tiles room
+    |> List.filter (function
+         | _, (Ground, _) -> true
+         | _ -> false) |> List.map fst
+  in
+  set_at_vec new_room (List.nth ground_tiles (Random.int (List.length ground_tiles))) (Ground, Player);
+  new_room
+
+
+let generate_floor (settings : room_gen_settings) =
+  let layout = gen_layout settings.num_rooms in
+  let floor =
+    Array.map
+      (Array.map (fun b -> if b then Some (generate_room settings) else None))
+      layout
+  in
+  let counter = ref 0 in
+  let indices = Array.map (fun row ->
+    Array.map (fun b ->
+      if b then 
+        (let idx = !counter in
+        counter := !counter + 1;
+        Some idx)
+       else
+        None
+    ) row
+  ) layout in
+  let rooms = ref [] in
+  for row = Array.length indices - 1 downto 0 do
+    for col = Array.length indices.(0) - 1 downto 0 do
+      let vec = (row, col) in
+      let curr_room_opt = get_at_vec floor vec in
+      match curr_room_opt with
+      | None -> ()
+      | Some room ->
+          let neighbors =
+            cardinal_neighbors_with_dir vec
+            |> List.filter_map (fun (v, d) ->
+                   match get_at_vec_opt indices v with
+                   | None -> None
+                   | Some None -> None
+                   | Some (Some index) -> Some (index, d))
+          in
+          let new_room =
+            List.fold_left
+              (fun room_acc (index, dir) ->
+                let return = generate_door room_acc dir index in
+                return)
+              room neighbors
+          in
+          rooms := new_room :: !rooms
+    done
+  done;
+  let player_room_id = Random.int (List.length !rooms) in
+  rooms := List.mapi (fun i x -> if i = player_room_id then add_player x else x) !rooms;
+  0, !rooms
+(* let connected_floor = Array.fold_lefti (fun master row -> (Array.fold_left
+   (fun rooms spot -> match spot with None -> rooms | Some t -> ) [] row) @
+   master) [] floor in () *)
+
+(* in *)
