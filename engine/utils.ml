@@ -50,12 +50,22 @@ let length_squared vf = (fst vf *. fst vf) +. (snd vf *. snd vf)
 (*2d array access*)
 type 'a matrix = 'a array array
 
-let get_at_vec (arr : 'a matrix) (row, col) = arr.(row).(col)
+let get_at_vec (arr : 'a matrix) (row, col) =
+  try arr.(row).(col)
+  with Invalid_argument msg ->
+    failwith
+      ("Invalid row: " ^ string_of_int row ^ " col: " ^ string_of_int col
+     ^ " in get_at_vec call in Engine.utils.ml\n" ^ msg)
 
 let get_at_vec_opt (arr : 'a matrix) (row, col) =
   try Some arr.(row).(col) with Invalid_argument _ -> None
 
-let set_at_vec (arr : 'a matrix) (row, col) x = arr.(row).(col) <- x
+let set_at_vec (arr : 'a matrix) (row, col) x =
+  try arr.(row).(col) <- x
+  with Invalid_argument msg ->
+    failwith
+      ("Invalid row: " ^ string_of_int row ^ " col: " ^ string_of_int col
+     ^ " in set_at_vec call in Engine.utils.ml\n" ^ msg)
 
 let apply_at_vecs (arr : 'a matrix) spots f =
   List.iter (fun (row, col) -> arr.(row).(col) <- f row col) spots
@@ -76,10 +86,10 @@ let cardinal_neighbors vec =
 
 let cardinal_neighbors_with_dir vec =
   [
-    add_vec2 vec (0, 1), S;
-    add_vec2 vec (1, 0), E;
-    add_vec2 vec (0, -1), N;
-    add_vec2 vec (-1, 0), W;
+    (add_vec2 vec (0, 1), S);
+    (add_vec2 vec (1, 0), E);
+    (add_vec2 vec (0, -1), N);
+    (add_vec2 vec (-1, 0), W);
   ]
 
 let random_cardinal_dir () =
