@@ -172,11 +172,14 @@ let generate_floor (player : GameEntity.t)
     (entity_action_runner :
       (GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t) list) =
   let player_room_id, proc_gen = Pgworld.generate_floor settings in
+  print_endline ("Generating " ^ string_of_int (List.length proc_gen) ^ " rooms");
   let real_rooms = List.map (normal_room player) proc_gen in
   let real_entities, real_tiles =
     (List.map fst real_rooms, List.map snd real_rooms)
   in
-  GameState.create real_entities real_tiles [ entity_action_runner ]
+  print_endline "Floor generated";
+  print_endline (Pgworld.string_of_genworld (List.nth proc_gen player_room_id));
+  GameState.create real_entities real_tiles [ entity_action_runner ] player
     player_room_id
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and

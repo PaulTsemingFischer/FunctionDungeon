@@ -66,7 +66,10 @@ type t = {
 
 and transition = t -> GameEntity.t -> input -> t
 
-let room state = List.nth state.rooms state.room_id
+let room state =
+  try List.nth state.rooms state.room_id
+  with Invalid_argument msg ->
+    failwith ("Invalid argument on room call in GameState.ml: " ^ msg)
 
 let set_room state room =
   {
@@ -84,7 +87,7 @@ let move_room state id =
   else { state with room_id = id }
 
 let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
-    (transitions : transition list) player_room_id : t =
+    (transitions : transition list) player player_room_id : t =
   {
     room_id = player_room_id;
     rooms;
@@ -142,7 +145,10 @@ let step (state : t) (input : input) =
   let updated_state = { state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 
-let get_tiles state = List.nth state.tiles state.room_id
+let get_tiles state =
+  try List.nth state.tiles state.room_id
+  with Invalid_argument msg ->
+    failwith ("Invalid argument on get_tiles call in GameState.ml: " ^ msg)
 
 let update_tiles state new_tiles : t =
   {
