@@ -84,7 +84,7 @@ let move_room state id =
   else { state with room_id = id }
 
 let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
-    (transitions : transition list) player player_room_id : t =
+    (transitions : transition list) player_room_id : t =
   {
     room_id = player_room_id;
     rooms;
@@ -142,8 +142,17 @@ let step (state : t) (input : input) =
   let updated_state = { state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 
-let get_tiles state = state.tiles
-let update_tiles state new_tiles : t = { state with tiles = new_tiles }
+let get_tiles state = List.nth state.tiles state.room_id
+
+let update_tiles state new_tiles : t =
+  {
+    state with
+    tiles =
+      List.mapi
+        (fun i x -> if i = state.room_id then new_tiles else x)
+        state.tiles;
+  }
+
 let get_events state = state.events
 
 let add_event state event =

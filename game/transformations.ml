@@ -113,7 +113,8 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
-(**[normal_room state player] is a new room with the given player*)
+(**[normal_room state player] is a new entity world, tile world pair with the
+   given player*)
 let normal_room (player : GameEntity.t) generated_room =
   let world = GameWorld.empty in
 
@@ -162,7 +163,7 @@ let normal_room (player : GameEntity.t) generated_room =
           | _ -> update_tiles ))
       (world, tiles) source_entity_tile_pairs
   in
-  (entity_world, tile_world)
+  (entity_world, tile_world) (entity_world, tile_world)
 
 (**[generate_world player settings] is a floor with the given [settings] and
    [player] *)
@@ -172,7 +173,11 @@ let generate_floor (player : GameEntity.t)
       (GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t) list) =
   let player_room_id, proc_gen = Pgworld.generate_floor settings in
   let real_rooms = List.map (normal_room player) proc_gen in
-  GameState.create real_rooms entity_action_runner player_room_id
+  let real_entities, real_tiles =
+    (List.map fst real_rooms, List.map snd real_rooms)
+  in
+  GameState.create real_entities real_tiles [ entity_action_runner ]
+    player_room_id
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and
     returns the updated game state. *)
