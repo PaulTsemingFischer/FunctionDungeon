@@ -31,24 +31,32 @@ val string_of_event : event -> string
 val room : t -> GameWorld.t
 (**[room state] is the current room the player is in at the given state*)
 
-val set_room: t -> GameWorld.t -> t
+val set_room : t -> GameWorld.t -> t
 (**[set_room state room] is the state with the current room changed to [room]*)
 
-val move_room: t -> int -> t
-(**[move_room room_id] is the state with the current room in focus changed to the room specified by [room_id]*)
+val move_room : t -> int -> t
+(**[move_room room_id] is the state with the current room in focus changed to
+   the room specified by [room_id]*)
 
-val create : GameWorld.t list -> ?tiles:GameTiles.t -> transition list -> t
-(**[create rooms transitions] returns a gamestate with the specified rooms and
-   transition list*)
+val create :
+  GameWorld.t list ->
+  GameTiles.t list ->
+  transition list ->
+  GameWorld.e_t ->
+  int ->
+  t
+(**[create rooms transitions player_room_id] returns a gamestate with the
+   specified rooms and transition list. The current room is set to
+   player_room_id. *)
 
 val step : t -> input -> t
 (**[step state input] takes an in-game turn and returns the updated state*)
 
-val get_tiles : t -> GameTiles.t
+val get_tiles : t -> GameTiles.t list
 (**[get_tiles state] returns a world of type [GameTiles.t] associated with
    [state]*)
 
-val update_tiles : t -> GameTiles.t -> t
+val update_tiles : t -> GameTiles.t list -> t
 (**[update_tiles state tiles] returns an updated state whose tiles is [tiles]*)
 
 val get_events : t -> (int * event) list

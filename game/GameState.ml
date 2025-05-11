@@ -51,8 +51,8 @@ let string_of_event event =
 
 type t = {
   room_id : int;
-  rooms: GameWorld.t list;
-  tiles : GameTiles.t;
+  rooms : GameWorld.t list;
+  tiles : GameTiles.t list;
   transitions : transition list;
   events : (int * event) list;
   turn : int;
@@ -68,29 +68,31 @@ and transition = t -> GameEntity.t -> input -> t
 
 let room state = List.nth state.rooms state.room_id
 
-let set_room state room = {state with rooms = List.mapi (fun i x -> if i = state.room_id then room else x) state.rooms}
-
-let move_room state id = 
-  if id >= List.length state.rooms then failwith ("Attempting to move to room " ^ string_of_int id ^ " but there are only " ^ string_of_int (List.length state.rooms) ^ " rooms") else
-  {state with room_id = id}
-
-let create (rooms : GameWorld.t list) ?(tiles : GameTiles.t = GameTiles.empty)
-    (transitions : transition list) : t =
+let set_room state room =
   {
-    room_id = 0;
+    state with
+    rooms =
+      List.mapi (fun i x -> if i = state.room_id then room else x) state.rooms;
+  }
+
+let move_room state id =
+  if id >= List.length state.rooms then
+    failwith
+      ("Attempting to move to room " ^ string_of_int id ^ " but there are only "
+      ^ string_of_int (List.length state.rooms)
+      ^ " rooms")
+  else { state with room_id = id }
+
+let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
+    (transitions : transition list) player player_room_id : t =
+  {
+    room_id = player_room_id;
     rooms;
     tiles;
     transitions;
     events = [];
     turn = 0;
-    player =
-      GameEntity.create
-        {
-          health = 10.0;
-          base_moves = Modifiers.base_cross_moves;
-          base_actions = Modifiers.base_cross_actions;
-        }
-        Player [] (0, 0);
+    player;
     modifiers = [];
   }
 
@@ -137,28 +139,15 @@ let step (state : t) (input : input) =
       state state.transitions
   in
   print_latest_events state;
-  let updated_state =
-    {
-      state with
-      turn = new_state.turn + 1
-    }
-  in
+  let updated_state = { state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 
 let get_tiles state = state.tiles
-
-let update_tiles state
-    new_tiles : t =
-  { state with tiles = new_tiles }
-
+let update_tiles state new_tiles : t = { state with tiles = new_tiles }
 let get_events state = state.events
 
-let add_event state
-    event =
-  {
-    state with
-    events = (state.turn, event) :: state.events;
-  }
+let add_event state event =
+  { state with events = (state.turn, event) :: state.events }
 
 let get_turn state = state.turn
 let get_player state = state.player
@@ -292,11 +281,7 @@ let add_moves_modifier state movement_modifier entity_type =
 
 let remove_actions_modifier state entity_type =
   match List.assoc_opt (string_of_type entity_type) state.modifiers with
-  | None ->
-      {
-        state with
-        modifiers = state.modifiers;
-      }
+  | None -> { state with modifiers = state.modifiers }
   | Some (possible_action_list, movement_modifier_list) ->
       let removed_modifier_assoc =
         List.remove_assoc (string_of_type entity_type) state.modifiers

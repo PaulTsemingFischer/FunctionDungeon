@@ -17,6 +17,7 @@ let setup () =
   Raylib.set_target_fps 60
 
 let () =
+  setup ();
   let state = generate_starting_state () in
   let renderer = Renderer.make_from_state state in
   Renderer.loop renderer state GameState.step
