@@ -82,16 +82,11 @@ let normal_room (player : GameEntity.t) generated_room =
         let updated_world, update_tiles =
           match entity with
           | Pgworld.Wall ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at
-                     Wall
-                     pos),
+              ( GameWorld.put_entity acc_world (create_default_at Wall pos),
                 acc_tiles )
-          | Pgworld.Door i -> ( GameWorld.put_entity acc_world
-            (create_default_at
-             (Door i)
-             pos),
-            acc_tiles )
+          | Pgworld.Door i ->
+              ( GameWorld.put_entity acc_world (create_default_at (Door i) pos),
+                acc_tiles )
           | Pgworld.Rock ->
               ( GameWorld.put_entity acc_world (create_default_at Rock pos),
                 acc_tiles )
@@ -107,7 +102,9 @@ let normal_room (player : GameEntity.t) generated_room =
           | Pgworld.(WeakMob Pigeon) ->
               ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
                 acc_tiles )
-          | Pgworld.Player -> ( GameWorld.put_entity acc_world player, acc_tiles)
+          | Pgworld.Player ->
+              ( GameWorld.put_entity acc_world (GameEntity.set_pos player pos),
+                acc_tiles )
           | _ -> (acc_world, acc_tiles)
         in
         ( updated_world,
@@ -120,11 +117,15 @@ let normal_room (player : GameEntity.t) generated_room =
   in
   entity_world
 
-  (**[generate_world player settings] is a floor with the given [settings] and [player] *)
-  let generate_floor (player : GameEntity.t) (settings: Pgworld.room_gen_settings) (entity_action_runner: GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t)= 
-    let (player_room_id, proc_gen) = Pgworld.generate_floor settings in
-    let real_rooms = List.map (normal_room player) proc_gen in
-    GameState.create real_rooms [ entity_action_runner ]
+(**[generate_world player settings] is a floor with the given [settings] and
+   [player] *)
+let generate_floor (player : GameEntity.t)
+    (settings : Pgworld.room_gen_settings)
+    (entity_action_runner :
+      GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t) =
+  let player_room_id, proc_gen = Pgworld.generate_floor settings in
+  let real_rooms = List.map (normal_room player) proc_gen in
+  GameState.create real_rooms [ entity_action_runner ]
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and
     returns the updated game state. *)
@@ -146,8 +147,7 @@ let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
       if fst h = (0, 0) then apply_attack_to state player_pos t
       else
         match
-          GameWorld.query_pos
-            (GameState.room state)
+          GameWorld.query_pos (GameState.room state)
             (add_vec2 (fst h) player_pos)
         with
         | None -> apply_attack_to state player_pos t
