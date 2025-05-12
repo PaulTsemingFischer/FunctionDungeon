@@ -131,7 +131,7 @@ let step (state : t) (input : input) =
       state state.transitions
   in
   print_latest_event state;
-  let updated_state = { state with turn = new_state.turn + 1 } in
+  let updated_state = { new_state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 
 let get_tiles state =
