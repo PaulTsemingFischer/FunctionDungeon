@@ -78,14 +78,6 @@ let set_room state room =
       List.mapi (fun i x -> if i = state.room_id then room else x) state.rooms;
   }
 
-let move_room state id =
-  if id >= List.length state.rooms then
-    failwith
-      ("Attempting to move to room " ^ string_of_int id ^ " but there are only "
-      ^ string_of_int (List.length state.rooms)
-      ^ " rooms")
-  else { state with room_id = id }
-
 let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
     (transitions : transition list) player player_room_id : t =
   {
@@ -339,3 +331,21 @@ let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
   List.fold_left
     (fun current_state p -> add_obstacle_to_world current_state world p objects)
     state positions
+
+let move_room state id =
+  let current_state_with_updated_player = query_update_player state in
+  if id >= List.length state.rooms then
+    failwith
+      ("Attempting to move to room " ^ string_of_int id ^ " but there are only "
+      ^ string_of_int (List.length state.rooms)
+      ^ " rooms")
+  else
+    let state_with_updated_room_id =
+      { current_state_with_updated_player with room_id = id }
+    in
+    let new_room = room state_with_updated_room_id in
+    let new_room_with_updated_player =
+      GameWorld.put_entity new_room
+        (get_player current_state_with_updated_player)
+    in
+    set_room state_with_updated_room_id new_room_with_updated_player
