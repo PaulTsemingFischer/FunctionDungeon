@@ -19,8 +19,8 @@ let simple_transition : GameState.transition =
         base_moves = entity.stats.base_moves;
       }
   in
-  GameState.update_world start_state
-    (GameWorld.put_entity (GameState.get_world start_state) updated)
+  GameState.set_room start_state
+    (GameWorld.put_entity (GameState.room start_state) updated)
 
 let useless_transition (start_state : GameState.t) _ _ : GameState.t =
   start_state
@@ -46,13 +46,14 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
-           let state_start = GameState.create world [] in
+           let player = create_default_at Player (0, 0) in
+           let state_start = GameState.create [ world ] [] [] player 0 in
            assert_equal (Some e1)
-             (GameWorld.query_id (GameState.get_world state_start) e1.id);
+             (GameWorld.query_id (GameState.room state_start) e1.id);
            assert_equal 0 (GameState.get_turn state_start);
            let state_next = GameState.step state_start Wait in
            assert_equal (Some e1)
-             (GameWorld.query_id (GameState.get_world state_next) e1.id);
+             (GameWorld.query_id (GameState.room state_next) e1.id);
            assert_equal 1 (GameState.get_turn state_next) );
          ( "stepping\n\
            \ through the state of a game with one generator that decreases  \
@@ -63,13 +64,16 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
-           let state_start = GameState.create world [ simple_transition ] in
-           print_all_entities (GameState.get_world state_start);
+           let player = create_default_at Player (0, 0) in
+           let state_start =
+             GameState.create [ world ] [] [ simple_transition ] player 0
+           in
+           print_all_entities (GameState.room state_start);
            assert_equal (Some e1)
-             (GameWorld.query_id (GameState.get_world state_start) e1.id);
+             (GameWorld.query_id (GameState.room state_start) e1.id);
            assert_equal 0 (GameState.get_turn state_start);
            let state_next = GameState.step state_start Wait in
-           print_all_entities (GameState.get_world state_next);
+           print_all_entities (GameState.room state_next);
 
            assert_equal
              (Some
@@ -79,7 +83,7 @@ let state_tests =
                      base_actions = e1.stats.base_actions;
                      base_moves = e1.stats.base_moves;
                    }))
-             (GameWorld.query_id (GameState.get_world state_next) e1.id)
+             (GameWorld.query_id (GameState.room state_next) e1.id)
              ~printer:string_of_entity_option;
            assert_equal 1 (GameState.get_turn state_next) );
          ( "stepping through the state of a game with one generator that does \
@@ -89,15 +93,18 @@ let state_tests =
          >:: fun _ ->
            let e1 = create_wall () in
            let world = GameWorld.put_entity GameWorld.empty e1 in
-           let state_start = GameState.create world [ useless_transition ] in
-           print_all_entities (GameState.get_world state_start);
+           let player = create_default_at Player (0, 0) in
+           let state_start =
+             GameState.create [ world ] [] [ useless_transition ] player 0
+           in
+           print_all_entities (GameState.room state_start);
            assert_equal (Some e1)
-             (GameWorld.query_id (GameState.get_world state_start) e1.id);
+             (GameWorld.query_id (GameState.room state_start) e1.id);
            assert_equal 0 (GameState.get_turn state_start);
            let state_next = GameState.step state_start Wait in
-           print_all_entities (GameState.get_world state_next);
+           print_all_entities (GameState.room state_next);
            assert_equal (Some e1)
-             (GameWorld.query_id (GameState.get_world state_next) e1.id)
+             (GameWorld.query_id (GameState.room state_next) e1.id)
              ~printer:string_of_entity_option;
            assert_equal 1 (GameState.get_turn state_next) );
        ]

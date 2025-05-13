@@ -4,6 +4,12 @@ val random_element : 'a list -> 'a
 type vec2 = int * int
 (**[vec2] describes the location of an entity in 2D cartesian space*)
 
+type cardinal_dir =
+  | N
+  | E
+  | S
+  | W  (** [cardinal_dir] describes one of the 4 cardinal directions. *)
+
 val add_vec2 : vec2 -> vec2 -> vec2
 (**[add_vec2 vec1 vec2] is the sum of two positions*)
 
@@ -92,6 +98,10 @@ val cardinal_neighbors : vec2 -> vec2 list
 (**[cardinal_neighbors vec] is the list of the 4 vec2s adjacent to [vec] in the
    cardinal directions. *)
 
+val cardinal_neighbors_with_dir : vec2 -> (vec2 * cardinal_dir) list
+(** [cardinal_neighbors_with_dir vec] is the list of the 4 vec2, direction pairs adjacent to [vec] in the
+   cardinal directions.*)
+
 val random_cardinal_dir : unit -> vec2
 (**[random_cardinal_dir] is a random vec2 offset in one of the 4 cardinal
    directions. *)
@@ -107,3 +117,5 @@ val principal_neighbors_gen2 : vec2 -> vec2 list
 val random_principal_dir : unit -> vec2
 (**[random_principal_dir] is a random vec2 offset in one of the 8 principal
    directions. *)
+val opposite : cardinal_dir -> cardinal_dir
+(** [opposite dir] is the cardinal direction opposite to dir. *)

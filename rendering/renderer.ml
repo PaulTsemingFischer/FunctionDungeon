@@ -103,7 +103,7 @@ let draw_ui (renderer : t) =
         | [] -> ()
         | h :: t -> (
             match h.entity_type with
-            | Wall | Door -> render_n_entities_aux t n current
+            | Wall | Door _ -> render_n_entities_aux t n current
             | x ->
                 let entry_height =
                   get_screen_height ()
@@ -122,7 +122,7 @@ let draw_ui (renderer : t) =
     render_n_entities_aux entities 5 0
   in
   render_n_entities
-    (GameWorld.all_entities (GameState.get_world renderer.source_state))
+    (GameWorld.all_entities (GameState.room renderer.source_state))
     3
 
 (* let render_n_events (event_list : (int * event) list) (n : int) =
@@ -167,13 +167,13 @@ let get_latest_events (state : GameState.t) =
    [state]*)
 let update_render_state (renderer : t) (entity_state : GameState.t) =
   let all_entitities =
-    GameWorld.all_entities (GameState.get_world entity_state)
+    GameWorld.all_entities (GameState.room entity_state)
   in
   let filtered_renderables =
     RenderableSet.filter
       (fun renderable ->
         GameWorld.mem_id
-          (GameState.get_world entity_state)
+          (GameState.room entity_state)
           renderable.source_entity.id)
       renderer.renderables
   in
@@ -327,7 +327,7 @@ let render (renderer : t) =
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
                Color.black
-         | Door ->
+         | Door _ ->
              Raylib.draw_text ">"
                (fst screen_space_position)
                (snd screen_space_position)
@@ -482,7 +482,7 @@ let make_from_state (entity_state : GameState.t) =
   let source =
     {
       renderables =
-        GameWorld.all_entities (GameState.get_world entity_state)
+        GameWorld.all_entities (GameState.room entity_state)
         |> List.map (fun (entity : GameEntity.t) ->
                {
                  source_entity = entity;
