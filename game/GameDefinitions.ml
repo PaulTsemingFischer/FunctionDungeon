@@ -23,7 +23,7 @@ type entity_types =
   | Obstacle of Obstacles.obstacle
   | ModifierItem of Modifiers.possible_actions_modifier
 
-type status_effects = Fire of int
+type status_effects = Fire of float * int
 
 let string_of_type e_type =
   match e_type with
@@ -167,6 +167,3 @@ let print_tiles tile_list =
   List.iter (fun x -> print_endline (TileEntity.string_of_entity x)) tile_list
 
 module GameTiles = World.Make (TileEntity)
-
-(* Represents damage-per-turn done by fire status effect *)
-let base_fire_dmg = 0.5

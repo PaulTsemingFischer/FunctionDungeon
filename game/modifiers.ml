@@ -3,8 +3,8 @@ open Engine.Utils
 (**[action] describes an action that some entity in the world can take*)
 type action =
   | DealDamage of float
-  | ApplyFire of int
-  | DealFireDamage
+  | ApplyFire of float * int
+  | DealFireDamage of float
   | BarrierAttack of int * Obstacles.obstacle
   | StealAttack
 
@@ -16,7 +16,7 @@ type possible_move = vec2
 
 type possible_actions_modifier =
   | ScaleAction of int
-  | AddFire of int
+  | AddFire of float * int
   | AddDamage of float
   | AugmentToAdjacent
 
@@ -103,6 +103,8 @@ let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
 let string_of_modifier m =
   match m with
   | ScaleAction x -> "Scale tiles by " ^ string_of_int x
-  | AddFire x -> "Apply fire for " ^ string_of_int x ^ " turns"
+  | AddFire (x, y) ->
+      "Apply fire that deals " ^ string_of_float x ^ " damage for "
+      ^ string_of_int y ^ " turns"
   | AddDamage x -> "Deal " ^ string_of_float x ^ " extra damage"
   | AugmentToAdjacent -> "Augment to adjacent tiles"

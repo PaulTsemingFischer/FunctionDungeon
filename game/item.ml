@@ -28,32 +28,5 @@ let modify_attack func atk =
 let compare_effects a b =
   match (a, b) with
   | DealDamage a, DealDamage b -> a = b
-  | ApplyFire a, ApplyFire b -> a = b
+  | ApplyFire (a, a2), ApplyFire (b, b2) -> a = b && a2 = b2
   | _, _ -> false
-
-let rec effects_to_string lst =
-  match lst with
-  | [] -> ""
-  | h :: t ->
-      (match h with
-      | DealDamage x -> "Damage " ^ string_of_float x
-      | ApplyFire x -> "Apply fire " ^ string_of_int x
-      | DealFireDamage -> "Deal fire damage"
-      | StealAttack -> "Steal"
-      | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
-      ^ "; " ^ effects_to_string t
-
-let rec bindings_to_string_helper lst =
-  match lst with
-  | [] -> ""
-  | h :: t ->
-      ("("
-      ^ string_of_int (fst (fst h))
-      ^ ","
-      ^ string_of_int (snd (fst h))
-      ^ ") "
-      ^ effects_to_string (snd h))
-      ^ "\n"
-      ^ bindings_to_string_helper t
-
-let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
