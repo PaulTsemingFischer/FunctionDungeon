@@ -117,3 +117,5 @@ val principal_neighbors_gen2 : vec2 -> vec2 list
 val random_principal_dir : unit -> vec2
 (**[random_principal_dir] is a random vec2 offset in one of the 8 principal
    directions. *)
+val opposite : cardinal_dir -> cardinal_dir
+(** [opposite dir] is the cardinal direction opposite to dir. *)

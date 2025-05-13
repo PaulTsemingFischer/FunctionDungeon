@@ -1,4 +1,5 @@
 open Engine
+open Engine.Utils
 
 type entity_stat = {
   health : float;
@@ -10,7 +11,9 @@ type entity_types =
   | Wall
   | Player
   | Pigeon
-  | Door of int (* Index in room arr *)
+  | Door of int * vec2
+    (* Index in room arr and the spawn location the player should be in after
+       going through the door*)
   | Rock
   | Fire
   | Water
@@ -27,7 +30,7 @@ let string_of_type e_type =
   | Wall -> "wall"
   | Player -> "player"
   | Pigeon -> "pigeon"
-  | Door i -> "door" ^ string_of_int i
+  | Door (i, _) -> "door" ^ string_of_int i
   | Rock -> "rock"
   | Fire -> "fire"
   | Water -> "water"
@@ -95,10 +98,11 @@ let create_default_at e_type pos : GameEntity.t =
             base_actions = base_cross_actions;
           }
           Pigeon [] pos
-    | Door i ->
+    | Door (i, dir) ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          (Door i) [] pos
+          (Door (i, dir))
+          [] pos
     | HorizontalBouncer x ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }

@@ -12,7 +12,12 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
           match e.entity_type with
           | Wall | Rock | Water | Lava ->
               GameState.(raise (Invalid_input input))
-          | Door i -> GameState.move_room state i
+          | Door (i, loc) ->
+              let moved_state = GameState.move_room state i in
+              GameState.set_room moved_state
+                (GameWorld.put_entity
+                   (GameState.room moved_state)
+                   (GameEntity.set_pos (GameState.get_player state) loc))
           | _ -> apply_action_to state e (DealDamage 1.))
       | None -> apply_move state entity dir)
   | Wait -> state

@@ -17,7 +17,6 @@ type cardinal_dir =
   | W
 
 (*Translation methods*)
-(*Translation methods*)
 let add_vec2 (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 let neg_vec2 (x1, y1) = (-1 * x1, -1 * y1)
 let sub_vec2 vec1 vec2 = add_vec2 vec1 (neg_vec2 vec2)
@@ -141,3 +140,9 @@ let random_principal_dir () =
   | 5 -> (-1, -1)
   | 6 -> (-1, 0)
   | _ -> (-1, 1)
+
+let opposite = function
+  | N -> S
+  | E -> W
+  | S -> N
+  | W -> E
