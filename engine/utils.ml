@@ -3,11 +3,6 @@ let random_element list =
   let index = Random.int (List.length list) in
   List.nth list index
 
-(*Randomization*)
-let random_element list =
-  let index = Random.int (List.length list) in
-  List.nth list index
-
 type vec2 = int * int
 
 type cardinal_dir =
