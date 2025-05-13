@@ -163,7 +163,7 @@ let normal_room (player : GameEntity.t) generated_room =
           | _ -> update_tiles ))
       (world, tiles) source_entity_tile_pairs
   in
-  (entity_world, tile_world) (entity_world, tile_world)
+  (entity_world, tile_world)
 
 (**[generate_world player settings] is a floor with the given [settings] and
    [player] *)
@@ -179,7 +179,7 @@ let generate_floor (player : GameEntity.t)
   in
   print_endline "Floor generated";
   print_endline (Pgworld.string_of_genworld (List.nth proc_gen player_room_id));
-  GameState.create real_entities real_tiles [ entity_action_runner ] player
+  GameState.create real_entities real_tiles entity_action_runner player
     player_room_id
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and

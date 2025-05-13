@@ -52,11 +52,11 @@ val create :
 val step : t -> input -> t
 (**[step state input] takes an in-game turn and returns the updated state*)
 
-val get_tiles : t -> GameTiles.t list
+val get_tiles : t -> GameTiles.t
 (**[get_tiles state] returns a world of type [GameTiles.t] associated with
    [state]*)
 
-val update_tiles : t -> GameTiles.t list -> t
+val update_tiles : t -> GameTiles.t -> t
 (**[update_tiles state tiles] returns an updated state whose tiles is [tiles]*)
 
 val get_events : t -> (int * event) list

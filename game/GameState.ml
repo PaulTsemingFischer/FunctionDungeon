@@ -88,7 +88,7 @@ let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
     events = [];
     turn = 0;
     player;
-    modifiers = [];
+    modifiers = [ ("player", ([ AddFire 3 ], [])) ];
   }
 
 let print_events state =
@@ -142,17 +142,7 @@ let step (state : t) (input : input) =
       state state.transitions
   in
   print_latest_events state;
-  let updated_state =
-    {
-      world = new_state.world;
-      tiles = new_state.tiles;
-      transitions = new_state.transitions;
-      events = new_state.events;
-      turn = new_state.turn + 1;
-      player = new_state.player;
-      modifiers = new_state.modifiers;
-    }
-  in
+  let updated_state = { new_state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 
 let get_tiles state =
