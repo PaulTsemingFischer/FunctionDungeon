@@ -34,12 +34,14 @@ let compare_effects a b =
 let rec effects_to_string lst =
   match lst with
   | [] -> ""
-  | h :: t -> (
-      match h with
+  | h :: t ->
+      (match h with
       | DealDamage x -> "Damage " ^ string_of_float x
-      | ApplyFire x -> "Fire " ^ string_of_int x ^ "; " ^ effects_to_string t
+      | ApplyFire x -> "Apply fire " ^ string_of_int x
+      | DealFireDamage -> "Deal fire damage"
       | StealAttack -> "Steal"
       | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
+      ^ "; " ^ effects_to_string t
 
 let rec bindings_to_string_helper lst =
   match lst with
@@ -55,30 +57,3 @@ let rec bindings_to_string_helper lst =
       ^ bindings_to_string_helper t
 
 let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
-
-(* EXAMPLE ITEMS *)
-
-(** [do_damage_example] is a modifier example that adds 1 damage to all attacked
-    tiles. *)
-let do_damage_example = fun tile -> [ (fst tile, [ DealDamage 1.0 ]) ]
-
-(** [add_fire_example] is a modifier example that causes all attacked tiles to
-    deal fire damage for 3 turns. *)
-let add_fire_example = fun tile -> [ (fst tile, [ ApplyFire 3 ]) ]
-
-(** [augment_to_above_example] is a modifier example that adds all tiles one
-    step above currently attacked tiles. *)
-let augment_to_above_example =
- fun tile -> [ (Utils.add_vec2 (fst tile) (0, 1), snd tile) ]
-
-(** [augment_to_adjacents_example] is a modifier example that adds all tiles
-    directly adjacent to currently attacked tiles (four cardinal directions). *)
-let augment_to_adjacents_example =
- fun tile ->
-  [
-    tile;
-    (Utils.add_vec2 (fst tile) (0, 1), snd tile);
-    (Utils.add_vec2 (fst tile) (0, -1), snd tile);
-    (Utils.add_vec2 (fst tile) (1, 0), snd tile);
-    (Utils.add_vec2 (fst tile) (1, 0), snd tile);
-  ]

@@ -258,6 +258,15 @@ let make_modify_test name expected_output func input =
     ~cmp:(AttackMap.equal (fun a b -> List.equal Item.compare_effects a b))
     ~printer:Item.bindings_to_string
 
+(** [do_damage_example] is a modifier example that adds 1 damage to all attacked
+    tiles. *)
+let do_damage_example = fun tile -> [ (fst tile, [ Modifiers.DealDamage 1.0 ]) ]
+
+(** [augment_to_above_example] is a modifier example that adds all tiles one
+    step above currently attacked tiles. *)
+let augment_to_above_example =
+ fun tile -> [ (Utils.add_vec2 (fst tile) (0, 1), snd tile) ]
+
 (** [attack_tests] is a series of unit tests ensuring that attack modifiers work
     as expected. *)
 let attack_tests =
@@ -265,28 +274,28 @@ let attack_tests =
   >::: [
          make_modify_test "Add 1 damage to empty"
            AttackMap.(empty |> add (0, 0) [ Modifiers.DealDamage 1. ])
-           Item.do_damage_example
+           do_damage_example
            AttackMap.(empty |> add (0, 0) []);
          make_modify_test "Add 1 damage on top of existing effects"
            AttackMap.(
              empty
              |> add (0, 0) [ Modifiers.ApplyFire 2; Modifiers.DealDamage 1. ])
-           Item.do_damage_example
+           do_damage_example
            AttackMap.(empty |> add (0, 0) [ Modifiers.ApplyFire 2 ]);
          make_modify_test "Augment to above tile"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [])
-           Item.augment_to_above_example
+           augment_to_above_example
            AttackMap.(empty |> add (0, 0) []);
          make_modify_test "Augment to above tile with duplicates"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [] |> add (0, 2) [])
-           Item.augment_to_above_example
+           augment_to_above_example
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) []);
          make_modify_test "Augment to above tile and copy effects"
            AttackMap.(
              empty
              |> add (0, 0) [ Modifiers.DealDamage 1. ]
              |> add (0, 1) [ Modifiers.DealDamage 1. ])
-           Item.augment_to_above_example
+           augment_to_above_example
            AttackMap.(empty |> add (0, 0) [ Modifiers.DealDamage 1. ]);
          make_modify_test "Augment to above tile and add new effects"
            AttackMap.(
@@ -294,7 +303,7 @@ let attack_tests =
              |> add (0, 0) [ Modifiers.DealDamage 1. ]
              |> add (0, 1) [ Modifiers.DealDamage 1.; Modifiers.DealDamage 1. ]
              |> add (0, 2) [ Modifiers.DealDamage 1. ])
-           Item.augment_to_above_example
+           augment_to_above_example
            AttackMap.(
              empty
              |> add (0, 0) [ Modifiers.DealDamage 1. ]

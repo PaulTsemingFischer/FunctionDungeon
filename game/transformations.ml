@@ -28,13 +28,19 @@ let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
 
 exception Entity_not_found of GameEntity.t
 
+(** [is_killable_entity entity] is true if [entity] can take damage/die,
+    otherwise false. *)
+let is_killable_entity (entity : GameEntity.t) =
+  match entity.entity_type with
+  | Wall | Door _ | Rock | Fire | Water | Lava -> false
+  | _ -> true
+
 (**[apply_action_to state entity action] applies [action] to [entity], returning
    an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     (action : Modifiers.action) =
   let world = GameState.room state in
-  if GameWorld.query_id world entity.id = None then
-    raise (Entity_not_found entity)
+  if GameWorld.query_id world entity.id = None then state
   else
     match action with
     | DealDamage x -> (
@@ -62,7 +68,48 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
               in
 
               GameState.add_event updated_state (ChangeHealth (entity, -.x)))
-    | ApplyFire x -> state
+    | DealFireDamage -> (
+        match entity.entity_type with
+        | Wall | Door _ -> state
+        | _ ->
+            let x = base_fire_dmg in
+            let updated_entity =
+              GameEntity.update_stats entity
+                {
+                  health = entity.stats.health -. x;
+                  base_moves = entity.stats.base_moves;
+                  base_actions = entity.stats.base_actions;
+                }
+            in
+            let fire_state =
+              GameState.add_event state (TakeFireDamage entity)
+            in
+            if updated_entity.stats.health <= 0. then
+              let updated_state =
+                GameState.set_room fire_state
+                  (GameWorld.remove_entity world entity.id)
+              in
+              GameState.add_event updated_state (EntityDeath entity)
+            else
+              let updated_state =
+                GameState.set_room fire_state
+                  (GameWorld.put_entity world updated_entity)
+              in
+
+              GameState.add_event updated_state (ChangeHealth (entity, -.x)))
+    | ApplyFire x -> (
+        match entity.entity_type with
+        | Wall | Door _ -> state
+        | _ ->
+            let updated_entity =
+              GameEntity.update_statuses entity
+                (GameDefinitions.Fire x :: entity.statuses)
+            in
+            let updated_state =
+              GameState.set_room state
+                (GameWorld.put_entity world updated_entity)
+            in
+            GameState.add_event updated_state (ApplyFire (entity, x)))
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
@@ -123,7 +170,7 @@ let normal_room (player : GameEntity.t) generated_room =
 let generate_floor (player : GameEntity.t)
     (settings : Pgworld.room_gen_settings)
     (entity_action_runner :
-      GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t) =
+      (GameState.t -> GameWorld.e_t -> GameState.input -> GameState.t) list) =
   let player_room_id, proc_gen = Pgworld.generate_floor settings in
   print_endline ("Generating " ^ string_of_int (List.length proc_gen) ^ " rooms");
   let real_rooms = List.map (normal_room player) proc_gen in
@@ -132,7 +179,7 @@ let generate_floor (player : GameEntity.t)
   in
   print_endline "Floor generated";
   print_endline (Pgworld.string_of_genworld (List.nth proc_gen player_room_id));
-  GameState.create real_entities real_tiles [ entity_action_runner ] player
+  GameState.create real_entities real_tiles entity_action_runner player
     player_room_id
 
 (** [apply_attack_to_entity] applies a single list of actions onto [entity] and
@@ -141,7 +188,12 @@ let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
     (effects : action list) =
   match effects with
   | [] -> state
-  | h :: t -> apply_attack_to_entity (apply_action_to state entity h) entity t
+  | h :: t -> (
+      let updated_state = apply_action_to state entity h in
+      let world = GameState.room updated_state in
+      match GameWorld.query_id world entity.id with
+      | None -> updated_state
+      | Some e -> apply_attack_to_entity updated_state e t)
 
 (** [apply_attack_to state actions] applies all actions in [actions] to the game
     state [state]. Since attack coordinates are relative to player position, the
