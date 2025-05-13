@@ -148,6 +148,18 @@ let normal_room (player : GameEntity.t) generated_room =
           | Pgworld.(WeakMob Pigeon) ->
               ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
                 acc_tiles )
+          | Pgworld.(Item (ScaleAction i)) ->
+            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem (ScaleAction i)) pos),
+              acc_tiles )
+          | Pgworld.(Item (AddFire (f, i))) ->
+            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem (AddFire (f, i))) pos),
+              acc_tiles )
+          | Pgworld.(Item (AddDamage f)) ->
+            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem (AddDamage f)) pos),
+              acc_tiles )
+          | Pgworld.(Item AugmentToAdjacent) ->
+            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem AugmentToAdjacent) pos),
+              acc_tiles )
           | Pgworld.Player ->
               print_endline "Adding player";
               ( GameWorld.put_entity acc_world (GameEntity.set_pos player pos),
