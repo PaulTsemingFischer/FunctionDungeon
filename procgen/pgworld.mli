@@ -8,7 +8,11 @@ type weak_mob =
   | PlaceHolderWeakMob
   | Pigeon
 
-type strong_mob = PlaceHolderStrongMob
+type strong_mob =
+  | Jailer
+  | Thief
+  | Blinder
+
 type item = PlaceHolderItem
 
 type entity =
@@ -33,6 +37,7 @@ val default_entity : tile
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
   gen_strong_mob : unit -> strong_mob;
+  gen_item : unit -> item;
   weak_mob_rate : float;
   strong_mob_rate : float;
   item_rate : float;
