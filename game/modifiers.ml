@@ -17,6 +17,7 @@ type possible_move = vec2
 type possible_actions_modifier =
   | ScaleAction of int
   | AddFire of int
+  | AddDamage of float
   | AugmentToAdjacent
 
 (**[possible_action_function] is a function that changes a list of action
@@ -103,4 +104,5 @@ let string_of_modifier m =
   match m with
   | ScaleAction x -> "Scale tiles by " ^ string_of_int x
   | AddFire x -> "Apply fire for " ^ string_of_int x ^ " turns"
+  | AddDamage x -> "Deal " ^ string_of_float x ^ " extra damage"
   | AugmentToAdjacent -> "Augment to adjacent tiles"

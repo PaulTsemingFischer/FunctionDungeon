@@ -180,6 +180,11 @@ let activate_action_modifiers state (entity_type : entity_types)
                    (fun ((pos, action) : Modifiers.possible_action) ->
                      [ (pos, Modifiers.ApplyFire factor :: action) ])
                    possible_actions_acc
+             | AddDamage factor ->
+                 Item.modify_attack
+                   (fun ((pos, action) : Modifiers.possible_action) ->
+                     [ (pos, Modifiers.DealDamage factor :: action) ])
+                   possible_actions_acc
              | AugmentToAdjacent ->
                  Item.modify_attack
                    (fun ((pos, action) : Modifiers.possible_action) ->
