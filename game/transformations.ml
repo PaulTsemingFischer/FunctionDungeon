@@ -83,8 +83,9 @@ let normal_room (player : GameEntity.t) generated_room =
           | Pgworld.Wall ->
               ( GameWorld.put_entity acc_world (create_default_at Wall pos),
                 acc_tiles )
-          | Pgworld.Door i ->
-              ( GameWorld.put_entity acc_world (create_default_at (Door i) pos),
+          | Pgworld.Door (i, spawn_loc) ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (Door (i, spawn_loc)) pos),
                 acc_tiles )
           | Pgworld.Rock ->
               ( GameWorld.put_entity acc_world (create_default_at Rock pos),

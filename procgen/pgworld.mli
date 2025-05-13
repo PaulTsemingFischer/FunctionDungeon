@@ -17,7 +17,7 @@ type entity =
   | Lava
   | Fire
   | Wall
-  | Door of int
+  | Door of int * Engine.Utils.vec2
   | Rock
   | WeakMob of weak_mob
   | StrongMob of strong_mob
@@ -59,9 +59,9 @@ val generate_room : room_gen_settings -> t
 (**[generate_room settings] is a randomly generated room with the provided
    settings*)
 
-val generate_floor : room_gen_settings -> int * (t list)
-(**[generate_floor settings] is a pair of the room id with the player and a randomly generated list of rooms with the
-   provided settings*)
+val generate_floor : room_gen_settings -> int * t list
+(**[generate_floor settings] is a pair of the room id with the player and a
+   randomly generated list of rooms with the provided settings*)
 
 val to_tile_list : t -> (tile * Engine.Utils.vec2) list
 (**[to_tile_list room] collects all tiles and their coords into a list*)

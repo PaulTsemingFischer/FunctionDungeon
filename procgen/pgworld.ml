@@ -20,7 +20,7 @@ type entity =
   | Lava
   | Fire
   | Wall
-  | Door of int
+  | Door of int * vec2
   | Rock
   | WeakMob of weak_mob
   | StrongMob of strong_mob
@@ -248,17 +248,16 @@ let random_pigeon room settings =
       else spot_data)
     room
 
-(** [generate_door room cardinal_dir linking_room] is the room [room] with a
-    door added on [cardinal_dir] that links to [linking_room] *)
-let rec generate_door room cardinal_dir linking_room =
-  let new_room = copy_room room in
+(** [find_door room cardinal_dir] is the vec2 of the door that should be added
+    to [room] *)
+let find_door room cardinal_dir =
   let ground_tiles =
     room_tiles room
     |> List.filter (function
          | _, (Ground, _) -> true
          | _ -> false)
   in
-  let find_extreme selector comparator lst =
+  let find_extreme selector comparator lst : vec2 =
     match lst with
     | [] -> failwith "No ground tiles"
     | hd :: tl ->
@@ -275,8 +274,7 @@ let rec generate_door room cardinal_dir linking_room =
     | S -> find_extreme snd ( > ) tile_coords |> fun x -> add_vec2 x (0, 1)
     | W -> find_extreme fst ( < ) tile_coords |> fun x -> sub_vec2 x (1, 0)
   in
-  set_at_vec new_room door_coord (Void, Door linking_room);
-  new_room
+  door_coord
 
 (** [transpose matrix] is the transposed matrix *)
 let transpose matrix =
@@ -439,15 +437,33 @@ let generate_floor (settings : room_gen_settings) =
             cardinal_neighbors_with_dir vec
             |> List.filter_map (fun (v, d) ->
                    match get_at_vec_opt indices v with
-                   | None -> None
-                   | Some None -> None
-                   | Some (Some index) -> Some (index, d))
+                   | None -> None (* Out of bounds *)
+                   | Some None -> None (* Empty *)
+                   | Some (Some index) -> Some (index, d, v))
           in
           let new_room =
             List.fold_left
-              (fun room_acc (index, dir) ->
-                let return = generate_door room_acc dir index in
-                return)
+              (fun room_acc (index, dir, v) ->
+                let door_coord = find_door room_acc dir in
+                let room_copy = copy_room room_acc in
+                let linked_room =
+                  match get_at_vec floor v with
+                  | None -> failwith "Linked room expected"
+                  | Some room -> room
+                in
+                let linked_room_door_coord =
+                  find_door linked_room (opposite dir)
+                in
+                let linked_room_spawn_coord =
+                  match dir with
+                  | N -> sub_vec2 linked_room_door_coord (0, 1)
+                  | E -> add_vec2 linked_room_door_coord (1, 0)
+                  | S -> add_vec2 linked_room_door_coord (0, 1)
+                  | W -> sub_vec2 linked_room_door_coord (1, 0)
+                in
+                set_at_vec room_copy door_coord
+                  (Void, Door (index, linked_room_spawn_coord));
+                room_copy)
               room neighbors
           in
           rooms := new_room :: !rooms
