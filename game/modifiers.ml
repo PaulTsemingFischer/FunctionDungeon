@@ -30,19 +30,56 @@ type possible_moves_modifier =
 (**[base_cross_moves] is a list containing the most basic movement pattern*)
 let base_cross_moves : possible_move list = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
 
+let rec range_cross_moves (r : int) : possible_move list =
+  match r with
+  | 0 -> []
+  | n1 ->
+      let rec n2_loop n2 acc =
+        if n2 < 0 then acc
+        else
+          let new_moves = [ (n1, n2); (-n1, n2); (n1, -n2); (-n1, -n2) ] in
+          n2_loop (n2 - 1) (new_moves @ acc)
+      in
+      let moves_for_n1 = n2_loop n1 [] in
+      moves_for_n1 @ range_cross_moves (n1 - 1)
+
 (**[base_cross_actions] is a list containing the most basic acting pattern*)
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves
 
+(** [range_cross_actions] is a list containing the acting patterns for an enemy with fixed damage 1 but variable range *)
+let range_cross_actions r : possible_action list =
+  List.map (fun target -> (target, [ DealDamage 1. ])) (range_cross_moves r)
+
+(** [var_damage_cross_actions] is a list containing the acting patterns for an enemy with fixed range 1 (base moves) but variable damage *)
+let var_damage_cross_actions d : possible_action list =
+  List.map (fun target -> (target, [ DealDamage d ])) base_cross_moves
+
+(** [var_range_damage_cross_actions] is a list containing the actions for an enemy with variable range and damage *)
+let var_range_damage_cross_actions r d : possible_action list =
+  List.map (fun target -> (target, [ DealDamage d ])) (range_cross_moves r)
+
+(** [enemy_attack_type] is the effect on the player when a certain enemy type attacks *)
 let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
   | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
   | Thief -> StealAttack
   | Blinder t -> exit 0 (* Dummy for now *)
   | Fog_Cloud (r, t) -> exit 0 (* Dummy for now *)
+  | Variable_Range r -> DealDamage 1.
+  | Variable_Damage d -> DealDamage d
+  | Variable_Range_and_Damage (r, d) -> DealDamage d
 
-let enemy_cross_actions e : possible_action list =
-  List.map (fun target -> (target, [ enemy_attack_type e ])) base_cross_moves
+(** [enemy_cross_actions] is a list containing the acting patterns for a certain enemy type e *)
+let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
+  match e with
+  | Variable_Range r -> range_cross_actions r
+  | Variable_Damage d -> var_damage_cross_actions d
+  | Variable_Range_and_Damage (r, d) -> var_range_damage_cross_actions r d
+  | _ ->
+      List.map
+        (fun target -> (target, [ enemy_attack_type e ]))
+        base_cross_moves
 
 let string_of_modifier m =
   match m with

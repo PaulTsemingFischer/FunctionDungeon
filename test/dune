@@ -6,3 +6,15 @@
  (name game_tests)
  (libraries ounit2 game))
 
+(test
+ (name obstacle_tests)
+ (libraries ounit2 engine game))
+
+ (test
+ (name attack_tests)
+ (libraries ounit2 engine game))
+
+  (test
+ (name enemy_tests)
+ (libraries ounit2 engine game))
+
