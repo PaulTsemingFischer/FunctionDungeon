@@ -11,7 +11,7 @@ let generate_starting_state () =
   let player = create_default_at Player (0, 0) in
   let generated_state =
     Transformations.generate_floor player Pgworld.default_room_gen_settings
-      Transitions.entity_action_runner
+      [ Transitions.entity_status_runner; Transitions.entity_action_runner ]
   in
   GameState.add_moves_modifier generated_state (ScaleMove 1) Pigeon
   |> GameState.query_update_player

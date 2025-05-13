@@ -21,6 +21,7 @@ type entity_types =
   | HorizontalBouncer of bool
   | Enemy of Enemytype.enemy
   | Obstacle of Obstacles.obstacle
+  | ModifierItem of Modifiers.possible_actions_modifier
 
 type status_effects = Fire of int
 
@@ -37,6 +38,7 @@ let string_of_type e_type =
   | HorizontalBouncer _ -> "h-bouncer"
   | Enemy e -> Enemytype.string_of_enemy e
   | Obstacle o -> Obstacles.string_of_obstacle o
+  | ModifierItem m -> Modifiers.string_of_modifier m
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -116,7 +118,11 @@ let create_default_at e_type pos : GameEntity.t =
     | Obstacle o ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          (Obstacle o) [] pos)
+          (Obstacle o) [] pos
+    | ModifierItem m ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          (ModifierItem m) [] pos)
 
 (**[print_entities entity_list] prints all entities in given entity_list*)
 let print_entities entity_list =
@@ -161,3 +167,6 @@ let print_tiles tile_list =
   List.iter (fun x -> print_endline (TileEntity.string_of_entity x)) tile_list
 
 module GameTiles = World.Make (TileEntity)
+
+(* Represents damage-per-turn done by fire status effect *)
+let base_fire_dmg = 0.5
