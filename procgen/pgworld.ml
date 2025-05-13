@@ -11,8 +11,15 @@ type weak_mob =
   | PlaceHolderWeakMob
   | Pigeon
 
-type strong_mob = PlaceHolderStrongMob
+type strong_mob =
+  | Jailer
+  | Thief
+  | Blinder
+
+
 type item = PlaceHolderItem
+
+
 
 type entity =
   | Empty
@@ -27,6 +34,10 @@ type entity =
   | Item of item
   | Player
 
+  let weak_mobs = [Pigeon]
+  let strong_mobs = [Jailer; Thief; Blinder]
+let items = [PlaceHolderItem]
+
 type tile = ground * entity
 type t = tile array array
 type world = t list
@@ -36,6 +47,7 @@ let default_entity : tile = (Void, Empty)
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
   gen_strong_mob : unit -> strong_mob;
+  gen_item : unit -> item;
   weak_mob_rate : float;
   strong_mob_rate : float;
   item_rate : float;
@@ -54,8 +66,9 @@ type room_gen_settings = {
 
 let default_room_gen_settings =
   {
-    gen_weak_mob = (fun () -> PlaceHolderWeakMob);
-    gen_strong_mob = (fun () -> PlaceHolderStrongMob);
+    gen_weak_mob = (fun () -> random_element weak_mobs);
+    gen_strong_mob = (fun () -> random_element strong_mobs);
+    gen_item = (fun () -> random_element items);
     weak_mob_rate = 0.02;
     strong_mob_rate = 0.0;
     item_rate = 0.0;
@@ -238,15 +251,55 @@ let remove_redundant_walls =
       then (Void, Empty)
       else get_at_vec room spot)
 
-let random_pigeon room settings =
-  room_map
+(** [weak_mob_count room locs] is the number of weak mobs in [room] on the given squares
+    [locs].*)
+let weak_mob_count room locs =
+  locs
+  |> List.filter_map (fun vec ->
+         get_at_vec_opt room vec |> fun x ->
+         match x with
+         | Some (_, WeakMob _) -> Some ()
+         | _ -> None)
+  |> List.length
+
+  (** [strong_mob_count room locs] is the number of strong mobs in [room] on the given squares
+    [locs].*)
+let strong_mob_count room locs =
+  locs
+  |> List.filter_map (fun vec ->
+         get_at_vec_opt room vec |> fun x ->
+         match x with
+         | Some (_, StrongMob _) -> Some ()
+         | _ -> None)
+  |> List.length
+
+  (**[gen_items_and_mobs room settings] is the room with one round of item and mob generation run [runs] times on all tiles. *)
+let rec gen_items_and_mobs room runs settings =
+  let new_room = room_map
     (fun room spot ->
       let spot_data = get_at_vec room spot in
-      if
-        spot_data = (Ground, Empty) && Random.float 1.0 < settings.weak_mob_rate
-      then (Ground, WeakMob Pigeon)
-      else spot_data)
+      if spot_data <> (Ground, Empty) then spot_data
+      else
+        let p_neighbors = principal_neighbors spot in
+        let p_neighbors_2 = principal_neighbors_gen2 spot in
+        let n_mob_gen1 = weak_mob_count room p_neighbors + 3 * strong_mob_count room p_neighbors |> float_of_int in
+        let n_weak_gen2 = weak_mob_count room p_neighbors_2 |> float_of_int in
+        let n__strong_gen2 = strong_mob_count room p_neighbors_2 |> float_of_int in
+        let weak_mob_r = settings.weak_mob_rate *. (0.5 ** n_mob_gen1) *. (3.0 ** n_weak_gen2) *. (0.5 ** n__strong_gen2) in
+        let strong_mob_r = settings.strong_mob_rate *. (0.0 ** n_mob_gen1) *. (0.9 ** n_weak_gen2) *. (0.0 ** n__strong_gen2) in
+        let item_r = settings.item_rate *. (2.0 ** n_mob_gen1) *. (1.2 ** n_weak_gen2) *. (5.0 ** n__strong_gen2) in
+        let random = Random.float 1.0 in
+        let choosen_entity = if random < item_r then Item (settings.gen_item ())
+          else if random < (item_r +. strong_mob_r) then StrongMob (settings.gen_strong_mob ())
+          else if random < (item_r +. strong_mob_r +. weak_mob_r) then WeakMob (settings.gen_weak_mob ())
+          else Empty 
+        in
+        (Ground, choosen_entity))
     room
+      in
+      match runs with
+      | 1 -> new_room
+      | i -> gen_items_and_mobs new_room (runs - 1) settings
 
 (** [find_door room cardinal_dir] is the vec2 of the door that should be added
     to [room] *)
@@ -358,22 +411,11 @@ and generate_room (settings : room_gen_settings) : t =
     ("Generating room with width: " ^ string_of_int w ^ " and height: "
    ^ string_of_int h);
   let room = noise_room w h settings.noise_room_wall_chance in
-  print_string "\t - noise";
-  flush stdout;
   let room = cave_merge room settings in
-  print_string ", caves";
-  flush stdout;
   let room = liquify_islands room settings in
-  print_string ", islands";
-  flush stdout;
   let room = border_wall room in
-  print_string ", border";
-  flush stdout;
   let room = remove_redundant_walls room in
-  print_string ", redundant walls";
-  flush stdout;
-  let room = random_pigeon room settings in
-  print_string ", pigeons";
+  let room = gen_items_and_mobs room 5 settings in
   print_endline "Room generated";
   transpose room
 
