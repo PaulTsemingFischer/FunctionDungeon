@@ -21,6 +21,34 @@ let apply_move (state : GameState.t) (entity : GameEntity.t)
     in
     GameState.add_event updated_state (Move (entity, entity.pos, target_pos))
 
+(** [apply_pickup_move state entity possible_move] picks up the item at the
+    target position, adding it to the list of action modifiers for [entity], and
+    then calls [apply_move] with the updated state. If the target position has
+    no item, behaves identically to [apply_move state entity possible_move]. *)
+let apply_pickup_move (state : GameState.t) (entity : GameEntity.t)
+    (move : possible_move) =
+  let target_pos = add_vec2 entity.pos move in
+  let world = GameState.room state in
+  match GameWorld.query_pos world target_pos with
+  | Some e -> (
+      match e.entity_type with
+      | ModifierItem m ->
+          let item_removed_state =
+            GameState.set_room state
+              (GameWorld.remove_entity (GameState.room state) e.id)
+          in
+          let modifier_added_state =
+            GameState.add_actions_modifier item_removed_state m
+              entity.entity_type
+          in
+          let new_state =
+            GameState.add_event modifier_added_state
+              (PickUpModifier (entity, m))
+          in
+          apply_move new_state entity move
+      | _ -> apply_move state entity move)
+  | _ -> apply_move state entity move
+
 (**[say priority state entity message] makes an entity say something (cosmetic
    effect for events)*)
 let say (state : GameState.t) (entity : GameEntity.t) (message : string) =

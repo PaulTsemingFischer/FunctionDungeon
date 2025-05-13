@@ -20,6 +20,7 @@ type event =
       * Modifiers.possible_action list
   | ActivateMoveModifier of
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
+  | PickUpModifier of GameEntity.t * Modifiers.possible_actions_modifier
   | EntityDeath of GameEntity.t
 
 let string_of_event event =
@@ -48,6 +49,10 @@ let string_of_event event =
   | TakeFireDamage e ->
       Printf.sprintf "%s took damage from fire status effect"
         (string_of_type e.entity_type)
+  | PickUpModifier (e, m) ->
+      Printf.sprintf "%s picked up attack modifier: %s"
+        (string_of_type e.entity_type)
+        (Modifiers.string_of_modifier m)
   | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
 
 type t = {
