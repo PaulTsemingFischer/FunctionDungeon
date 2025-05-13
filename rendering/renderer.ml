@@ -8,6 +8,18 @@ type renderable = {
   rendered_pos : vec2f;
 }
 
+(**[overlay] represents various graphical effects like text animations, damage
+   indicators, etc. [TextRise (target, current, message)] is a rising text
+   overlay that is removed after [target] frames*)
+type overlay_type = TextRise of string
+
+type overlay = {
+  duration : int;
+  current : int;
+  pos : vec2f;
+  overlay_type : overlay_type;
+}
+
 module ComparableRenderable = struct
   type t = renderable
 
@@ -19,6 +31,7 @@ module RenderableSet = Set.Make (ComparableRenderable)
 
 type t = {
   renderables : RenderableSet.t;
+  overlays : overlay list;
   source_state : GameState.t;
   camera : Raylib.Camera2D.t;
   camera_target : Vector2.t;
@@ -90,7 +103,7 @@ let draw_ui (renderer : t) =
         | [] -> ()
         | h :: t -> (
             match h.entity_type with
-            | Wall | Door -> render_n_entities_aux t n current
+            | Wall | Door _ -> render_n_entities_aux t n current
             | x ->
                 let entry_height =
                   get_screen_height ()
@@ -109,7 +122,7 @@ let draw_ui (renderer : t) =
     render_n_entities_aux entities 5 0
   in
   render_n_entities
-    (GameWorld.all_entities (GameState.get_world renderer.source_state))
+    (GameWorld.all_entities (GameState.room renderer.source_state))
     3
 
 (* let render_n_events (event_list : (int * event) list) (n : int) =
@@ -144,15 +157,23 @@ let compute_camera_target ((x, y) : vec2) =
     (Vector2.create (float_of_int x) (float_of_int (-y + 3)))
     tile_scaling_factor
 
+(**[get_latest_events state] returns all events that occurred in the last turn*)
+let get_latest_events (state : GameState.t) =
+  List.filter
+    (fun (turn, _) -> turn = GameState.get_turn state - 1)
+    (GameState.get_events state)
+
+(**[update_render_state renderer state] updates the renderer to render the given
+   [state]*)
 let update_render_state (renderer : t) (entity_state : GameState.t) =
   let all_entitities =
-    GameWorld.all_entities (GameState.get_world entity_state)
+    GameWorld.all_entities (GameState.room entity_state)
   in
   let filtered_renderables =
     RenderableSet.filter
       (fun renderable ->
         GameWorld.mem_id
-          (GameState.get_world entity_state)
+          (GameState.room entity_state)
           renderable.source_entity.id)
       renderer.renderables
   in
@@ -190,6 +211,21 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
     camera = renderer.camera;
     camera_target =
       compute_camera_target (GameState.get_player entity_state).pos;
+    overlays =
+      renderer.overlays
+      @ List.filter_map
+          (fun (_, event) ->
+            match event with
+            | GameState.ChangeHealth (e, amt) ->
+                Some
+                  {
+                    duration = 30;
+                    current = 0;
+                    pos = vec2f_of_vec2 e.pos;
+                    overlay_type = TextRise (string_of_float amt);
+                  }
+            | _ -> None)
+          (get_latest_events renderer.source_state);
   }
 
 let tick (renderer : t) =
@@ -210,6 +246,17 @@ let tick (renderer : t) =
     source_state = renderer.source_state;
     camera = renderer.camera;
     camera_target = renderer.camera_target;
+    overlays =
+      List.map
+        (fun ovly : overlay ->
+          {
+            duration = ovly.duration;
+            current = ovly.current + 1;
+            pos = ovly.pos;
+            overlay_type = ovly.overlay_type;
+          })
+        renderer.overlays
+      |> List.filter (fun ovly -> ovly.current <= ovly.duration);
   }
 
 let render_floor (renderer : t) =
@@ -280,7 +327,7 @@ let render (renderer : t) =
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
                Color.black
-         | Door ->
+         | Door _ ->
              Raylib.draw_text ">"
                (fst screen_space_position)
                (snd screen_space_position)
@@ -376,6 +423,36 @@ let render (renderer : t) =
                (int_of_float tile_scaling_factor)
                Color.black);
 
+  List.iter
+    (fun ovly ->
+      match ovly.overlay_type with
+      | TextRise msg ->
+          let progress =
+            float_of_int ovly.current /. float_of_int ovly.duration
+          in
+          let eased_progress = 1. -. ((1. -. progress) *. (1. -. progress)) in
+          let rise_pos =
+            lerp_vec ovly.pos (add_vec2f ovly.pos (0.0, 2.)) eased_progress
+          in
+          let screen_space_position =
+            ( float_of_int (Raylib.get_screen_width () / 2),
+              float_of_int (Raylib.get_screen_height () / 2) )
+            |> add_vec2f
+                 (mul_vec2f
+                    (scale_vec2f rise_pos tile_scaling_factor)
+                    (1.0, -1.0))
+            |> add_vec2f
+                 (neg_vec2f
+                    (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
+            |> vec2_of_vec2f
+          in
+          Raylib.draw_text msg
+            (fst screen_space_position)
+            (snd screen_space_position)
+            ui_font_size
+            (Raylib.Color.create 255 0 0
+               (int_of_float (256. *. (1.0 -. eased_progress)))))
+    renderer.overlays;
   end_mode_2d ();
   draw_ui renderer;
   end_drawing ()
@@ -423,7 +500,7 @@ let make_from_state (entity_state : GameState.t) =
   let source =
     {
       renderables =
-        GameWorld.all_entities (GameState.get_world entity_state)
+        GameWorld.all_entities (GameState.room entity_state)
         |> List.map (fun (entity : GameEntity.t) ->
                {
                  source_entity = entity;
@@ -434,6 +511,7 @@ let make_from_state (entity_state : GameState.t) =
       camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
       camera_target =
         compute_camera_target (GameState.get_player entity_state).pos;
+      overlays = [];
     }
   in
   update_render_state source entity_state
