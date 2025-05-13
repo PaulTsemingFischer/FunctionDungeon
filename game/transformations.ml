@@ -102,6 +102,7 @@ let normal_room (player : GameEntity.t) generated_room =
               ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
                 acc_tiles )
           | Pgworld.Player ->
+              print_endline "Adding player";
               ( GameWorld.put_entity acc_world (GameEntity.set_pos player pos),
                 acc_tiles )
           | _ -> (acc_world, acc_tiles)
