@@ -89,9 +89,8 @@ let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
 
 let string_of_modifier m =
   match m with
-  | ScaleAction x -> "Scale tiles by " ^ string_of_int x
+  | ScaleAction x -> Printf.sprintf "buff: scale attack range by %d" x
   | AddFire (x, y) ->
-      "Apply fire that does " ^ string_of_float x ^ " damage for "
-      ^ string_of_int y ^ " turns"
-  | AddDamage x -> "Deal " ^ string_of_float x ^ " extra damage"
-  | AugmentToAdjacent -> "Augment to adjacent tiles"
+      Printf.sprintf "buff: apply %0.2f fire damage for %d turns" x y
+  | AddDamage x -> Printf.sprintf "buff: deal %0.2f extra damage" x
+  | AugmentToAdjacent -> "buff: increase attack area"
