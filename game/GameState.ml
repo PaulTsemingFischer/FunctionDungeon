@@ -88,11 +88,13 @@ let print_events state =
       print_endline (string_of_int turn ^ "\t" ^ string_of_event event))
     (List.rev state.events)
 
-let print_latest_event state =
-  if List.length state.events > 0 then
-    let turn, event = List.hd state.events in
-    print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
-  else print_endline "No events"
+let print_latest_events (state : t) =
+  List.iter
+    (fun ((turn, event) : int * event) : unit ->
+      if turn = state.turn - 1 then
+        print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
+      else ())
+    state.events
 
 let query_update_player state =
   let updated_player =
@@ -122,7 +124,7 @@ let step (state : t) (input : input) =
           (GameWorld.all_entities (room state_ext)))
       state state.transitions
   in
-  print_latest_event state;
+  print_latest_events state;
   let updated_state = { new_state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 
