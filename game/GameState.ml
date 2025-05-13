@@ -88,7 +88,7 @@ let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
     events = [];
     turn = 0;
     player;
-    modifiers = [ ("player", ([ AddFire 3 ], [])) ];
+    modifiers = [];
   }
 
 let print_events state =
@@ -96,14 +96,6 @@ let print_events state =
     (fun ((turn, event) : int * event) ->
       print_endline (string_of_int turn ^ "\t" ^ string_of_event event))
     (List.rev state.events)
-
-let print_latest_events (state : t) =
-  List.iter
-    (fun ((turn, event) : int * event) : unit ->
-      if turn = state.turn - 1 then
-        print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
-      else ())
-    state.events
 
 let print_latest_events (state : t) =
   List.iter
