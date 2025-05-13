@@ -28,7 +28,7 @@ let modify_attack func atk =
 let compare_effects a b =
   match (a, b) with
   | DealDamage a, DealDamage b -> a = b
-  | ApplyFire a, ApplyFire b -> a = b
+  | ApplyFire (a, a2), ApplyFire (b, b2) -> a = b && a2 = b2
   | _, _ -> false
 
 let rec effects_to_string lst =
@@ -37,8 +37,9 @@ let rec effects_to_string lst =
   | h :: t ->
       (match h with
       | DealDamage x -> "Damage " ^ string_of_float x
-      | ApplyFire x -> "Apply fire " ^ string_of_int x
-      | DealFireDamage -> "Deal fire damage"
+      | ApplyFire (x, y) ->
+          "Apply fire " ^ string_of_float x ^ ", " ^ string_of_int y
+      | DealFireDamage x -> "Deal fire damage " ^ string_of_float x
       | StealAttack -> "Steal"
       | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
       ^ "; " ^ effects_to_string t

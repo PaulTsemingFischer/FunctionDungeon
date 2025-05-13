@@ -38,7 +38,8 @@ let update_obstacle_age obstacle =
   | Fence t -> Fence (t - 1)
   | Spreading_Fire (c, r, g) -> raise WrongObsType
 
-(** [grow_fire] adds more fire obstacles to expand the greater fire's radius by g *)
+(** [grow_fire] adds more fire obstacles to expand the greater fire's radius by
+    g *)
 let grow_fire obstacle =
   match obstacle with
   | Fence t -> raise WrongObsType

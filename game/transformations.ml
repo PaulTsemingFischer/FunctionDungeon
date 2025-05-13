@@ -68,11 +68,10 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
               in
 
               GameState.add_event updated_state (ChangeHealth (entity, -.x)))
-    | DealFireDamage -> (
+    | DealFireDamage x -> (
         match entity.entity_type with
         | Wall | Door _ -> state
         | _ ->
-            let x = base_fire_dmg in
             let updated_entity =
               GameEntity.update_stats entity
                 {
@@ -97,19 +96,19 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
               in
 
               GameState.add_event updated_state (ChangeHealth (entity, -.x)))
-    | ApplyFire x -> (
+    | ApplyFire (x, y) -> (
         match entity.entity_type with
         | Wall | Door _ -> state
         | _ ->
             let updated_entity =
               GameEntity.update_statuses entity
-                (GameDefinitions.Fire x :: entity.statuses)
+                (GameDefinitions.Fire (x, y) :: entity.statuses)
             in
             let updated_state =
               GameState.set_room state
                 (GameWorld.put_entity world updated_entity)
             in
-            GameState.add_event updated_state (ApplyFire (entity, x)))
+            GameState.add_event updated_state (ApplyFire (entity, (x, y))))
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
