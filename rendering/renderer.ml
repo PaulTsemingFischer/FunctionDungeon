@@ -425,6 +425,7 @@ let render (renderer : t) =
                (match m with
                | ScaleAction _ -> "S"
                | AddFire _ -> "F"
+               | AddDamage _ -> "D"
                | AugmentToAdjacent -> "A")
                (fst screen_space_position)
                (snd screen_space_position)

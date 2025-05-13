@@ -48,19 +48,23 @@ let rec range_cross_moves (r : int) : possible_move list =
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves
 
-(** [range_cross_actions] is a list containing the acting patterns for an enemy with fixed damage 1 but variable range *)
+(** [range_cross_actions] is a list containing the acting patterns for an enemy
+    with fixed damage 1 but variable range *)
 let range_cross_actions r : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) (range_cross_moves r)
 
-(** [var_damage_cross_actions] is a list containing the acting patterns for an enemy with fixed range 1 (base moves) but variable damage *)
+(** [var_damage_cross_actions] is a list containing the acting patterns for an
+    enemy with fixed range 1 (base moves) but variable damage *)
 let var_damage_cross_actions d : possible_action list =
   List.map (fun target -> (target, [ DealDamage d ])) base_cross_moves
 
-(** [var_range_damage_cross_actions] is a list containing the actions for an enemy with variable range and damage *)
+(** [var_range_damage_cross_actions] is a list containing the actions for an
+    enemy with variable range and damage *)
 let var_range_damage_cross_actions r d : possible_action list =
   List.map (fun target -> (target, [ DealDamage d ])) (range_cross_moves r)
 
-(** [enemy_attack_type] is the effect on the player when a certain enemy type attacks *)
+(** [enemy_attack_type] is the effect on the player when a certain enemy type
+    attacks *)
 let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
   | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
@@ -71,7 +75,8 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
   | Variable_Damage d -> DealDamage d
   | Variable_Range_and_Damage (r, d) -> DealDamage d
 
-(** [enemy_cross_actions] is a list containing the acting patterns for a certain enemy type e *)
+(** [enemy_cross_actions] is a list containing the acting patterns for a certain
+    enemy type e *)
 let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
   match e with
   | Variable_Range r -> range_cross_actions r
@@ -81,3 +86,12 @@ let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
       List.map
         (fun target -> (target, [ enemy_attack_type e ]))
         base_cross_moves
+
+let string_of_modifier m =
+  match m with
+  | ScaleAction x -> "Scale tiles by " ^ string_of_int x
+  | AddFire (x, y) ->
+      "Apply fire that does " ^ string_of_float x ^ " damage for "
+      ^ string_of_int y ^ " turns"
+  | AddDamage x -> "Deal " ^ string_of_float x ^ " extra damage"
+  | AugmentToAdjacent -> "Augment to adjacent tiles"
