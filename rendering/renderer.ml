@@ -166,9 +166,7 @@ let get_latest_events (state : GameState.t) =
 (**[update_render_state renderer state] updates the renderer to render the given
    [state]*)
 let update_render_state (renderer : t) (entity_state : GameState.t) =
-  let all_entitities =
-    GameWorld.all_entities (GameState.room entity_state)
-  in
+  let all_entitities = GameWorld.all_entities (GameState.room entity_state) in
   let filtered_renderables =
     RenderableSet.filter
       (fun renderable ->
@@ -427,6 +425,7 @@ let render (renderer : t) =
                (match m with
                | ScaleAction _ -> "S"
                | AddFire _ -> "F"
+               | AddDamage _ -> "D"
                | AugmentToAdjacent -> "A")
                (fst screen_space_position)
                (snd screen_space_position)

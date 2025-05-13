@@ -19,9 +19,10 @@ let tests =
          make_modify_test "Add 1 damage on top of existing effects"
            AttackMap.(
              empty
-             |> add (0, 0) [ Modifiers.ApplyFire 3; Modifiers.DealDamage 1.0 ])
+             |> add (0, 0)
+                  [ Modifiers.ApplyFire (1., 3); Modifiers.DealDamage 1.0 ])
            (fun tile -> [ (fst tile, [ Modifiers.DealDamage 1.0 ]) ])
-           AttackMap.(empty |> add (0, 0) [ Modifiers.ApplyFire 3 ]);
+           AttackMap.(empty |> add (0, 0) [ Modifiers.ApplyFire (1., 3) ]);
          make_modify_test "Augment to above tile"
            AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [])
            (fun tile -> [ tile; (Utils.add_vec2 (fst tile) (0, 1), snd tile) ])

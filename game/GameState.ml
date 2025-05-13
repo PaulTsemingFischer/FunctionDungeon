@@ -12,7 +12,7 @@ type event =
   | Move of GameEntity.t * vec2 * vec2
   | Say of GameEntity.t * string
   | ChangeHealth of GameEntity.t * float
-  | ApplyFire of GameEntity.t * int
+  | ApplyFire of GameEntity.t * (float * int)
   | TakeFireDamage of GameEntity.t
   | ActivateActionModifier of
       GameEntity.t
@@ -40,10 +40,11 @@ let string_of_event event =
       Printf.sprintf "%s's health changed by %.2f"
         (string_of_type e.entity_type)
         amt
-  | ApplyFire (e, amt) ->
-      Printf.sprintf "%s received fire status effect for %d turns"
+  | ApplyFire (e, (amt, turns)) ->
+      Printf.sprintf
+        "%s received fire status effect that does %.2f damage for %d turns"
         (string_of_type e.entity_type)
-        amt
+        amt turns
   | TakeFireDamage e ->
       Printf.sprintf "%s took damage from fire status effect"
         (string_of_type e.entity_type)
@@ -175,10 +176,15 @@ let activate_action_modifiers state (entity_type : entity_types)
                    (fun ((pos, action) : Modifiers.possible_action) ->
                      [ (scale_vec2 pos factor, action) ])
                    possible_actions_acc
-             | AddFire factor ->
+             | AddFire (factor, turns) ->
                  Item.modify_attack
                    (fun ((pos, action) : Modifiers.possible_action) ->
-                     [ (pos, Modifiers.ApplyFire factor :: action) ])
+                     [ (pos, Modifiers.ApplyFire (factor, turns) :: action) ])
+                   possible_actions_acc
+             | AddDamage factor ->
+                 Item.modify_attack
+                   (fun ((pos, action) : Modifiers.possible_action) ->
+                     [ (pos, Modifiers.DealDamage factor :: action) ])
                    possible_actions_acc
              | AugmentToAdjacent ->
                  Item.modify_attack

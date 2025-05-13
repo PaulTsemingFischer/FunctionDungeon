@@ -8,14 +8,14 @@ let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
     List.filter
       (fun status ->
         match status with
-        | Fire x -> x > 0)
+        | Fire (_, x) -> x > 0)
       entity.statuses
   in
   let decremented_statuses =
     List.map
       (fun status ->
         match status with
-        | Fire x -> Fire (x - 1))
+        | Fire (dmg, x) -> Fire (dmg, x - 1))
       filtered_statuses
   in
   let updated_entity = GameEntity.update_statuses entity decremented_statuses in
@@ -26,9 +26,9 @@ let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
   List.fold_left
     (fun state_acc status ->
       match status with
-      | Fire _ ->
+      | Fire (dmg, _) ->
           Transformations.apply_action_to state_acc updated_entity
-            DealFireDamage)
+            (DealFireDamage dmg))
     new_state decremented_statuses
 
 (**[entity_action_runner state entity input] executes the actions associated

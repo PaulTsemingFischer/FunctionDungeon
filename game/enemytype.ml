@@ -27,3 +27,16 @@ let string_of_enemy (e : enemy) =
   | Variable_Range r -> "variable range enemy"
   | Variable_Damage d -> "variable damage enemy"
   | Variable_Range_and_Damage (r, d) -> "variable range and damage enemy"
+
+let jailer_small = Jailer (5, 3)
+let jailer_medium = Jailer (10, 5)
+let jailer_large = Jailer (15, 7)
+
+let double_range_enemy = Variable_Range 2
+let long_range_enemy = Variable_Range 5
+
+let double_damage_enemy = Variable_Damage 2.
+let super_damage_enemy = Variable_Damage 5.
+
+let slightly_extra_powerful_enemy = Variable_Range_and_Damage (2,2.)
+let super_powerful_enemy = Variable_Range_and_Damage (5, 3.)
