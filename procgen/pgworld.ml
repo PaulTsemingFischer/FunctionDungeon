@@ -457,4 +457,4 @@ let generate_floor (settings : room_gen_settings) =
   let player_room_id = Random.int (List.length !rooms) in
   rooms :=
     List.mapi (fun i x -> if i = player_room_id then add_player x else x) !rooms;
-  (0, !rooms)
+  (player_room_id, !rooms)
