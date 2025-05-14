@@ -16,10 +16,7 @@ type strong_mob =
   | Thief
   | Blinder
 
-
 type item = PlaceHolderItem
-
-
 
 type entity =
   | Empty
@@ -34,9 +31,9 @@ type entity =
   | Item of item
   | Player
 
-  let weak_mobs = [Pigeon]
-  let strong_mobs = [Jailer; Thief; Blinder]
-let items = [PlaceHolderItem]
+let weak_mobs = [ Pigeon ]
+let strong_mobs = [ Jailer; Thief; Blinder ]
+let items = [ PlaceHolderItem ]
 
 type tile = ground * entity
 type t = tile array array
@@ -69,7 +66,7 @@ let default_room_gen_settings =
     gen_weak_mob = (fun () -> random_element weak_mobs);
     gen_strong_mob = (fun () -> random_element strong_mobs);
     gen_item = (fun () -> random_element items);
-    weak_mob_rate = 0.02;
+    weak_mob_rate = 0.01;
     strong_mob_rate = 0.0;
     item_rate = 0.0;
     room_width = (20, 70);
@@ -251,8 +248,8 @@ let remove_redundant_walls =
       then (Void, Empty)
       else get_at_vec room spot)
 
-(** [weak_mob_count room locs] is the number of weak mobs in [room] on the given squares
-    [locs].*)
+(** [weak_mob_count room locs] is the number of weak mobs in [room] on the given
+    squares [locs].*)
 let weak_mob_count room locs =
   locs
   |> List.filter_map (fun vec ->
@@ -262,8 +259,8 @@ let weak_mob_count room locs =
          | _ -> None)
   |> List.length
 
-  (** [strong_mob_count room locs] is the number of strong mobs in [room] on the given squares
-    [locs].*)
+(** [strong_mob_count room locs] is the number of strong mobs in [room] on the
+    given squares [locs].*)
 let strong_mob_count room locs =
   locs
   |> List.filter_map (fun vec ->
@@ -273,33 +270,53 @@ let strong_mob_count room locs =
          | _ -> None)
   |> List.length
 
-  (**[gen_items_and_mobs room settings] is the room with one round of item and mob generation run [runs] times on all tiles. *)
+(**[gen_items_and_mobs room settings] is the room with one round of item and mob
+   generation run [runs] times on all tiles. *)
 let rec gen_items_and_mobs room runs settings =
-  let new_room = room_map
-    (fun room spot ->
-      let spot_data = get_at_vec room spot in
-      if spot_data <> (Ground, Empty) then spot_data
-      else
-        let p_neighbors = principal_neighbors spot in
-        let p_neighbors_2 = principal_neighbors_gen2 spot in
-        let n_mob_gen1 = weak_mob_count room p_neighbors + 3 * strong_mob_count room p_neighbors |> float_of_int in
-        let n_weak_gen2 = weak_mob_count room p_neighbors_2 |> float_of_int in
-        let n__strong_gen2 = strong_mob_count room p_neighbors_2 |> float_of_int in
-        let weak_mob_r = settings.weak_mob_rate *. (0.5 ** n_mob_gen1) *. (3.0 ** n_weak_gen2) *. (0.5 ** n__strong_gen2) in
-        let strong_mob_r = settings.strong_mob_rate *. (0.0 ** n_mob_gen1) *. (0.9 ** n_weak_gen2) *. (0.0 ** n__strong_gen2) in
-        let item_r = settings.item_rate *. (2.0 ** n_mob_gen1) *. (1.2 ** n_weak_gen2) *. (5.0 ** n__strong_gen2) in
-        let random = Random.float 1.0 in
-        let choosen_entity = if random < item_r then Item (settings.gen_item ())
-          else if random < (item_r +. strong_mob_r) then StrongMob (settings.gen_strong_mob ())
-          else if random < (item_r +. strong_mob_r +. weak_mob_r) then WeakMob (settings.gen_weak_mob ())
-          else Empty 
-        in
-        (Ground, choosen_entity))
-    room
-      in
-      match runs with
-      | 1 -> new_room
-      | i -> gen_items_and_mobs new_room (runs - 1) settings
+  let new_room =
+    room_map
+      (fun room spot ->
+        let spot_data = get_at_vec room spot in
+        if spot_data <> (Ground, Empty) then spot_data
+        else
+          let p_neighbors = principal_neighbors spot in
+          let p_neighbors_2 = principal_neighbors_gen2 spot in
+          let n_mob_gen1 =
+            weak_mob_count room p_neighbors
+            + (3 * strong_mob_count room p_neighbors)
+            |> float_of_int
+          in
+          let n_weak_gen2 = weak_mob_count room p_neighbors_2 |> float_of_int in
+          let n__strong_gen2 =
+            strong_mob_count room p_neighbors_2 |> float_of_int
+          in
+          let weak_mob_r =
+            settings.weak_mob_rate *. (0.5 ** n_mob_gen1)
+            *. (3.0 ** n_weak_gen2) *. (0.5 ** n__strong_gen2)
+          in
+          let strong_mob_r =
+            settings.strong_mob_rate *. (0.0 ** n_mob_gen1)
+            *. (0.9 ** n_weak_gen2) *. (0.0 ** n__strong_gen2)
+          in
+          let item_r =
+            settings.item_rate *. (2.0 ** n_mob_gen1) *. (1.2 ** n_weak_gen2)
+            *. (5.0 ** n__strong_gen2)
+          in
+          let random = Random.float 1.0 in
+          let choosen_entity =
+            if random < item_r then Item (settings.gen_item ())
+            else if random < item_r +. strong_mob_r then
+              StrongMob (settings.gen_strong_mob ())
+            else if random < item_r +. strong_mob_r +. weak_mob_r then
+              WeakMob (settings.gen_weak_mob ())
+            else Empty
+          in
+          (Ground, choosen_entity))
+      room
+  in
+  match runs with
+  | 1 -> new_room
+  | i -> gen_items_and_mobs new_room (runs - 1) settings
 
 (** [find_door room cardinal_dir] is the vec2 of the door that should be added
     to [room] *)
