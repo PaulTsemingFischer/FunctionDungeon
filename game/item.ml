@@ -1,11 +1,9 @@
 open Engine
+open Engine.Utils
 open Engine.ComparableVec2
 open Modifiers
 module AttackMap = Map.Make (Vec2)
 
-(** [add_all_attacks lst atk] adds all attacked tiles in [lst] to the attack
-    [atk]. If a tile already exists in [atk], then it will add the new effects
-    on top of already-existing ones (i.e. effects will stack). *)
 let rec add_all_attacks lst atk =
   match lst with
   | [] -> atk
@@ -31,6 +29,7 @@ let compare_effects a b =
   | ApplyFire (a, a2), ApplyFire (b, b2) -> a = b && a2 = b2
   | _, _ -> false
 
+(** [effects_to_string lst] converts the attack effects in [lst] to a string. *)
 let rec effects_to_string lst =
   match lst with
   | [] -> ""
@@ -44,6 +43,8 @@ let rec effects_to_string lst =
       | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
       ^ "; " ^ effects_to_string t
 
+(** [bindings_to_string_helper] [lst] converts the attacks in [lst] into a
+    string representation. *)
 let rec bindings_to_string_helper lst =
   match lst with
   | [] -> ""
@@ -58,3 +59,6 @@ let rec bindings_to_string_helper lst =
       ^ bindings_to_string_helper t
 
 let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
+let map_of_list lst = AttackMap.of_list lst
+let to_key_list lst = lst
+let of_key_list lst = lst
