@@ -62,3 +62,4 @@ let bindings_to_string map = bindings_to_string_helper (AttackMap.bindings map)
 let map_of_list lst = AttackMap.of_list lst
 let to_key_list lst = lst
 let of_key_list lst = lst
+let to_key k = k

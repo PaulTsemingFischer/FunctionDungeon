@@ -32,3 +32,6 @@ val to_key_list : possible_action list -> (AttackMap.key * action list) list
 
 val of_key_list : (AttackMap.key * action list) list -> possible_action list
 (** [of_key_list lst] converts the AttackMap keys in [lst] to vec2 values. *)
+
+val to_key : int * int -> AttackMap.key
+(** [to_key vec] converts the vec2 to an AttackMap key. *)
