@@ -246,17 +246,14 @@ let world_tests =
            assert_equal TestWorld.empty (TestWorld.remove_entity w1 e1.id) );
        ]
 
-module AttackMap = Map.Make (ComparableVec2.Vec2)
-(** Represents a map of tile coordinates to attack effects. *)
-
 (** [make_modify_test name expected_output func input] is a unit test with name
     [name], asserting whether [func input] is equal to [expected_output]. *)
 let make_modify_test name expected_output func input =
   name >:: fun _ ->
   let output = Item.modify_attack func input in
   assert_equal expected_output output
-    ~cmp:(AttackMap.equal (fun a b -> List.equal Item.compare_effects a b))
-    ~printer:Item.bindings_to_string
+    ~cmp:(Item.AttackMap.equal (fun a b -> List.equal Item.compare_effects a b))
+    ~printer:Item.(bindings_to_string)
 
 (** [do_damage_example] is a modifier example that adds 1 damage to all attacked
     tiles. *)
@@ -273,42 +270,54 @@ let attack_tests =
   "test suite"
   >::: [
          make_modify_test "Add 1 damage to empty"
-           AttackMap.(empty |> add (0, 0) [ Modifiers.DealDamage 1. ])
+           Item.AttackMap.(
+             empty |> add (Item.to_key (0, 0)) [ Modifiers.DealDamage 1. ])
            do_damage_example
-           AttackMap.(empty |> add (0, 0) []);
+           Item.AttackMap.(empty |> add (Item.to_key (0, 0)) []);
          make_modify_test "Add 1 damage on top of existing effects"
-           AttackMap.(
+           Item.AttackMap.(
              empty
-             |> add (0, 0)
+             |> add
+                  (Item.to_key (0, 0))
                   [ Modifiers.ApplyFire (1., 2); Modifiers.DealDamage 1. ])
            do_damage_example
-           AttackMap.(empty |> add (0, 0) [ Modifiers.ApplyFire (1., 2) ]);
+           Item.AttackMap.(
+             empty |> add (Item.to_key (0, 0)) [ Modifiers.ApplyFire (1., 2) ]);
          make_modify_test "Augment to above tile"
-           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [])
+           Item.AttackMap.(
+             empty |> add (Item.to_key (0, 0)) [] |> add (Item.to_key (0, 1)) [])
            augment_to_above_example
-           AttackMap.(empty |> add (0, 0) []);
+           Item.AttackMap.(empty |> add (Item.to_key (0, 0)) []);
          make_modify_test "Augment to above tile with duplicates"
-           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) [] |> add (0, 2) [])
+           Item.AttackMap.(
+             empty
+             |> add (Item.to_key (0, 0)) []
+             |> add (Item.to_key (0, 1)) []
+             |> add (Item.to_key (0, 2)) [])
            augment_to_above_example
-           AttackMap.(empty |> add (0, 0) [] |> add (0, 1) []);
+           Item.AttackMap.(
+             empty |> add (Item.to_key (0, 0)) [] |> add (Item.to_key (0, 1)) []);
          make_modify_test "Augment to above tile and copy effects"
-           AttackMap.(
+           Item.AttackMap.(
              empty
-             |> add (0, 0) [ Modifiers.DealDamage 1. ]
-             |> add (0, 1) [ Modifiers.DealDamage 1. ])
+             |> add (Item.to_key (0, 0)) [ Modifiers.DealDamage 1. ]
+             |> add (Item.to_key (0, 1)) [ Modifiers.DealDamage 1. ])
            augment_to_above_example
-           AttackMap.(empty |> add (0, 0) [ Modifiers.DealDamage 1. ]);
+           Item.AttackMap.(
+             empty |> add (Item.to_key (0, 0)) [ Modifiers.DealDamage 1. ]);
          make_modify_test "Augment to above tile and add new effects"
-           AttackMap.(
+           Item.AttackMap.(
              empty
-             |> add (0, 0) [ Modifiers.DealDamage 1. ]
-             |> add (0, 1) [ Modifiers.DealDamage 1.; Modifiers.DealDamage 1. ]
-             |> add (0, 2) [ Modifiers.DealDamage 1. ])
+             |> add (Item.to_key (0, 0)) [ Modifiers.DealDamage 1. ]
+             |> add
+                  (Item.to_key (0, 1))
+                  [ Modifiers.DealDamage 1.; Modifiers.DealDamage 1. ]
+             |> add (Item.to_key (0, 2)) [ Modifiers.DealDamage 1. ])
            augment_to_above_example
-           AttackMap.(
+           Item.AttackMap.(
              empty
-             |> add (0, 0) [ Modifiers.DealDamage 1. ]
-             |> add (0, 1) [ Modifiers.DealDamage 1. ]);
+             |> add (Item.to_key (0, 0)) [ Modifiers.DealDamage 1. ]
+             |> add (Item.to_key (0, 1)) [ Modifiers.DealDamage 1. ]);
        ]
 
 let _ =

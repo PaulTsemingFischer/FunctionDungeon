@@ -1,6 +1,5 @@
 open Engine.Utils
 
-(**[action] describes an action that some entity in the world can take*)
 type action =
   | DealDamage of float
   | ApplyFire of float * int
@@ -9,10 +8,7 @@ type action =
   | StealAttack
 
 type possible_action = vec2 * action list
-(**[possible_action] is an action associated with a tile*)
-
 type possible_move = vec2
-(**[possible_move] is an movement to a tile*)
 
 type possible_actions_modifier =
   | ScaleAction of int
@@ -20,15 +16,8 @@ type possible_actions_modifier =
   | AddDamage of float
   | AugmentToAdjacent
 
-(**[possible_action_function] is a function that changes a list of action
-   modifiers in some way*)
+type possible_moves_modifier = ScaleMove of int
 
-type possible_moves_modifier =
-  | ScaleMove of int
-      (**[possible_move_function] is a function that changes a list of move
-         modifiers in some way*)
-
-(**[base_cross_moves] is a list containing the most basic movement pattern*)
 let base_cross_moves : possible_move list = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
 
 let rec range_cross_moves (r : int) : possible_move list =
@@ -44,27 +33,18 @@ let rec range_cross_moves (r : int) : possible_move list =
       let moves_for_n1 = n2_loop n1 [] in
       moves_for_n1 @ range_cross_moves (n1 - 1)
 
-(**[base_cross_actions] is a list containing the most basic acting pattern*)
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves
 
-(** [range_cross_actions] is a list containing the acting patterns for an enemy
-    with fixed damage 1 but variable range *)
 let range_cross_actions r : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) (range_cross_moves r)
 
-(** [var_damage_cross_actions] is a list containing the acting patterns for an
-    enemy with fixed range 1 (base moves) but variable damage *)
 let var_damage_cross_actions d : possible_action list =
   List.map (fun target -> (target, [ DealDamage d ])) base_cross_moves
 
-(** [var_range_damage_cross_actions] is a list containing the actions for an
-    enemy with variable range and damage *)
 let var_range_damage_cross_actions r d : possible_action list =
   List.map (fun target -> (target, [ DealDamage d ])) (range_cross_moves r)
 
-(** [enemy_attack_type] is the effect on the player when a certain enemy type
-    attacks *)
 let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
   | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
@@ -75,8 +55,6 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
   | Variable_Damage d -> DealDamage d
   | Variable_Range_and_Damage (r, d) -> DealDamage d
 
-(** [enemy_cross_actions] is a list containing the acting patterns for a certain
-    enemy type e *)
 let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
   match e with
   | Variable_Range r -> range_cross_actions r
@@ -89,9 +67,8 @@ let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
 
 let string_of_modifier m =
   match m with
-  | ScaleAction x -> "Scale tiles by " ^ string_of_int x
+  | ScaleAction x -> Printf.sprintf "buff: scale attack range by %d" x
   | AddFire (x, y) ->
-      "Apply fire that does " ^ string_of_float x ^ " damage for "
-      ^ string_of_int y ^ " turns"
-  | AddDamage x -> "Deal " ^ string_of_float x ^ " extra damage"
-  | AugmentToAdjacent -> "Augment to adjacent tiles"
+      Printf.sprintf "buff: apply %0.2f fire damage for %d turns" x y
+  | AddDamage x -> Printf.sprintf "buff: deal %0.2f extra damage" x
+  | AugmentToAdjacent -> "buff: increase attack area"
