@@ -32,8 +32,8 @@ exception Entity_not_found of GameEntity.t
     otherwise false. *)
 let is_killable_entity (entity : GameEntity.t) =
   match entity.entity_type with
-  | Wall | Door _ | Rock | Fire | Water | Lava | ModifierItem _ -> false
-  | _ -> true
+  | Player | Pigeon | HorizontalBouncer _ | Enemy _ -> true
+  | _ -> false
 
 (**[apply_action_to state entity action] applies [action] to [entity], returning
    an updated [state] with the changed entity*)
