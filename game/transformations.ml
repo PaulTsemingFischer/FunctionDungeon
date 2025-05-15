@@ -51,6 +51,24 @@ let apply_pickup_move (state : GameState.t) (entity : GameEntity.t)
               (PickUpSpecial (entity, GameState.get_progress progress_incr_state))
           in
           apply_move new_state entity move
+      | HealthItem x ->
+          let new_entity =
+            GameEntity.update_stats entity
+              {
+                health = entity.stats.health +. x;
+                base_moves = entity.stats.base_moves;
+                base_actions = entity.stats.base_actions;
+              }
+          in
+          let item_removed_state =
+            GameState.set_room state
+              (GameWorld.remove_entity (GameState.room state) e.id)
+          in
+          let new_state =
+            GameState.add_event item_removed_state
+              (ChangeHealth (new_entity, x))
+          in
+          apply_move new_state new_entity move
       | _ -> apply_move state entity move)
   | _ -> apply_move state entity move
 
