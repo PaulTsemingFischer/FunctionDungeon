@@ -6,8 +6,6 @@ type enemy =
   | Thief
     (* Randomly take one of player's items; CURRENTLY JUST TAKING FIRST IN THE
        ACTIONS MODIFIER LIST BUT MAY CHANGE TO RANDOM LATER *)
-  | Blinder of
-      int (* player can't see any of the board/must go by memory for t turns *)
   | Fog_Cloud of int * int
   (* player can't see more than r radius around current position for t turns *)
   | Variable_Range of int (* can attack within r range *)
@@ -22,13 +20,10 @@ val string_of_enemy : enemy -> string
 (* Discrete enemies with set parameters *)
 
 val jailer_small : enemy
-(** A jailer with small radius (5) and duration (3 turns) *)
-
 val jailer_medium : enemy
-(** A jailer with medium radius (10) and duration (5 turns) *)
-
 val jailer_large : enemy
-(** A jailer with large radius (15) and duration (7 turns) *)
+val small_fog_cloud : enemy
+val large_fog_cloud : enemy
 
 val double_range_enemy : enemy
 (** An enemy that can attack with double range (2) *)

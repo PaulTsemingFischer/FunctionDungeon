@@ -22,7 +22,9 @@ type event =
   | ActivateMoveModifier of
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
   | PickUpModifier of GameEntity.t * Modifiers.possible_actions_modifier
+  | PickUpSpecial of GameEntity.t * int
   | EntityDeath of GameEntity.t
+  | FogCloud of GameEntity.t * int * int
 
 let string_of_event event =
   match event with
@@ -54,7 +56,13 @@ let string_of_event event =
       Printf.sprintf "%s picked up attack modifier: %s"
         (string_of_type e.entity_type)
         (Modifiers.string_of_modifier m)
+  | PickUpSpecial (e, count) ->
+      Printf.sprintf "%s picked up a special item! Current count: %d"
+        (string_of_type e.entity_type)
+        count
   | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
+  | FogCloud (e, r, f) ->
+      Printf.sprintf "fog cloud of %i radius for %i frames" r f
 
 type t = {
   room_id : int;
@@ -69,6 +77,7 @@ type t = {
     * (Modifiers.possible_actions_modifier list
       * Modifiers.possible_moves_modifier list))
     list;
+  special_progress : int;
 }
 
 and transition = t -> GameEntity.t -> input -> t
@@ -96,6 +105,7 @@ let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
     turn = 0;
     player;
     modifiers = [];
+    special_progress = 0;
   }
 
 let print_events state =
@@ -322,19 +332,25 @@ let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle) =
   let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
   set_room state (GameWorld.put_entity world new_obstacle)
 
+let increment_progress state =
+  { state with special_progress = state.special_progress + 1 }
+
+let get_progress state = state.special_progress
+
 let positions_in_radius (center : vec2) (radius : int) : vec2 list =
   let center_x, center_y = center in
   let positions = ref [] in
 
   for x = center_x - radius to center_x + radius do
     for y = center_y - radius to center_y + radius do
-      let pos = (x, y) in
-
       let dx = x - center_x in
       let dy = y - center_y in
       let distance_squared = (dx * dx) + (dy * dy) in
 
-      if distance_squared <= radius * radius then positions := pos :: !positions
+      let distance = sqrt (float_of_int distance_squared) in
+      let rounded_distance = int_of_float (distance +. 0.5) in
+
+      if rounded_distance = radius then positions := (x, y) :: !positions
     done
   done;
 
@@ -344,8 +360,12 @@ let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
     (radius : int) (objects : Obstacles.obstacle) =
   let positions = positions_in_radius center radius in
   List.fold_left
-    (fun current_state p -> add_obstacle_to_world current_state world p objects)
-    state positions
+    (fun (current_state, current_world) p ->
+      let new_obstacle = create_default_at (Obstacle objects) p in
+      let new_world = GameWorld.put_entity current_world new_obstacle in
+      (set_room current_state new_world, new_world))
+    (state, world) positions
+  |> fst
 
 let move_room state id =
   let current_state_with_updated_player = query_update_player state in

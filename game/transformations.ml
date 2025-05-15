@@ -3,11 +3,6 @@ open Modifiers
 open Engine.Utils
 open Procgen
 
-(**[apply_move state entity possible_move] moves an entity to [possible_move]
-   relative to its current position. If the entity is not in the world when this
-   is run, or the location is not empty, then this transformation will return an
-   unchanged state*)
-
 let apply_move (state : GameState.t) (entity : GameEntity.t)
     (move : possible_move) =
   let target_pos = add_vec2 entity.pos move in
@@ -21,10 +16,6 @@ let apply_move (state : GameState.t) (entity : GameEntity.t)
     in
     GameState.add_event updated_state (Move (entity, entity.pos, target_pos))
 
-(** [apply_pickup_move state entity possible_move] picks up the item at the
-    target position, adding it to the list of action modifiers for [entity], and
-    then calls [apply_move] with the updated state. If the target position has
-    no item, behaves identically to [apply_move state entity possible_move]. *)
 let apply_pickup_move (state : GameState.t) (entity : GameEntity.t)
     (move : possible_move) =
   let target_pos = add_vec2 entity.pos move in
@@ -46,25 +37,27 @@ let apply_pickup_move (state : GameState.t) (entity : GameEntity.t)
               (PickUpModifier (entity, m))
           in
           apply_move new_state entity move
+      | SpecialItem ->
+          let item_removed_state =
+            GameState.set_room state
+              (GameWorld.remove_entity (GameState.room state) e.id)
+          in
+          let progress_incr_state =
+            GameState.increment_progress item_removed_state
+          in
+          let new_state =
+            GameState.add_event progress_incr_state
+              (PickUpSpecial (entity, GameState.get_progress progress_incr_state))
+          in
+          apply_move new_state entity move
       | _ -> apply_move state entity move)
   | _ -> apply_move state entity move
 
-(**[say priority state entity message] makes an entity say something (cosmetic
-   effect for events)*)
 let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
   GameState.add_event state (Say (entity, message))
 
 exception Entity_not_found of GameEntity.t
 
-(** [is_killable_entity entity] is true if [entity] can take damage/die,
-    otherwise false. *)
-let is_killable_entity (entity : GameEntity.t) =
-  match entity.entity_type with
-  | Player | Pigeon | HorizontalBouncer _ | Enemy _ -> true
-  | _ -> false
-
-(**[apply_action_to state entity action] applies [action] to [entity], returning
-   an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     (action : Modifiers.action) =
   let world = GameState.room state in
@@ -72,7 +65,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
   else
     match action with
     | DealDamage x ->
-        if is_killable_entity entity then
+        if is_killable_entity entity.entity_type then
           let updated_entity =
             GameEntity.update_stats entity
               {
@@ -95,7 +88,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
             GameState.add_event updated_state (ChangeHealth (entity, -.x))
         else state
     | DealFireDamage x ->
-        if is_killable_entity entity then
+        if is_killable_entity entity.entity_type then
           let updated_entity =
             GameEntity.update_stats entity
               {
@@ -120,7 +113,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
             GameState.add_event updated_state (ChangeHealth (entity, -.x))
         else state
     | ApplyFire (x, y) ->
-        if is_killable_entity entity then
+        if is_killable_entity entity.entity_type then
           let updated_entity =
             GameEntity.update_statuses entity
               (GameDefinitions.Fire (x, y) :: entity.statuses)
@@ -132,6 +125,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
         else state
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
+    | FogAttack (r, f) -> GameState.add_event state (FogCloud (entity, r, f))
 
 (**[apply_actions_to state entity actions] applies [actions] to [entity]*)
 let apply_actions_to (state : GameState.t) (entity : GameEntity.t)
@@ -215,8 +209,6 @@ let normal_room (player : GameEntity.t) generated_room =
   in
   (entity_world, tile_world)
 
-(**[generate_world player settings] is a floor with the given [settings] and
-   [player] *)
 let generate_floor (player : GameEntity.t)
     (settings : Pgworld.room_gen_settings)
     (entity_action_runner :
@@ -232,8 +224,6 @@ let generate_floor (player : GameEntity.t)
   GameState.create real_entities real_tiles entity_action_runner player
     player_room_id
 
-(** [apply_attack_to_entity] applies a single list of actions onto [entity] and
-    returns the updated game state. *)
 let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
     (effects : action list) =
   match effects with
@@ -245,10 +235,6 @@ let rec apply_attack_to_entity (state : GameState.t) (entity : GameEntity.t)
       | None -> updated_state
       | Some e -> apply_attack_to_entity updated_state e t)
 
-(** [apply_attack_to state actions] applies all actions in [actions] to the game
-    state [state]. Since attack coordinates are relative to player position, the
-    value of [player_pos] determines the actual tiles affected. Attacks cannot
-    hit the player itself; that is, any action on tile (0,0) will be skipped. *)
 let rec apply_attack_to (state : GameState.t) (player_pos : vec2)
     (actions : possible_action list) =
   match actions with

@@ -1,7 +1,5 @@
 open GameDefinitions
 
-(** [entity_status_runner state entity input] applies the status effects
-    associated with [entity] on the given [state]. *)
 let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
     (input : GameState.input) =
   let filtered_statuses =
@@ -31,8 +29,6 @@ let entity_status_runner (state : GameState.t) (entity : GameEntity.t)
             (DealFireDamage dmg))
     new_state decremented_statuses
 
-(**[entity_action_runner state entity input] executes the actions associated
-   with some entity on the given [state]*)
 let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
     (input : GameState.input) =
   match entity.entity_type with
@@ -48,3 +44,4 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | Obstacle o -> Obstacleaction.obstacle_action state entity o input
   | HorizontalBouncer _ -> Bouncers.bouncer_action state entity input
   | ModifierItem _ -> state
+  | SpecialItem -> state
