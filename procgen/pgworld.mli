@@ -13,7 +13,11 @@ type strong_mob =
   | Thief
   | Blinder
 
-type item = PlaceHolderItem
+  type item =
+  | ScaleAction of int
+  | AddFire of float * int
+  | AddDamage of float
+  | AugmentToAdjacent
 
 type entity =
   | Empty
