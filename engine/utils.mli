@@ -69,8 +69,11 @@ val lerp_vec : vec2f -> vec2f -> float -> vec2f
 (**[lerp_vec vf1 vf2 t] returns the linear interpolation of [vf2] to [vf1] by
    [t * (vf1 - vf2)]*)
 
-val length_squared : vec2f -> float
-(**[length_squared vf] returns the square of the magnitude of [vf]*)
+val length_squared : vec2 -> int
+(**[length_squared v] returns the square of the magnitude of [v]*)
+
+val length_squaredf : vec2f -> float
+(**[length_squaredf vf] returns the square of the magnitude of [vf]*)
 
 val get_at_vec : 'a array array -> vec2 -> 'a
 (**[get_at_vec matrix vec] is the element in [matrix] at location [vec]. Raises
@@ -80,6 +83,7 @@ val get_at_vec : 'a array array -> vec2 -> 'a
 val get_at_vec_opt : 'a array array -> vec2 -> 'a option
 (**[get_at_vec_opt matrix vec] is an optional element in [matrix] at location
    [vec].*)
+
 
 val set_at_vec : 'a array array -> vec2 -> 'a -> unit
 (**[set_at_vec matrix vec x] sets the location [vec] in [matrix] to [x]. Raises

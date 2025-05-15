@@ -5,6 +5,7 @@ type input =
   | MovePlayer of vec2
   | Attack
   | Wait
+  | Act of vec2
 
 exception Invalid_input of input
 
@@ -116,7 +117,7 @@ let print_events state =
 let print_latest_events (state : t) =
   List.iter
     (fun ((turn, event) : int * event) : unit ->
-      if turn = state.turn - 1 then
+      if turn = state.turn then
         print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
       else ())
     state.events
@@ -149,7 +150,7 @@ let step (state : t) (input : input) =
           (GameWorld.all_entities (room state_ext)))
       state state.transitions
   in
-  print_latest_events state;
+  print_latest_events new_state;
   let updated_state = { new_state with turn = new_state.turn + 1 } in
   query_update_player updated_state
 

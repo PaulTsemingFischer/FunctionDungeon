@@ -127,6 +127,22 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
     | FogAttack (r, f) -> GameState.add_event state (FogCloud (entity, r, f))
 
+(**[apply_actions_to state entity actions] applies [actions] to [entity]*)
+let apply_actions_to (state : GameState.t) (entity : GameEntity.t)
+    (actions : Modifiers.action list) =
+  print_endline "Apply";
+  List.fold_left
+    (fun cur_state cur_action ->
+      let entity_opt =
+        GameWorld.query_id (GameState.room cur_state) entity.id
+      in
+      match entity_opt with
+      | None -> cur_state
+      | Some cur_entity -> apply_action_to cur_state cur_entity cur_action)
+    state actions
+
+(**[normal_room state player] is a new entity world, tile world pair with the
+   given player*)
 let normal_room (player : GameEntity.t) generated_room =
   let world = GameWorld.empty in
 

@@ -34,12 +34,17 @@ end
 
 module RenderableSet = Set.Make (ComparableRenderable)
 
+type mode =
+  | Act
+  | Default
+
 type t = {
   renderables : RenderableSet.t;
   overlays : overlay list;
   source_state : GameState.t;
   camera : Raylib.Camera2D.t;
   camera_target : Vector2.t;
+  mode : mode;
 }
 
 type input_handler = GameState.t -> GameState.input -> GameState.t
@@ -86,6 +91,26 @@ let draw_ui (renderer : t) =
     (get_screen_height () - bottom_panel_height)
     (get_screen_width ()) (get_screen_height ()) Color.black;
 
+  let action_modifiers, _ =
+    GameState.get_modifiers renderer.source_state Player
+  in
+
+  (* action modifs *)
+  List.iteri
+    (fun idx modifier ->
+      Raylib.draw_text
+        Modifiers.(
+          match modifier with
+          | ScaleAction _ -> "x"
+          | AddFire _ -> "F"
+          | AddDamage _ -> "!"
+          | AugmentToAdjacent -> "+")
+        (padding + (24 * idx))
+        60
+        (int_of_float tile_scaling_factor)
+        Color.white)
+    action_modifiers;
+
   draw_metric "HEALTH: "
     (Printf.sprintf "%.2f"
        (GameState.get_player renderer.source_state).stats.health)
@@ -126,9 +151,17 @@ let draw_ui (renderer : t) =
     in
     render_n_entities_aux entities 5 0
   in
-  render_n_entities
-    (GameWorld.all_entities (GameState.room renderer.source_state))
-    3
+  let player = GameState.get_player renderer.source_state in
+  let sorted_entities =
+    List.sort
+      (fun (e1 : GameEntity.t) (e2 : GameEntity.t) ->
+        let e1_dist_from_player = length_squared (sub_vec2 e1.pos player.pos) in
+        let e2_dist_from_player = length_squared (sub_vec2 e2.pos player.pos) in
+        e1_dist_from_player - e2_dist_from_player)
+      (GameWorld.all_entities (GameState.room renderer.source_state))
+  in
+
+  render_n_entities sorted_entities 3
 
 (* let render_n_events (event_list : (int * event) list) (n : int) =
     let rec render_n_events_aux (event_list : (int * event) list) (n : int)
@@ -167,6 +200,17 @@ let get_latest_events (state : GameState.t) =
   List.filter
     (fun (turn, _) -> turn = GameState.get_turn state - 1)
     (GameState.get_events state)
+
+(**[set_mode renderer mode] sets [renderer]'s mode to [mode]*)
+let set_mode renderer mode =
+  {
+    renderables = renderer.renderables;
+    source_state = renderer.source_state;
+    camera = renderer.camera;
+    camera_target = renderer.camera_target;
+    overlays = renderer.overlays;
+    mode;
+  }
 
 (**[update_render_state renderer state] updates the renderer to render the given
    [state]*)
@@ -238,7 +282,8 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
                         { radius = float_of_int radius; color = Color.gray };
                   }
             | _ -> None)
-          (get_latest_events renderer.source_state);
+          (get_latest_events entity_state);
+    mode = renderer.mode;
   }
 
 let tick (renderer : t) =
@@ -270,6 +315,7 @@ let tick (renderer : t) =
           })
         renderer.overlays
       |> List.filter (fun ovly -> ovly.current <= ovly.duration);
+    mode = renderer.mode;
   }
 
 let render_floor (renderer : t) =
@@ -302,25 +348,38 @@ let render_floor (renderer : t) =
             Color.lightgray)
     (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
 
+(**[game_to_rendered_pos game_pos] converts a [vec2f] position, [game_pos], into
+   a position in the rendered world*)
+let game_to_rendered_pos game_pos =
+  ( float_of_int (Raylib.get_screen_width () / 2),
+    float_of_int (Raylib.get_screen_height () / 2) )
+  |> add_vec2f
+       (mul_vec2f (scale_vec2f game_pos tile_scaling_factor) (1.0, -1.0))
+  |> add_vec2f
+       (neg_vec2f (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
+  |> vec2_of_vec2f
+
+(**[world_to_game_pos world_pos] converts a [vec2f] world (rendered) position,
+   [world_pos] into a position in the game map*)
+let rendered_to_game_pos world_pos =
+  let a =
+    sub_vec2f world_pos
+      (neg_vec2f (tile_scaling_factor /. 2.0, tile_scaling_factor /. -2.0))
+  in
+  let b =
+    sub_vec2f a
+      ( float_of_int (Raylib.get_screen_width () / 2),
+        float_of_int (Raylib.get_screen_height () / 2) )
+  in
+  mul_vec2f (scale_vec2f b (1. /. tile_scaling_factor)) (1.0, -1.)
+
 let render (renderer : t) =
-  begin_drawing ();
   begin_mode_2d renderer.camera;
   clear_background Color.white;
   render_floor renderer;
   RenderableSet.to_list renderer.renderables
   |> List.iter (fun (r : renderable) ->
-         let screen_space_position =
-           ( float_of_int (Raylib.get_screen_width () / 2),
-             float_of_int (Raylib.get_screen_height () / 2) )
-           |> add_vec2f
-                (mul_vec2f
-                   (scale_vec2f r.rendered_pos tile_scaling_factor)
-                   (1.0, -1.0))
-           |> add_vec2f
-                (neg_vec2f
-                   (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
-           |> vec2_of_vec2f
-         in
+         let screen_space_position = game_to_rendered_pos r.rendered_pos in
          match r.source_entity.entity_type with
          | Player ->
              Raylib.draw_text "@"
@@ -532,42 +591,140 @@ let render (renderer : t) =
             (radius *. tile_scaling_factor)
             Color.gray)
     renderer.overlays;
-  end_mode_2d ();
-  draw_ui renderer;
-  end_drawing ()
+  end_mode_2d ()
 
 let rec loop_aux (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
   if Raylib.window_should_close () then Raylib.close_window ()
   else
-    let frame_input_opt =
-      GameState.(
-        match Raylib.get_key_pressed () with
-        | Raylib.Key.W -> Some (MovePlayer (0, 1))
-        | Raylib.Key.A -> Some (MovePlayer (-1, 0))
-        | Raylib.Key.S -> Some (MovePlayer (0, -1))
-        | Raylib.Key.D -> Some (MovePlayer (1, 0))
-        | Raylib.Key.Z -> Some Attack
-        | _ -> None)
-    in
-    match frame_input_opt with
-    | None ->
-        let updated_renderer = tick renderer in
-        render updated_renderer;
-        loop_aux updated_renderer entity_state input_handler
-    | Some input -> (
-        try
-          let updated_entity_state = input_handler entity_state input in
-          let updated_renderer =
-            update_render_state renderer updated_entity_state
-          in
-          let ticked_renderer = tick updated_renderer in
+    let key_pressed = Raylib.get_key_pressed () in
+    match renderer.mode with
+    | Act ->
+        if key_pressed = Raylib.Key.E then
+          loop_aux (set_mode renderer Default) entity_state input_handler
+        else
+          let ticked_renderer = tick renderer in
+          Raylib.begin_drawing ();
           render ticked_renderer;
-          loop_aux ticked_renderer updated_entity_state input_handler
-        with GameState.Invalid_input _ ->
-          let updated_renderer = tick renderer in
-          render updated_renderer;
-          loop_aux updated_renderer entity_state input_handler)
+          let world_pos =
+            Raylib.get_screen_to_world_2d
+              (Raylib.get_mouse_position ())
+              renderer.camera
+          in
+          let world_vec2f : vec2f =
+            (Vector2.x world_pos, Vector2.y world_pos)
+          in
+          let game_vec2f = rendered_to_game_pos world_vec2f in
+          let action_target = vec2_of_vec2f game_vec2f in
+          let render_tile_corner =
+            game_to_rendered_pos (vec2f_of_vec2 (vec2_of_vec2f game_vec2f))
+          in
+          (* let render_tile_center = add_vec2 render_tile_corner ( int_of_float
+             (tile_scaling_factor /. 2.), int_of_float (tile_scaling_factor /.
+             2.) ) in *)
+          Raylib.begin_mode_2d renderer.camera;
+          Raylib.draw_rectangle_lines (fst render_tile_corner)
+            (snd render_tile_corner)
+            (int_of_float tile_scaling_factor)
+            (int_of_float tile_scaling_factor)
+            Color.black;
+          (* Raylib.draw_circle (fst render_tile_center) (snd
+             render_tile_center) *)
+          (* 10. Raylib.Color.black; *)
+          let player = GameState.get_player entity_state in
+          let possible_actions =
+            GameState.activate_action_modifiers entity_state Player
+              player.stats.base_actions
+          in
+          List.iter
+            (fun (action_pos, actions) ->
+              let screen_space_pos =
+                add_vec2
+                  (game_to_rendered_pos
+                     (vec2f_of_vec2 (add_vec2 action_pos player.pos)))
+                  ( int_of_float (tile_scaling_factor /. 2.),
+                    int_of_float (tile_scaling_factor /. 2.) )
+              in
+              if action_target = add_vec2 action_pos player.pos then
+                List.iteri
+                  (fun idx action ->
+                    let render_color =
+                      match action with
+                      | Modifiers.DealDamage _ -> Raylib.Color.blue
+                      | StealAttack
+                      | BarrierAttack _
+                      | DealFireDamage _
+                      | FogAttack _
+                      | ApplyFire _ -> Raylib.Color.red
+                    in
+                    Raylib.draw_circle (fst screen_space_pos)
+                      (snd screen_space_pos - (5 * idx))
+                      10.
+                      (Raylib.Color.create
+                         (Raylib.Color.r render_color)
+                         (Raylib.Color.g render_color)
+                         (Raylib.Color.b render_color)
+                         (max (100 - (10 * idx)) 0)))
+                  actions
+              else
+                Raylib.draw_circle (fst screen_space_pos) (snd screen_space_pos)
+                  10.
+                  (Raylib.Color.create 0 0 0 50))
+            possible_actions;
+          Raylib.end_mode_2d ();
+          draw_ui renderer;
+          Raylib.end_drawing ();
+          if Raylib.is_mouse_button_pressed MouseButton.Left then
+            let input = GameState.Act action_target in
+            try
+              let updated_entity_state = input_handler entity_state input in
+              let updated_renderer =
+                update_render_state renderer updated_entity_state
+              in
+              let ticked_renderer_inner = tick updated_renderer in
+              loop_aux ticked_renderer_inner updated_entity_state input_handler
+            with GameState.Invalid_input _ ->
+              loop_aux ticked_renderer entity_state input_handler
+          else loop_aux ticked_renderer entity_state input_handler
+    | Default -> (
+        if key_pressed = Raylib.Key.E then
+          loop_aux (set_mode renderer Act) entity_state input_handler
+        else
+          let frame_input_opt =
+            GameState.(
+              match key_pressed with
+              | Raylib.Key.W -> Some (MovePlayer (0, 1))
+              | Raylib.Key.A -> Some (MovePlayer (-1, 0))
+              | Raylib.Key.S -> Some (MovePlayer (0, -1))
+              | Raylib.Key.D -> Some (MovePlayer (1, 0))
+              | Raylib.Key.Z -> Some Attack
+              | _ -> None)
+          in
+          match frame_input_opt with
+          | None ->
+              Raylib.begin_drawing ();
+              let updated_renderer = tick renderer in
+              render updated_renderer;
+              draw_ui renderer;
+              Raylib.end_drawing ();
+              loop_aux updated_renderer entity_state input_handler
+          | Some input -> (
+              try
+                let updated_entity_state = input_handler entity_state input in
+                let updated_renderer =
+                  update_render_state renderer updated_entity_state
+                in
+                let ticked_renderer = tick updated_renderer in
+
+                Raylib.begin_drawing ();
+                render ticked_renderer;
+                draw_ui renderer;
+                Raylib.end_drawing ();
+                loop_aux ticked_renderer updated_entity_state input_handler
+              with GameState.Invalid_input _ ->
+                let updated_renderer = tick renderer in
+                render updated_renderer;
+                loop_aux updated_renderer entity_state input_handler))
 
 let loop (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
@@ -591,6 +748,7 @@ let make_from_state (entity_state : GameState.t) =
       camera_target =
         compute_camera_target (GameState.get_player entity_state).pos;
       overlays = [];
+      mode = Default;
     }
   in
   update_render_state source entity_state

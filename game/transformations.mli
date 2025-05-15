@@ -26,6 +26,10 @@ val apply_action_to : GameState.t -> GameWorld.e_t -> action -> GameState.t
 (**[apply_action_to state entity action] applies [action] to [entity], returning
    an updated [state] with the changed entity*)
 
+val apply_actions_to : GameState.t -> GameWorld.e_t -> action list -> GameState.t
+(**[apply_action_to state entity actions] applies several [actions] to [entity], returning
+   an updated [state] with the changed entity*)
+
 val normal_room : GameWorld.e_t -> Pgworld.t -> GameWorld.t * GameTiles.t
 (**[normal_room state player] is a new entity world, tile world pair with the
    given player*)

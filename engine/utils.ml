@@ -39,8 +39,10 @@ let string_of_vec2f vec =
 
 let lerp f1 f2 t = f1 +. ((f2 -. f1) *. t)
 let lerp_vec (v1x, v1y) (v2x, v2y) t = (lerp v1x v2x t, lerp v1y v2y t)
-let length_squared vf = (fst vf *. fst vf) +. (snd vf *. snd vf)
+let length_squared (v : vec2) = (fst v * fst v) + (snd v * snd v)
+let length_squaredf vf = (fst vf *. fst vf) +. (snd vf *. snd vf)
 
+(*  *)
 (*2d array access*)
 type 'a matrix = 'a array array
 
