@@ -22,6 +22,7 @@ type event =
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
   | PickUpModifier of GameEntity.t * Modifiers.possible_actions_modifier
   | EntityDeath of GameEntity.t
+  | FogCloud of GameEntity.t * int * int
 
 let string_of_event event =
   match event with
@@ -54,6 +55,8 @@ let string_of_event event =
         (string_of_type e.entity_type)
         (Modifiers.string_of_modifier m)
   | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
+  | FogCloud (e, r, f) ->
+      Printf.sprintf "fog cloud of %i radius for %i frames" r f
 
 type t = {
   room_id : int;
@@ -327,13 +330,14 @@ let positions_in_radius (center : vec2) (radius : int) : vec2 list =
 
   for x = center_x - radius to center_x + radius do
     for y = center_y - radius to center_y + radius do
-      let pos = (x, y) in
-
       let dx = x - center_x in
       let dy = y - center_y in
       let distance_squared = (dx * dx) + (dy * dy) in
 
-      if distance_squared <= radius * radius then positions := pos :: !positions
+      let distance = sqrt (float_of_int distance_squared) in
+      let rounded_distance = int_of_float (distance +. 0.5) in
+
+      if rounded_distance = radius then positions := (x, y) :: !positions
     done
   done;
 
@@ -343,8 +347,12 @@ let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
     (radius : int) (objects : Obstacles.obstacle) =
   let positions = positions_in_radius center radius in
   List.fold_left
-    (fun current_state p -> add_obstacle_to_world current_state world p objects)
-    state positions
+    (fun (current_state, current_world) p ->
+      let new_obstacle = create_default_at (Obstacle objects) p in
+      let new_world = GameWorld.put_entity current_world new_obstacle in
+      (set_room current_state new_world, new_world))
+    (state, world) positions
+  |> fst
 
 let move_room state id =
   let current_state_with_updated_player = query_update_player state in

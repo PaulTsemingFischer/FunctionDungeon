@@ -7,6 +7,7 @@ type action =
   | DealFireDamage of float
   | BarrierAttack of int * Obstacles.obstacle
   | StealAttack
+  | FogAttack of int * int
 
 type possible_action = vec2 * action list
 (** [possible_action] is an action associated with a tile*)

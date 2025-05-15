@@ -132,6 +132,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
         else state
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
+    | FogAttack (r, f) -> GameState.add_event state (FogCloud (entity, r, f))
 
 (**[normal_room state player] is a new entity world, tile world pair with the
    given player*)
