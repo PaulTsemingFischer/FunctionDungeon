@@ -37,12 +37,6 @@ let rec range_cross_moves (r : int) : possible_move list =
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves
 
-let range_cross_actions r : possible_action list =
-  List.map (fun target -> (target, [ DealDamage 1. ])) (range_cross_moves r)
-
-let var_damage_cross_actions d : possible_action list =
-  List.map (fun target -> (target, [ DealDamage d ])) base_cross_moves
-
 let var_range_damage_cross_actions r d : possible_action list =
   List.map (fun target -> (target, [ DealDamage d ])) (range_cross_moves r)
 
@@ -51,14 +45,10 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
   | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
   | Thief -> StealAttack
   | Fog_Cloud (r, f) -> FogAttack (r, f)
-  | Variable_Range r -> DealDamage 1.
-  | Variable_Damage d -> DealDamage d
   | Variable_Range_and_Damage (r, d) -> DealDamage d
 
 let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
   match e with
-  | Variable_Range r -> range_cross_actions r
-  | Variable_Damage d -> var_damage_cross_actions d
   | Variable_Range_and_Damage (r, d) -> var_range_damage_cross_actions r d
   | _ ->
       List.map

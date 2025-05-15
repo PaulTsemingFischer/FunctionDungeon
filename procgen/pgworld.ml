@@ -36,9 +36,9 @@ let rand_item () =
 let rand_weak_mob () =
   if Random.float 1.0 > 0.7 then Pigeon
   else
-    let damage = 1 + int_of_float ((1.0 -. (Random.float 1.0 ** 3.0)) *. 6.0) in
-    let range = (1.0 -. (Random.float 1.0 ** 3.0)) *. 6.0 in
-    Variable_Range_and_Damage (damage, range)
+    let damage = (1.0 -. (Random.float 1.0 ** 3.0)) *. 6.0 in
+    let range = 1 + int_of_float ((1.0 -. (Random.float 1.0 ** 3.0)) *. 6.0) in
+    Variable_Range_and_Damage (range, damage)
 
 let rand_strong_mob () =
   match Random.int 11 with
@@ -94,8 +94,8 @@ let default_room_gen_settings =
     gen_strong_mob = (fun () -> rand_strong_mob ());
     gen_item = (fun () -> rand_item ());
     weak_mob_rate = 0.002;
-    strong_mob_rate = 0.0;
-    item_rate = 0.003;
+    strong_mob_rate = 0.0005;
+    item_rate = 0.001;
     room_width = (20, 70);
     room_height = (10, 50);
     min_room_coverage = 0.2;

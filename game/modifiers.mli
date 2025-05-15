@@ -38,14 +38,6 @@ val base_cross_actions : possible_action list
 (**[base_cross_actions] is a list containing the most basic attack pattern,
    which hits all 4 adjacent tiles with fixed damage 1. *)
 
-val range_cross_actions : int -> possible_action list
-(** [range_cross_actions r] is a list containing the acting patterns for an
-    enemy with fixed damage 1 but variable range [r]. *)
-
-val var_damage_cross_actions : float -> possible_action list
-(** [var_damage_cross_actions d] is a list containing the acting patterns for an
-    enemy with fixed range 1 (base moves) but variable damage [d] *)
-
 val var_range_damage_cross_actions : int -> float -> possible_action list
 (** [var_range_damage_cross_actions r d] is a list containing the actions for an
     enemy with variable range [r] and damage [d] *)

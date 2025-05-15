@@ -2,6 +2,7 @@ open GameDefinitions
 open Modifiers
 open Engine.Utils
 open Procgen
+open Enemytype
 
 let apply_move (state : GameState.t) (entity : GameEntity.t)
     (move : possible_move) =
@@ -159,17 +160,30 @@ let normal_room (player : GameEntity.t) generated_room =
               print_endline "Adding player";
               ( GameWorld.put_entity acc_world (GameEntity.set_pos player pos),
                 acc_tiles )
+          | Pgworld.Empty -> (acc_world, acc_tiles)
           | _ -> (
               match entity with
               | entity_type ->
                   let convert_entity_type = function
+                    (* MAP *)
                     | Pgworld.Wall -> Wall
                     | Pgworld.Door (i, spawn_loc) -> Door (i, spawn_loc)
                     | Pgworld.Rock -> Rock
                     | Pgworld.Water -> Water
                     | Pgworld.Lava -> Lava
                     | Pgworld.Fire -> Fire
+                    (* ENEMIES *)
                     | Pgworld.(WeakMob Pigeon) -> Pigeon
+                    | Pgworld.(
+                        WeakMob (Variable_Range_and_Damage (range, damage))) ->
+                        Enemy (Variable_Range_and_Damage (range, damage))
+                    | Pgworld.(StrongMob Small_Jailer) -> Enemy jailer_small
+                    | Pgworld.(StrongMob Medium_Jailer) -> Enemy jailer_medium
+                    | Pgworld.(StrongMob Large_Jailer) -> Enemy jailer_large
+                    | Pgworld.(StrongMob Thief) -> Enemy Thief
+                    | Pgworld.(StrongMob Small_Fog) -> Enemy small_fog_cloud
+                    | Pgworld.(StrongMob Large_Fog) -> Enemy large_fog_cloud
+                    (* ITEMS *)
                     | Pgworld.(Item (ScaleAction i)) ->
                         ModifierItem (ScaleAction i)
                     | Pgworld.(Item (AddFire (f, i))) ->
@@ -177,15 +191,15 @@ let normal_room (player : GameEntity.t) generated_room =
                     | Pgworld.(Item (AddDamage f)) -> ModifierItem (AddDamage f)
                     | Pgworld.(Item AugmentToAdjacent) ->
                         ModifierItem AugmentToAdjacent
+                    (* MISC *)
+                    | Pgworld.Empty ->
+                        failwith "Empty should already be skipped"
                     | Pgworld.Player ->
-                        failwith "Player should have already been handled"
-                    | _ -> failwith "Unknown case"
+                        failwith "Player should already be added"
                   in
-
                   let new_entity =
                     create_default_at (convert_entity_type entity_type) pos
                   in
-
                   (GameWorld.put_entity acc_world new_entity, acc_tiles))
         in
         ( updated_world,
