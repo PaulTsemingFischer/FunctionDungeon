@@ -139,7 +139,9 @@ let apply_actions_to (state : GameState.t) (entity : GameEntity.t)
   print_endline "Apply";
   List.fold_left
     (fun cur_state cur_action ->
-      let entity_opt = GameWorld.query_id (GameState.room state) entity.id in
+      let entity_opt =
+        GameWorld.query_id (GameState.room cur_state) entity.id
+      in
       match entity_opt with
       | None -> cur_state
       | Some cur_entity -> apply_action_to cur_state cur_entity cur_action)

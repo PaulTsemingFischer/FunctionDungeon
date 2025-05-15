@@ -146,9 +146,17 @@ let draw_ui (renderer : t) =
     in
     render_n_entities_aux entities 5 0
   in
-  render_n_entities
-    (GameWorld.all_entities (GameState.room renderer.source_state))
-    3
+  let player = GameState.get_player renderer.source_state in
+  let sorted_entities =
+    List.sort
+      (fun (e1 : GameEntity.t) (e2 : GameEntity.t) ->
+        let e1_dist_from_player = length_squared (sub_vec2 e1.pos player.pos) in
+        let e2_dist_from_player = length_squared (sub_vec2 e2.pos player.pos) in
+        e1_dist_from_player - e2_dist_from_player)
+      (GameWorld.all_entities (GameState.room renderer.source_state))
+  in
+
+  render_n_entities sorted_entities 3
 
 (* let render_n_events (event_list : (int * event) list) (n : int) =
     let rec render_n_events_aux (event_list : (int * event) list) (n : int)

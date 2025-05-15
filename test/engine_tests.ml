@@ -75,8 +75,10 @@ let utils_tests =
          ( "lerp_vec of (0, 0) to (1, 0) by a threshold of 0.5 should equal \
             (0.5, 0.)"
          >:: fun _ -> assert_equal (0.5, 0.) (lerp_vec (0., 0.) (1., 0.) 0.5) );
+         ( "the length squared (float) of (2., 2.) should be 8." >:: fun _ ->
+           assert_equal 8. (length_squaredf (2., 2.)) );
          ( "the length squared of (2., 2.) should be 8." >:: fun _ ->
-           assert_equal 8. (length_squared (2., 2.)) );
+           assert_equal 8 (length_squared (2, 2)) );
        ]
 
 (**[entity_tests] tests functionality related to creating entities*)
