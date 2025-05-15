@@ -155,49 +155,38 @@ let normal_room (player : GameEntity.t) generated_room =
            (((ground, entity), pos) : Pgworld.tile * vec2) ->
         let updated_world, update_tiles =
           match entity with
-          | Pgworld.Wall ->
-              ( GameWorld.put_entity acc_world (create_default_at Wall pos),
-                acc_tiles )
-          | Pgworld.Door (i, spawn_loc) ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at (Door (i, spawn_loc)) pos),
-                acc_tiles )
-          | Pgworld.Rock ->
-              ( GameWorld.put_entity acc_world (create_default_at Rock pos),
-                acc_tiles )
-          | Pgworld.Water ->
-              ( GameWorld.put_entity acc_world (create_default_at Water pos),
-                acc_tiles )
-          | Pgworld.Lava ->
-              ( GameWorld.put_entity acc_world (create_default_at Lava pos),
-                acc_tiles )
-          | Pgworld.Fire ->
-              ( GameWorld.put_entity acc_world (create_default_at Fire pos),
-                acc_tiles )
-          | Pgworld.(WeakMob Pigeon) ->
-              ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
-                acc_tiles )
-          | Pgworld.(Item (ScaleAction i)) ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at (ModifierItem (ScaleAction i)) pos),
-                acc_tiles )
-          | Pgworld.(Item (AddFire (f, i))) ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at (ModifierItem (AddFire (f, i))) pos),
-                acc_tiles )
-          | Pgworld.(Item (AddDamage f)) ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at (ModifierItem (AddDamage f)) pos),
-                acc_tiles )
-          | Pgworld.(Item AugmentToAdjacent) ->
-              ( GameWorld.put_entity acc_world
-                  (create_default_at (ModifierItem AugmentToAdjacent) pos),
-                acc_tiles )
           | Pgworld.Player ->
               print_endline "Adding player";
               ( GameWorld.put_entity acc_world (GameEntity.set_pos player pos),
                 acc_tiles )
-          | _ -> (acc_world, acc_tiles)
+          | _ -> (
+              match entity with
+              | entity_type ->
+                  let convert_entity_type = function
+                    | Pgworld.Wall -> Wall
+                    | Pgworld.Door (i, spawn_loc) -> Door (i, spawn_loc)
+                    | Pgworld.Rock -> Rock
+                    | Pgworld.Water -> Water
+                    | Pgworld.Lava -> Lava
+                    | Pgworld.Fire -> Fire
+                    | Pgworld.(WeakMob Pigeon) -> Pigeon
+                    | Pgworld.(Item (ScaleAction i)) ->
+                        ModifierItem (ScaleAction i)
+                    | Pgworld.(Item (AddFire (f, i))) ->
+                        ModifierItem (AddFire (f, i))
+                    | Pgworld.(Item (AddDamage f)) -> ModifierItem (AddDamage f)
+                    | Pgworld.(Item AugmentToAdjacent) ->
+                        ModifierItem AugmentToAdjacent
+                    | Pgworld.Player ->
+                        failwith "Player should have already been handled"
+                    | _ -> failwith "Unknown case"
+                  in
+
+                  let new_entity =
+                    create_default_at (convert_entity_type entity_type) pos
+                  in
+
+                  (GameWorld.put_entity acc_world new_entity, acc_tiles))
         in
         ( updated_world,
           match ground with
