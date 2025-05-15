@@ -185,7 +185,7 @@ let compute_camera_target ((x, y) : vec2) =
 (**[get_latest_events state] returns all events that occurred in the last turn*)
 let get_latest_events (state : GameState.t) =
   List.filter
-    (fun (turn, _) -> turn = GameState.get_turn state)
+    (fun (turn, _) -> turn = GameState.get_turn state - 1)
     (GameState.get_events state)
 
 (**[set_mode renderer mode] sets [renderer]'s mode to [mode]*)
@@ -259,7 +259,7 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
                     overlay_type = TextRise (string_of_float amt);
                   }
             | _ -> None)
-          (get_latest_events renderer.source_state);
+          (get_latest_events entity_state);
     mode = renderer.mode;
   }
 
@@ -615,8 +615,8 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
               let updated_renderer =
                 update_render_state renderer updated_entity_state
               in
-              let ticked_renderer = tick updated_renderer in
-              loop_aux ticked_renderer updated_entity_state input_handler
+              let ticked_renderer_inner = tick updated_renderer in
+              loop_aux ticked_renderer_inner updated_entity_state input_handler
             with GameState.Invalid_input _ ->
               loop_aux ticked_renderer entity_state input_handler
           else loop_aux ticked_renderer entity_state input_handler

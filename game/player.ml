@@ -33,15 +33,12 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
           possible_actions
       in
       match action_opt with
-      | None ->
-          print_endline "none";
-          GameState.(raise (Invalid_input input))
+      | None -> GameState.(raise (Invalid_input input))
       | Some (action_pos, actions) -> (
           let e_opt =
             GameWorld.query_pos (GameState.room state)
               (add_vec2 action_pos entity.pos)
           in
-          print_endline (string_of_vec2 action_pos);
           match e_opt with
           | None -> GameState.(raise (Invalid_input input))
           | Some e -> apply_actions_to state e actions))
