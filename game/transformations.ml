@@ -173,7 +173,7 @@ let normal_room (player : GameEntity.t) generated_room =
               ( GameWorld.put_entity acc_world (create_default_at Fire pos),
                 acc_tiles )
           | Pgworld.(WeakMob Pigeon) ->
-              ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+              ( GameWorld.put_entity acc_world (create_default_at Fire pos),
                 acc_tiles )
           | Pgworld.(Item (ScaleAction i)) ->
               ( GameWorld.put_entity acc_world
