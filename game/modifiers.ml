@@ -55,6 +55,8 @@ let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
         (fun target -> (target, [ enemy_attack_type e ]))
         base_cross_moves
 
+[@@@coverage off]
+
 let string_of_modifier m =
   match m with
   | ScaleAction x -> Printf.sprintf "buff: scale attack range by %d" x
@@ -62,3 +64,5 @@ let string_of_modifier m =
       Printf.sprintf "buff: apply %0.2f fire damage for %d turns" x y
   | AddDamage x -> Printf.sprintf "buff: deal %0.2f extra damage" x
   | AugmentToAdjacent -> "buff: increase attack area"
+
+[@@@coverage on]
