@@ -40,6 +40,13 @@ let string_of_type e_type =
   | Obstacle o -> Obstacles.string_of_obstacle o
   | ModifierItem m -> Modifiers.string_of_modifier m
 
+(** [is_killable_entity entity_type] is true if [entity_type] can take
+    damage/die, otherwise false. *)
+let is_killable_entity e_type =
+  match e_type with
+  | Player | Pigeon | HorizontalBouncer _ | Enemy _ -> true
+  | _ -> false
+
 module BaseEntityDeclarations :
   Entity.EntityData
     with type t = entity_stat
