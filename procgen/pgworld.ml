@@ -23,7 +23,7 @@ type item =
   | AugmentToAdjacent
 
 (** [rand_item] is a random item*)
-let rand_item () = 
+let rand_item () =
   match Random.int 4 with
   | 0 -> ScaleAction (2 + Random.int 4)
   | 1 -> AddFire (0.1 +. Random.float 1.9, 1 + Random.int 5)
@@ -77,7 +77,7 @@ let default_room_gen_settings =
     gen_weak_mob = (fun () -> random_element weak_mobs);
     gen_strong_mob = (fun () -> random_element strong_mobs);
     gen_item = (fun () -> rand_item ());
-    weak_mob_rate = 0.02;
+    weak_mob_rate = 0.000;
     strong_mob_rate = 0.0;
     item_rate = 0.001;
     room_width = (20, 70);

@@ -81,6 +81,26 @@ let draw_ui (renderer : t) =
     (get_screen_height () - bottom_panel_height)
     (get_screen_width ()) (get_screen_height ()) Color.black;
 
+  let action_modifiers, _ =
+    GameState.get_modifiers renderer.source_state Player
+  in
+
+  (* action modifs *)
+  List.iteri
+    (fun idx modifier ->
+      Raylib.draw_text
+        Modifiers.(
+          match modifier with
+          | ScaleAction _ -> "x"
+          | AddFire _ -> "F"
+          | AddDamage _ -> "!"
+          | AugmentToAdjacent -> "+")
+        (padding + (24 * idx))
+        60
+        (int_of_float tile_scaling_factor)
+        Color.white)
+    action_modifiers;
+
   draw_metric "HEALTH: "
     (Printf.sprintf "%.2f"
        (GameState.get_player renderer.source_state).stats.health)
