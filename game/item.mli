@@ -35,3 +35,6 @@ val of_key_list : (AttackMap.key * action list) list -> possible_action list
 
 val to_key : int * int -> AttackMap.key
 (** [to_key vec] converts the vec2 to an AttackMap key. *)
+
+val effects_to_string : action list -> string
+(** [effects_to_string lst] converts the attack effects in [lst] to a string. *)
