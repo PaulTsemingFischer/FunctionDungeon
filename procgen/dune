@@ -1,4 +1,5 @@
 (library
  (name procgen)
  (libraries engine batteries)
+ (instrumentation (backend bisect_ppx))
 )
