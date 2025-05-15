@@ -22,6 +22,7 @@ type entity_types =
   | Enemy of Enemytype.enemy
   | Obstacle of Obstacles.obstacle
   | ModifierItem of Modifiers.possible_actions_modifier
+  | SpecialItem
 
 type status_effects = Fire of float * int
 
@@ -39,6 +40,14 @@ let string_of_type e_type =
   | Enemy e -> Enemytype.string_of_enemy e
   | Obstacle o -> Obstacles.string_of_obstacle o
   | ModifierItem m -> Modifiers.string_of_modifier m
+  | SpecialItem -> "special-item"
+
+(** [is_killable_entity entity_type] is true if [entity_type] can take
+    damage/die, otherwise false. *)
+let is_killable_entity e_type =
+  match e_type with
+  | Player | Pigeon | HorizontalBouncer _ | Enemy _ -> true
+  | _ -> false
 
 module BaseEntityDeclarations :
   Entity.EntityData
@@ -122,7 +131,11 @@ let create_default_at e_type pos : GameEntity.t =
     | ModifierItem m ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
-          (ModifierItem m) [] pos)
+          (ModifierItem m) [] pos
+    | SpecialItem ->
+        GameEntity.create
+          { health = 10.0; base_moves = []; base_actions = [] }
+          SpecialItem [] pos)
 
 (**[print_entities entity_list] prints all entities in given entity_list*)
 let print_entities entity_list =
