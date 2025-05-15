@@ -10,7 +10,7 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
       match GameWorld.query_pos (GameState.room state) target_pos with
       | Some e -> (
           match e.entity_type with
-          | Wall | Rock | Water | Lava ->
+          | Wall | Rock | Water | Obstacle _ ->
               GameState.(raise (Invalid_input input))
           | Door (i, loc) ->
               let moved_state = GameState.move_room state i in
@@ -19,6 +19,8 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
                    (GameState.room moved_state)
                    (GameEntity.set_pos (GameState.get_player state) loc))
           | ModifierItem m -> apply_pickup_move state entity dir
+          | SpecialItem -> apply_pickup_move state entity dir
+          | Lava | Fire -> apply_action_to state entity (DealDamage 1.)
           | _ -> apply_action_to state e (DealDamage 1.))
       | None -> apply_move state entity dir)
   | Wait -> state

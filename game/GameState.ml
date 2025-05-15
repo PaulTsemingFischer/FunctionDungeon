@@ -21,6 +21,7 @@ type event =
   | ActivateMoveModifier of
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
   | PickUpModifier of GameEntity.t * Modifiers.possible_actions_modifier
+  | PickUpSpecial of GameEntity.t * int
   | EntityDeath of GameEntity.t
   | FogCloud of GameEntity.t * int * int
 
@@ -54,6 +55,10 @@ let string_of_event event =
       Printf.sprintf "%s picked up attack modifier: %s"
         (string_of_type e.entity_type)
         (Modifiers.string_of_modifier m)
+  | PickUpSpecial (e, count) ->
+      Printf.sprintf "%s picked up a special item! Current count: %d"
+        (string_of_type e.entity_type)
+        count
   | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
   | FogCloud (e, r, f) ->
       Printf.sprintf "fog cloud of %i radius for %i frames" r f
@@ -71,6 +76,7 @@ type t = {
     * (Modifiers.possible_actions_modifier list
       * Modifiers.possible_moves_modifier list))
     list;
+  special_progress : int;
 }
 
 and transition = t -> GameEntity.t -> input -> t
@@ -98,6 +104,7 @@ let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
     turn = 0;
     player;
     modifiers = [];
+    special_progress = 0;
   }
 
 let print_events state =
@@ -323,6 +330,11 @@ let remove_actions_modifier state entity_type =
 let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle) =
   let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
   set_room state (GameWorld.put_entity world new_obstacle)
+
+let increment_progress state =
+  { state with special_progress = state.special_progress + 1 }
+
+let get_progress state = state.special_progress
 
 let positions_in_radius (center : vec2) (radius : int) : vec2 list =
   let center_x, center_y = center in

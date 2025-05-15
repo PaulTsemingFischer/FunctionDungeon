@@ -46,6 +46,19 @@ let apply_pickup_move (state : GameState.t) (entity : GameEntity.t)
               (PickUpModifier (entity, m))
           in
           apply_move new_state entity move
+      | SpecialItem ->
+          let item_removed_state =
+            GameState.set_room state
+              (GameWorld.remove_entity (GameState.room state) e.id)
+          in
+          let progress_incr_state =
+            GameState.increment_progress item_removed_state
+          in
+          let new_state =
+            GameState.add_event progress_incr_state
+              (PickUpSpecial (entity, GameState.get_progress progress_incr_state))
+          in
+          apply_move new_state entity move
       | _ -> apply_move state entity move)
   | _ -> apply_move state entity move
 
@@ -56,13 +69,6 @@ let say (state : GameState.t) (entity : GameEntity.t) (message : string) =
 
 exception Entity_not_found of GameEntity.t
 
-(** [is_killable_entity entity] is true if [entity] can take damage/die,
-    otherwise false. *)
-let is_killable_entity (entity : GameEntity.t) =
-  match entity.entity_type with
-  | Player | Pigeon | HorizontalBouncer _ | Enemy _ -> true
-  | _ -> false
-
 (**[apply_action_to state entity action] applies [action] to [entity], returning
    an updated [state] with the changed entity*)
 let apply_action_to (state : GameState.t) (entity : GameEntity.t)
@@ -72,7 +78,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
   else
     match action with
     | DealDamage x ->
-        if is_killable_entity entity then
+        if is_killable_entity entity.entity_type then
           let updated_entity =
             GameEntity.update_stats entity
               {
@@ -95,7 +101,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
             GameState.add_event updated_state (ChangeHealth (entity, -.x))
         else state
     | DealFireDamage x ->
-        if is_killable_entity entity then
+        if is_killable_entity entity.entity_type then
           let updated_entity =
             GameEntity.update_stats entity
               {
@@ -120,7 +126,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
             GameState.add_event updated_state (ChangeHealth (entity, -.x))
         else state
     | ApplyFire (x, y) ->
-        if is_killable_entity entity then
+        if is_killable_entity entity.entity_type then
           let updated_entity =
             GameEntity.update_statuses entity
               (GameDefinitions.Fire (x, y) :: entity.statuses)
@@ -169,6 +175,22 @@ let normal_room (player : GameEntity.t) generated_room =
                 acc_tiles )
           | Pgworld.(WeakMob Pigeon) ->
               ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
+                acc_tiles )
+          | Pgworld.(Item (ScaleAction i)) ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem (ScaleAction i)) pos),
+                acc_tiles )
+          | Pgworld.(Item (AddFire (f, i))) ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem (AddFire (f, i))) pos),
+                acc_tiles )
+          | Pgworld.(Item (AddDamage f)) ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem (AddDamage f)) pos),
+                acc_tiles )
+          | Pgworld.(Item AugmentToAdjacent) ->
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem AugmentToAdjacent) pos),
                 acc_tiles )
           | Pgworld.Player ->
               print_endline "Adding player";

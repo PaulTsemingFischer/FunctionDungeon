@@ -16,7 +16,19 @@ type strong_mob =
   | Thief
   | Blinder
 
-type item = PlaceHolderItem
+type item =
+  | ScaleAction of int
+  | AddFire of float * int
+  | AddDamage of float
+  | AugmentToAdjacent
+
+(** [rand_item] is a random item*)
+let rand_item () =
+  match Random.int 4 with
+  | 0 -> ScaleAction (2 + Random.int 4)
+  | 1 -> AddFire (0.1 +. Random.float 1.9, 1 + Random.int 5)
+  | 3 -> AddDamage (0.1 +. Random.float 1.9)
+  | _ -> AugmentToAdjacent
 
 type entity =
   | Empty
@@ -33,7 +45,6 @@ type entity =
 
 let weak_mobs = [ Pigeon ]
 let strong_mobs = [ Jailer; Thief; Blinder ]
-let items = [ PlaceHolderItem ]
 
 type tile = ground * entity
 type t = tile array array
@@ -65,10 +76,10 @@ let default_room_gen_settings =
   {
     gen_weak_mob = (fun () -> random_element weak_mobs);
     gen_strong_mob = (fun () -> random_element strong_mobs);
-    gen_item = (fun () -> random_element items);
-    weak_mob_rate = 0.01;
+    gen_item = (fun () -> rand_item ());
+    weak_mob_rate = 0.02;
     strong_mob_rate = 0.0;
-    item_rate = 0.0;
+    item_rate = 0.001;
     room_width = (20, 70);
     room_height = (10, 50);
     min_room_coverage = 0.2;
