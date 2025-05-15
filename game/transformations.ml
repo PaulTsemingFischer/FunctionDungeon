@@ -133,6 +133,17 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
     | BarrierAttack (r, o) -> GameState.build_barrier state world entity.pos r o
     | StealAttack -> GameState.remove_actions_modifier state entity.entity_type
 
+(**[apply_actions_to state entity actions] applies [actions] to [entity]*)
+let apply_actions_to (state : GameState.t) (entity : GameEntity.t)
+    (actions : Modifiers.action list) =
+  List.fold_left
+    (fun cur_state cur_action ->
+      let entity_opt = GameWorld.query_id (GameState.room state) entity.id in
+      match entity_opt with
+      | None -> cur_state
+      | Some cur_entity -> apply_action_to cur_state cur_entity cur_action)
+    state actions
+
 (**[normal_room state player] is a new entity world, tile world pair with the
    given player*)
 let normal_room (player : GameEntity.t) generated_room =
@@ -170,17 +181,21 @@ let normal_room (player : GameEntity.t) generated_room =
               ( GameWorld.put_entity acc_world (create_default_at Pigeon pos),
                 acc_tiles )
           | Pgworld.(Item (ScaleAction i)) ->
-            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem (ScaleAction i)) pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem (ScaleAction i)) pos),
+                acc_tiles )
           | Pgworld.(Item (AddFire (f, i))) ->
-            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem (AddFire (f, i))) pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem (AddFire (f, i))) pos),
+                acc_tiles )
           | Pgworld.(Item (AddDamage f)) ->
-            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem (AddDamage f)) pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem (AddDamage f)) pos),
+                acc_tiles )
           | Pgworld.(Item AugmentToAdjacent) ->
-            ( GameWorld.put_entity acc_world (create_default_at (ModifierItem AugmentToAdjacent) pos),
-              acc_tiles )
+              ( GameWorld.put_entity acc_world
+                  (create_default_at (ModifierItem AugmentToAdjacent) pos),
+                acc_tiles )
           | Pgworld.Player ->
               print_endline "Adding player";
               ( GameWorld.put_entity acc_world (GameEntity.set_pos player pos),

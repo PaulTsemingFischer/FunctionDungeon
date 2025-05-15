@@ -5,6 +5,7 @@ type input =
   | MovePlayer of vec2
   | Attack
   | Wait
+  | Act of vec2
 
 exception Invalid_input of input
 
