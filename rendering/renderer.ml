@@ -550,8 +550,7 @@ let render (renderer : t) =
             (Raylib.Color.create 255 0 0
                (int_of_float (256. *. (1.0 -. eased_progress)))))
     renderer.overlays;
-  end_mode_2d ();
-  draw_ui renderer
+  end_mode_2d ()
 
 let rec loop_aux (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
@@ -576,24 +575,28 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
           in
           let game_vec2f = rendered_to_game_pos world_vec2f in
           let action_target = vec2_of_vec2f game_vec2f in
-          let rounded_world_vec =
+          let render_tile_corner =
             game_to_rendered_pos (vec2f_of_vec2 (vec2_of_vec2f game_vec2f))
           in
-          let render_target =
-            add_vec2 rounded_world_vec
-              ( int_of_float (tile_scaling_factor /. 2.),
-                int_of_float (tile_scaling_factor /. 2.) )
-          in
+          (* let render_tile_center = add_vec2 render_tile_corner ( int_of_float
+             (tile_scaling_factor /. 2.), int_of_float (tile_scaling_factor /.
+             2.) ) in *)
           Raylib.begin_mode_2d renderer.camera;
-          Raylib.draw_circle (fst render_target) (snd render_target) 10.
-            Raylib.Color.black;
+          Raylib.draw_rectangle_lines (fst render_tile_corner)
+            (snd render_tile_corner)
+            (int_of_float tile_scaling_factor)
+            (int_of_float tile_scaling_factor)
+            Color.black;
+          (* Raylib.draw_circle (fst render_tile_center) (snd
+             render_tile_center) *)
+          (* 10. Raylib.Color.black; *)
           let player = GameState.get_player entity_state in
           let possible_actions =
             GameState.activate_action_modifiers entity_state Player
               player.stats.base_actions
           in
           List.iter
-            (fun (action_pos, _) ->
+            (fun (action_pos, actions) ->
               let screen_space_pos =
                 add_vec2
                   (game_to_rendered_pos
@@ -601,13 +604,34 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
                   ( int_of_float (tile_scaling_factor /. 2.),
                     int_of_float (tile_scaling_factor /. 2.) )
               in
-              Raylib.draw_circle (fst screen_space_pos) (snd screen_space_pos)
-                10.
-                (Raylib.Color.create 0 0 255 100))
+              if action_target = add_vec2 action_pos player.pos then
+                List.iteri
+                  (fun idx action ->
+                    let render_color =
+                      match action with
+                      | Modifiers.DealDamage _ -> Raylib.Color.blue
+                      | StealAttack
+                      | BarrierAttack _
+                      | DealFireDamage _
+                      | ApplyFire _ -> Raylib.Color.red
+                    in
+                    Raylib.draw_circle (fst screen_space_pos)
+                      (snd screen_space_pos - (5 * idx))
+                      10.
+                      (Raylib.Color.create
+                         (Raylib.Color.r render_color)
+                         (Raylib.Color.g render_color)
+                         (Raylib.Color.b render_color)
+                         (max (100 - (10 * idx)) 0)))
+                  actions
+              else
+                Raylib.draw_circle (fst screen_space_pos) (snd screen_space_pos)
+                  10.
+                  (Raylib.Color.create 0 0 0 50))
             possible_actions;
           Raylib.end_mode_2d ();
+          draw_ui renderer;
           Raylib.end_drawing ();
-
           if Raylib.is_mouse_button_pressed MouseButton.Left then
             let input = GameState.Act action_target in
             try
@@ -639,6 +663,7 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
               Raylib.begin_drawing ();
               let updated_renderer = tick renderer in
               render updated_renderer;
+              draw_ui renderer;
               Raylib.end_drawing ();
               loop_aux updated_renderer entity_state input_handler
           | Some input -> (
@@ -651,6 +676,7 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
 
                 Raylib.begin_drawing ();
                 render ticked_renderer;
+                draw_ui renderer;
                 Raylib.end_drawing ();
                 loop_aux ticked_renderer updated_entity_state input_handler
               with GameState.Invalid_input _ ->
