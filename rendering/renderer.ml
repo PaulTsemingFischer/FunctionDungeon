@@ -9,10 +9,11 @@ type renderable = {
 }
 
 (**[overlay] represents various graphical effects like text animations, damage
-   indicators, etc. [TextRise (target, current, message)] is a rising text
-   overlay that is removed after [target] frames*)
+   indicators, etc. [TextRise (target, current, message, damage)] is a rising
+   text overlay that is removed after [target] frames. Text color is red if
+   [damage] is true and green otherwise *)
 type overlay_type =
-  | TextRise of string
+  | TextRise of string * bool
   | Circle of {
       radius : float;
       color : Color.t;
@@ -273,7 +274,7 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
                     duration = 30;
                     current = 0;
                     pos = vec2f_of_vec2 e.pos;
-                    overlay_type = TextRise (string_of_float amt);
+                    overlay_type = TextRise (Printf.sprintf "%.2f" amt, amt < 0.);
                   }
             | GameState.FogCloud (entity, radius, frames) ->
                 Some
@@ -516,12 +517,18 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.gold);
+               Color.gold
+         | HealthItem _ ->
+             Raylib.draw_text "H"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
+               Color.black);
 
   List.iter
     (fun ovly ->
       match ovly.overlay_type with
-      | TextRise msg ->
+      | TextRise (msg, damage) ->
           let progress =
             float_of_int ovly.current /. float_of_int ovly.duration
           in
@@ -545,7 +552,10 @@ let render (renderer : t) =
             (fst screen_space_position)
             (snd screen_space_position)
             ui_font_size
-            (Raylib.Color.create 255 0 0
+            (Raylib.Color.create
+               (if damage then 255 else 0)
+               (if damage then 0 else 255)
+               0
                (int_of_float (256. *. (1.0 -. eased_progress))))
       | Circle { radius; color } ->
           let screen_space_position =

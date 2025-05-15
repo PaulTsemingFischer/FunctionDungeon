@@ -45,3 +45,4 @@ let entity_action_runner (state : GameState.t) (entity : GameEntity.t)
   | HorizontalBouncer _ -> Bouncers.bouncer_action state entity input
   | ModifierItem _ -> state
   | SpecialItem -> state
+  | HealthItem _ -> state
