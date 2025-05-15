@@ -608,9 +608,8 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
           Raylib.end_mode_2d ();
           Raylib.end_drawing ();
 
-          if Raylib.is_mouse_button_pressed MouseButton.Forward then (
+          if Raylib.is_mouse_button_pressed MouseButton.Left then
             let input = GameState.Act action_target in
-            print_endline (string_of_vec2 action_target);
             try
               let updated_entity_state = input_handler entity_state input in
               let updated_renderer =
@@ -619,7 +618,7 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
               let ticked_renderer = tick updated_renderer in
               loop_aux ticked_renderer updated_entity_state input_handler
             with GameState.Invalid_input _ ->
-              loop_aux ticked_renderer entity_state input_handler)
+              loop_aux ticked_renderer entity_state input_handler
           else loop_aux ticked_renderer entity_state input_handler
     | Default -> (
         if key_pressed = Raylib.Key.E then

@@ -136,6 +136,7 @@ let apply_action_to (state : GameState.t) (entity : GameEntity.t)
 (**[apply_actions_to state entity actions] applies [actions] to [entity]*)
 let apply_actions_to (state : GameState.t) (entity : GameEntity.t)
     (actions : Modifiers.action list) =
+  print_endline "Apply";
   List.fold_left
     (fun cur_state cur_action ->
       let entity_opt = GameWorld.query_id (GameState.room state) entity.id in
