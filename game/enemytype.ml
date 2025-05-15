@@ -19,7 +19,8 @@ let string_of_enemy (e : enemy) =
   | Jailer (r, t) -> "jailer"
   | Thief -> "thief"
   | Fog_Cloud (r, f) -> "fog cloud"
-  | Variable_Range_and_Damage (r, d) -> "enemy"
+  | Variable_Range_and_Damage (r, d) ->
+      "enemy: range=" ^ string_of_int r ^ " damage=" ^ Printf.sprintf "%.2f" d
 
 let jailer_small = Jailer (3, 5)
 let jailer_medium = Jailer (5, 10)

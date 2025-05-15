@@ -36,8 +36,8 @@ let rand_item () =
 let rand_weak_mob () =
   if Random.float 1.0 > 0.7 then Pigeon
   else
-    let damage = (1.0 -. (Random.float 1.0 ** 3.0)) *. 6.0 in
-    let range = 1 + int_of_float ((1.0 -. (Random.float 1.0 ** 3.0)) *. 6.0) in
+    let damage = 0.2 +. ((Random.float 1.0 ** 3.0) *. 6.0) in
+    let range = 2 + int_of_float ((Random.float 1.0 ** 1.5) *. 6.0) in
     Variable_Range_and_Damage (range, damage)
 
 let rand_strong_mob () =
