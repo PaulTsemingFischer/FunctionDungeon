@@ -45,6 +45,10 @@ type entity =
 
 let weak_mobs = [ Pigeon ]
 let strong_mobs = [ Jailer; Thief; Blinder ]
+<<<<<<< HEAD
+=======
+let items = [ PlaceHolderItem ]
+>>>>>>> 4f596ac66830737dffa3eca457b03af6d7978208
 
 type tile = ground * entity
 type t = tile array array
@@ -76,8 +80,13 @@ let default_room_gen_settings =
   {
     gen_weak_mob = (fun () -> random_element weak_mobs);
     gen_strong_mob = (fun () -> random_element strong_mobs);
+<<<<<<< HEAD
     gen_item = (fun () -> rand_item ());
     weak_mob_rate = 0.02;
+=======
+    gen_item = (fun () -> random_element items);
+    weak_mob_rate = 0.01;
+>>>>>>> 4f596ac66830737dffa3eca457b03af6d7978208
     strong_mob_rate = 0.0;
     item_rate = 0.001;
     room_width = (20, 70);

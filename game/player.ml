@@ -18,16 +18,7 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
                 (GameWorld.put_entity
                    (GameState.room moved_state)
                    (GameEntity.set_pos (GameState.get_player state) loc))
-          | ModifierItem m ->
-              let item_removed_state =
-                GameState.set_room state
-                  (GameWorld.remove_entity (GameState.room state) e.id)
-              in
-              let modifier_added_state =
-                GameState.add_actions_modifier item_removed_state m
-                  entity.entity_type
-              in
-              apply_move modifier_added_state entity dir
+          | ModifierItem m -> apply_pickup_move state entity dir
           | _ -> apply_action_to state e (DealDamage 1.))
       | None -> apply_move state entity dir)
   | Wait -> state

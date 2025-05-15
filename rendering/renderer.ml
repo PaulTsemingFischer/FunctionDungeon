@@ -318,7 +318,7 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.black
+               Color.green
          | Wall ->
              Raylib.draw_text "#"
                (fst screen_space_position)
@@ -358,37 +358,74 @@ let render (renderer : t) =
                    (int_of_float tile_scaling_factor)
                    Color.black
              | Variable_Range r ->
-                 Raylib.draw_text "r"
+                 let radius_int = float_of_int r *. tile_scaling_factor in
+                 let center_x =
+                   fst screen_space_position
+                   + (int_of_float tile_scaling_factor / 2)
+                 in
+                 let center_y =
+                   snd screen_space_position
+                   + (int_of_float tile_scaling_factor / 2)
+                 in
+                 let range_color = Raylib.Color.create 100 100 255 100 in
+
+                 Raylib.draw_circle center_x center_y radius_int range_color;
+
+                 Raylib.draw_text "p"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.black
              | Variable_Damage d ->
-                 Raylib.draw_text "d"
+                 let text_color =
+                   if d < 2. then Color.green
+                   else if d < 4. then Color.orange
+                   else Color.red
+                 in
+
+                 Raylib.draw_text "p"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black
+                   text_color
              | Variable_Range_and_Damage (r, d) ->
-                 Raylib.draw_text "v"
+                 let center_x =
+                   fst screen_space_position
+                   + (int_of_float tile_scaling_factor / 2)
+                 in
+                 let center_y =
+                   snd screen_space_position
+                   + (int_of_float tile_scaling_factor / 2)
+                 in
+                 let radius_int = float_of_int r *. tile_scaling_factor in
+                 let range_color = Raylib.Color.create 100 100 255 80 in
+                 Raylib.draw_circle center_x center_y radius_int range_color;
+
+                 let text_color =
+                   if d < 2. then Color.green
+                   else if d < 4. then Color.orange
+                   else Color.red
+                 in
+
+                 Raylib.draw_text "p"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black)
+                   text_color)
          | Obstacle o -> (
              match o with
              | Spreading_Fire (c, r, g) ->
-                 Raylib.draw_text "f"
+                 Raylib.draw_text "♨"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black
+                   Color.red
              | Fence t ->
-                 Raylib.draw_text "fn"
+                 Raylib.draw_text "#"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black)
+                   Color.brown)
          | Water ->
              Raylib.draw_text "~"
                (fst screen_space_position)
