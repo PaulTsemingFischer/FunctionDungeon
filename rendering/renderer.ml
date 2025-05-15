@@ -467,7 +467,13 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.black);
+               Color.black
+         | SpecialItem ->
+             Raylib.draw_text "*"
+               (fst screen_space_position)
+               (snd screen_space_position)
+               (int_of_float tile_scaling_factor)
+               Color.gold);
 
   List.iter
     (fun ovly ->

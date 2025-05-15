@@ -23,7 +23,7 @@ type item =
   | AugmentToAdjacent
 
 (** [rand_item] is a random item*)
-let rand_item () = 
+let rand_item () =
   match Random.int 4 with
   | 0 -> ScaleAction (2 + Random.int 4)
   | 1 -> AddFire (0.1 +. Random.float 1.9, 1 + Random.int 5)

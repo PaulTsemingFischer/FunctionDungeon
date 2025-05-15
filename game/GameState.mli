@@ -23,6 +23,7 @@ type event =
   | ActivateMoveModifier of
       GameEntity.t * Modifiers.possible_move list * Modifiers.possible_move list
   | PickUpModifier of GameEntity.t * Modifiers.possible_actions_modifier
+  | PickUpSpecial of GameEntity.t * int
   | EntityDeath of GameEntity.t
 
 and transition = t -> GameEntity.t -> input -> t
@@ -135,3 +136,5 @@ val remove_actions_modifier : t -> entity_types -> t
 val add_obstacle_to_world : t -> GameWorld.t -> vec2 -> Obstacles.obstacle -> t
 val positions_in_radius : vec2 -> int -> vec2 list
 val build_barrier : t -> GameWorld.t -> vec2 -> int -> Obstacles.obstacle -> t
+val increment_progress : t -> t
+val get_progress : t -> int

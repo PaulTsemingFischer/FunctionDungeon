@@ -46,6 +46,19 @@ let apply_pickup_move (state : GameState.t) (entity : GameEntity.t)
               (PickUpModifier (entity, m))
           in
           apply_move new_state entity move
+      | SpecialItem ->
+          let item_removed_state =
+            GameState.set_room state
+              (GameWorld.remove_entity (GameState.room state) e.id)
+          in
+          let progress_incr_state =
+            GameState.increment_progress item_removed_state
+          in
+          let new_state =
+            GameState.add_event progress_incr_state
+              (PickUpSpecial (entity, GameState.get_progress progress_incr_state))
+          in
+          apply_move new_state entity move
       | _ -> apply_move state entity move)
   | _ -> apply_move state entity move
 
