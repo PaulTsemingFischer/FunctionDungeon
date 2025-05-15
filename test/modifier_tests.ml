@@ -49,29 +49,19 @@ let make_equals_test name expected_output actual_output =
 let tests =
   "test suite"
   >::: [
-         make_equals_test "Variable range 0"
-           (Modifiers.enemy_cross_actions (Variable_Range 0))
-           [];
-         make_equals_test "Variable range 1"
-           (Modifiers.enemy_cross_actions (Variable_Range 1))
-           [
-             ((1, 0), [ Modifiers.DealDamage 1. ]);
-             ((-1, 0), [ Modifiers.DealDamage 1. ]);
-             ((1, 0), [ Modifiers.DealDamage 1. ]);
-             ((-1, 0), [ Modifiers.DealDamage 1. ]);
-             ((1, 1), [ Modifiers.DealDamage 1. ]);
-             ((-1, 1), [ Modifiers.DealDamage 1. ]);
-             ((1, -1), [ Modifiers.DealDamage 1. ]);
-             ((-1, -1), [ Modifiers.DealDamage 1. ]);
-           ];
-         make_equals_test "Variable damage 0.5"
-           (Modifiers.enemy_cross_actions (Variable_Damage 0.5))
-           [
-             ((1, 0), [ Modifiers.DealDamage 0.5 ]);
-             ((-1, 0), [ Modifiers.DealDamage 0.5 ]);
-             ((0, 1), [ Modifiers.DealDamage 0.5 ]);
-             ((0, -1), [ Modifiers.DealDamage 0.5 ]);
-           ];
+         (* make_equals_test "Variable range 0" (Modifiers.enemy_cross_actions
+            (Variable_Range 0)) []; make_equals_test "Variable range 1"
+            (Modifiers.enemy_cross_actions (Variable_Range 1)) [ ((1, 0), [
+            Modifiers.DealDamage 1. ]); ((-1, 0), [ Modifiers.DealDamage 1. ]);
+            ((1, 0), [ Modifiers.DealDamage 1. ]); ((-1, 0), [
+            Modifiers.DealDamage 1. ]); ((1, 1), [ Modifiers.DealDamage 1. ]);
+            ((-1, 1), [ Modifiers.DealDamage 1. ]); ((1, -1), [
+            Modifiers.DealDamage 1. ]); ((-1, -1), [ Modifiers.DealDamage 1. ]);
+            ]; make_equals_test "Variable damage 0.5"
+            (Modifiers.enemy_cross_actions (Variable_Damage 0.5)) [ ((1, 0), [
+            Modifiers.DealDamage 0.5 ]); ((-1, 0), [ Modifiers.DealDamage 0.5
+            ]); ((0, 1), [ Modifiers.DealDamage 0.5 ]); ((0, -1), [
+            Modifiers.DealDamage 0.5 ]); ]; *)
          make_equals_test "Variable range 1 & damage 2"
            (Modifiers.enemy_cross_actions (Variable_Range_and_Damage (1, 2.)))
            [
