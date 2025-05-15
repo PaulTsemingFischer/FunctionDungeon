@@ -40,7 +40,8 @@ let rec effects_to_string lst =
           "Apply fire " ^ string_of_float x ^ ", " ^ string_of_int y
       | DealFireDamage x -> "Deal fire damage " ^ string_of_float x
       | StealAttack -> "Steal"
-      | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x)
+      | BarrierAttack (x, _) -> "Barrier " ^ string_of_int x
+      | FogAttack (r, f) -> "Fog")
       ^ "; " ^ effects_to_string t
 
 (** [bindings_to_string_helper] [lst] converts the attacks in [lst] into a

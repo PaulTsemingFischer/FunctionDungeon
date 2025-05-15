@@ -25,6 +25,7 @@ type event =
   | PickUpModifier of GameEntity.t * Modifiers.possible_actions_modifier
   | PickUpSpecial of GameEntity.t * int
   | EntityDeath of GameEntity.t
+  | FogCloud of GameEntity.t * int * int
 
 and transition = t -> GameEntity.t -> input -> t
 

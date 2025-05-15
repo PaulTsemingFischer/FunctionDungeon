@@ -6,6 +6,7 @@ type action =
   | DealFireDamage of float
   | BarrierAttack of int * Obstacles.obstacle
   | StealAttack
+  | FogAttack of int * int
 
 type possible_action = vec2 * action list
 type possible_move = vec2
@@ -49,8 +50,7 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
   | Jailer (r, t) -> BarrierAttack (r, Obstacles.Fence t)
   | Thief -> StealAttack
-  | Blinder t -> exit 0 (* Dummy for now *)
-  | Fog_Cloud (r, t) -> exit 0 (* Dummy for now *)
+  | Fog_Cloud (r, f) -> FogAttack (r, f)
   | Variable_Range r -> DealDamage 1.
   | Variable_Damage d -> DealDamage d
   | Variable_Range_and_Damage (r, d) -> DealDamage d

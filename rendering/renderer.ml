@@ -11,7 +11,12 @@ type renderable = {
 (**[overlay] represents various graphical effects like text animations, damage
    indicators, etc. [TextRise (target, current, message)] is a rising text
    overlay that is removed after [target] frames*)
-type overlay_type = TextRise of string
+type overlay_type =
+  | TextRise of string
+  | Circle of {
+      radius : float;
+      color : Color.t;
+    }
 
 type overlay = {
   duration : int;
@@ -222,6 +227,16 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
                     pos = vec2f_of_vec2 e.pos;
                     overlay_type = TextRise (string_of_float amt);
                   }
+            | GameState.FogCloud (entity, radius, frames) ->
+                Some
+                  {
+                    duration = frames;
+                    current = 0;
+                    pos = vec2f_of_vec2 entity.pos;
+                    overlay_type =
+                      Circle
+                        { radius = float_of_int radius; color = Color.gray };
+                  }
             | _ -> None)
           (get_latest_events renderer.source_state);
   }
@@ -341,12 +356,6 @@ let render (renderer : t) =
                    Color.black
              | Thief ->
                  Raylib.draw_text "t"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   Color.black
-             | Blinder t ->
-                 Raylib.draw_text "b"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
@@ -503,7 +512,25 @@ let render (renderer : t) =
             (snd screen_space_position)
             ui_font_size
             (Raylib.Color.create 255 0 0
-               (int_of_float (256. *. (1.0 -. eased_progress)))))
+               (int_of_float (256. *. (1.0 -. eased_progress))))
+      | Circle { radius; color } ->
+          let screen_space_position =
+            ( float_of_int (Raylib.get_screen_width () / 2),
+              float_of_int (Raylib.get_screen_height () / 2) )
+            |> add_vec2f
+                 (mul_vec2f
+                    (scale_vec2f ovly.pos tile_scaling_factor)
+                    (1.0, -1.0))
+            |> add_vec2f
+                 (neg_vec2f
+                    (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
+            |> vec2_of_vec2f
+          in
+          Raylib.draw_circle
+            (fst screen_space_position)
+            (snd screen_space_position)
+            (radius *. tile_scaling_factor)
+            Color.gray)
     renderer.overlays;
   end_mode_2d ();
   draw_ui renderer;
