@@ -5,15 +5,18 @@ type ground =
   | Mud
 
 type weak_mob =
-  | PlaceHolderWeakMob
+  | Variable_Range_and_Damage of int * float
   | Pigeon
 
 type strong_mob =
-  | Jailer
+  | Small_Jailer
+  | Medium_Jailer
+  | Large_Jailer
   | Thief
-  | Blinder
+  | Small_Fog
+  | Large_Fog
 
-  type item =
+type item =
   | ScaleAction of int
   | AddFire of float * int
   | AddDamage of float

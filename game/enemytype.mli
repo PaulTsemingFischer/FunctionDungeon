@@ -8,8 +8,6 @@ type enemy =
        ACTIONS MODIFIER LIST BUT MAY CHANGE TO RANDOM LATER *)
   | Fog_Cloud of int * int
   (* player can't see more than r radius around current position for t turns *)
-  | Variable_Range of int (* can attack within r range *)
-  | Variable_Damage of float (* attacks with d damage *)
   | Variable_Range_and_Damage of
       int
       * float (* extra powerful enemy, attacks with d damage within r range *)
@@ -24,23 +22,3 @@ val jailer_medium : enemy
 val jailer_large : enemy
 val small_fog_cloud : enemy
 val large_fog_cloud : enemy
-
-val double_range_enemy : enemy
-(** An enemy that can attack with double range (2) *)
-
-val long_range_enemy : enemy
-(** An enemy that can attack with long range (5) *)
-
-val double_damage_enemy : enemy
-(** An enemy that deals double damage (2.0) *)
-
-val super_damage_enemy : enemy
-(** An enemy that deals super damage (5.0) *)
-
-val slightly_extra_powerful_enemy : enemy
-(** A slightly more powerful enemy that attacks with double range (2) and double
-    damage (2.0) *)
-
-val super_powerful_enemy : enemy
-(** A super powerful enemy that attacks with long range (5) and increased damage
-    (3.0) *)

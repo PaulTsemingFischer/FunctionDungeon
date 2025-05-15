@@ -8,13 +8,16 @@ type ground =
   | Mud
 
 type weak_mob =
-  | PlaceHolderWeakMob
+  | Variable_Range_and_Damage of int * float
   | Pigeon
 
 type strong_mob =
-  | Jailer
+  | Small_Jailer
+  | Medium_Jailer
+  | Large_Jailer
   | Thief
-  | Blinder
+  | Small_Fog
+  | Large_Fog
 
 type item =
   | ScaleAction of int
@@ -30,6 +33,22 @@ let rand_item () =
   | 3 -> AddDamage (0.1 +. Random.float 1.9)
   | _ -> AugmentToAdjacent
 
+let rand_weak_mob () =
+  if Random.float 1.0 > 0.7 then Pigeon
+  else
+    let damage = 0.2 +. ((Random.float 1.0 ** 3.0) *. 6.0) in
+    let range = 2 + int_of_float ((Random.float 1.0 ** 1.5) *. 6.0) in
+    Variable_Range_and_Damage (range, damage)
+
+let rand_strong_mob () =
+  match Random.int 11 with
+  | 0 | 1 | 2 -> Small_Jailer
+  | 3 | 4 -> Medium_Jailer
+  | 5 -> Large_Jailer
+  | 6 | 7 -> Thief
+  | 8 | 9 -> Small_Fog
+  | _ -> Large_Fog
+
 type entity =
   | Empty
   | Water
@@ -42,9 +61,6 @@ type entity =
   | StrongMob of strong_mob
   | Item of item
   | Player
-
-let weak_mobs = [ Pigeon ]
-let strong_mobs = [ Jailer; Thief; Blinder ]
 
 type tile = ground * entity
 type t = tile array array
@@ -74,12 +90,12 @@ type room_gen_settings = {
 
 let default_room_gen_settings =
   {
-    gen_weak_mob = (fun () -> random_element weak_mobs);
-    gen_strong_mob = (fun () -> random_element strong_mobs);
+    gen_weak_mob = (fun () -> rand_weak_mob ());
+    gen_strong_mob = (fun () -> rand_strong_mob ());
     gen_item = (fun () -> rand_item ());
     weak_mob_rate = 0.002;
-    strong_mob_rate = 0.0;
-    item_rate = 0.003;
+    strong_mob_rate = 0.0005;
+    item_rate = 0.001;
     room_width = (20, 70);
     room_height = (10, 50);
     min_room_coverage = 0.2;

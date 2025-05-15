@@ -18,16 +18,6 @@ let string_of_fog_cloud_test =
     (string_of_enemy (Fog_Cloud (4, 2)))
     ~printer:(fun x -> x)
 
-let string_of_variable_range_test =
-  "String of variable range enemy test" >:: fun _ ->
-  assert_equal "variable range enemy" (string_of_enemy (Variable_Range 4))
-    ~printer:(fun x -> x)
-
-let string_of_variable_damage_test =
-  "String of variable damage enemy test" >:: fun _ ->
-  assert_equal "variable damage enemy" (string_of_enemy (Variable_Damage 4.))
-    ~printer:(fun x -> x)
-
 let string_of_variable_damage_range_test =
   "String of variable range and damage enemy test" >:: fun _ ->
   assert_equal "variable range and damage enemy"
@@ -40,8 +30,6 @@ let tests =
          string_of_jailer_test;
          string_of_thief_test;
          string_of_fog_cloud_test;
-         string_of_variable_range_test;
-         string_of_variable_damage_test;
          string_of_variable_damage_range_test;
        ]
 
