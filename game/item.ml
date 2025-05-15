@@ -27,6 +27,10 @@ let compare_effects a b =
   match (a, b) with
   | DealDamage a, DealDamage b -> a = b
   | ApplyFire (a, a2), ApplyFire (b, b2) -> a = b && a2 = b2
+  | DealFireDamage a, DealFireDamage b -> a = b
+  | StealAttack, StealAttack -> true
+  | BarrierAttack (a, _), BarrierAttack (b, _) -> a = b
+  | FogAttack (a, b), FogAttack (x, y) -> a = x && b = y
   | _, _ -> false
 
 (** [effects_to_string lst] converts the attack effects in [lst] to a string. *)
