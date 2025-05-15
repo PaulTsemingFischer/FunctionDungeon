@@ -131,10 +131,10 @@ let draw_ui (renderer : t) =
       else
         match entities with
         | [] -> ()
-        | h :: t -> (
+        | h :: t -> begin
             match h.entity_type with
             | Wall | Door _ -> render_n_entities_aux t n current
-            | x ->
+            | x -> (
                 let entry_height =
                   get_screen_height ()
                   - (bottom_panel_height - (2 * panel_padding)
@@ -144,10 +144,14 @@ let draw_ui (renderer : t) =
                   (string_of_type h.entity_type)
                   padding entry_height ui_font_size Color.white;
                 render_n_entities_aux t n (current + 1);
-                draw_metric_right "HEALTH: "
-                  (Printf.sprintf "%.2f" h.stats.health)
-                  (get_screen_width () - padding)
-                  entry_height ui_font_size Color.red)
+                match h.entity_type with
+                | Enemy _ | Pigeon ->
+                    draw_metric_right "HEALTH: "
+                      (Printf.sprintf "%.2f" h.stats.health)
+                      (get_screen_width () - padding)
+                      entry_height ui_font_size Color.red
+                | _ -> ())
+          end
     in
     render_n_entities_aux entities 5 0
   in
@@ -341,10 +345,12 @@ let render_floor (renderer : t) =
             (int_of_float tile_scaling_factor)
             Color.brown
       | Ground ->
-          Raylib.draw_text "."
-            (fst screen_space_position)
-            (snd screen_space_position)
-            (int_of_float tile_scaling_factor)
+          Raylib.draw_circle
+            (fst screen_space_position
+            + int_of_float (tile_scaling_factor /. 2.0))
+            (snd screen_space_position
+            + int_of_float (tile_scaling_factor /. 2.0))
+            (float_of_int (int_of_float (tile_scaling_factor *. 0.05)))
             Color.lightgray)
     (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
 
@@ -412,19 +418,19 @@ let render (renderer : t) =
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black
+                   Color.red
              | Thief ->
                  Raylib.draw_text "t"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black
+                   Color.red
              | Fog_Cloud (r, t) ->
                  Raylib.draw_text "c"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
-                   Color.black
+                   Color.red
              | Variable_Range_and_Damage (r, d) ->
                  let center_x =
                    fst screen_space_position
@@ -504,7 +510,7 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.black
+               Color.magenta
          | SpecialItem ->
              Raylib.draw_text "*"
                (fst screen_space_position)
