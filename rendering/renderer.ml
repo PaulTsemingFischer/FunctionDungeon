@@ -473,10 +473,10 @@ let render (renderer : t) =
          | ModifierItem m ->
              draw
                (match m with
-               | ScaleAction _ -> "S"
+               | ScaleAction _ -> "x"
                | AddFire _ -> "F"
-               | AddDamage _ -> "D"
-               | AugmentToAdjacent -> "A")
+               | AddDamage _ -> "!"
+               | AugmentToAdjacent -> "+")
                Color.magenta
          | HealthItem _ -> draw "H" Color.green);
 
