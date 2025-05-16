@@ -21,3 +21,11 @@ To run coverage tests:
 ```bash
 bash coverage.sh
 ```
+
+# LOC
+
+To see lines of code (all | testing)
+
+```bash
+bash loc.sh
+```
