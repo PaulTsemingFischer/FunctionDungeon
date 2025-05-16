@@ -413,37 +413,43 @@ let render (renderer : t) =
                (int_of_float tile_scaling_factor)
                Color.black
          | Enemy e -> (
+             let create_range_circle radius =
+               let center_x =
+                 fst screen_space_position
+                 + int_of_float (tile_scaling_factor /. 2.)
+               in
+               let center_y =
+                 snd screen_space_position
+                 + int_of_float (tile_scaling_factor /. 2.)
+               in
+               let radius_int = float_of_int radius *. tile_scaling_factor in
+               let range_color = Raylib.Color.create 100 100 255 80 in
+               Raylib.draw_circle center_x center_y radius_int range_color
+             in
              match e with
              | Jailer (r, t) ->
+                 create_range_circle 1;
                  Raylib.draw_text "j"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.red
              | Thief ->
+                 create_range_circle 1;
                  Raylib.draw_text "t"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.red
              | Fog_Cloud (r, t) ->
+                 create_range_circle 1;
                  Raylib.draw_text "c"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.red
              | Variable_Range_and_Damage (r, d) ->
-                 let center_x =
-                   fst screen_space_position
-                   + (int_of_float tile_scaling_factor / 2)
-                 in
-                 let center_y =
-                   snd screen_space_position
-                   + (int_of_float tile_scaling_factor / 2)
-                 in
-                 let radius_int = float_of_int r *. tile_scaling_factor in
-                 let range_color = Raylib.Color.create 100 100 255 80 in
-                 Raylib.draw_circle center_x center_y radius_int range_color;
+                 create_range_circle r;
 
                  let text_color =
                    if d < 2. then Color.green
@@ -581,6 +587,41 @@ let render (renderer : t) =
 let rec loop_aux (renderer : t) (entity_state : GameState.t)
     (input_handler : input_handler) =
   if Raylib.window_should_close () then Raylib.close_window ()
+  else if
+    GameWorld.query_id
+      (GameState.room renderer.source_state)
+      (GameState.get_player renderer.source_state).id
+    = None
+    && GameWorld.query_id
+         (GameState.room entity_state)
+         (GameState.get_player entity_state).id
+       = None
+  then (
+    Raylib.begin_drawing ();
+    Raylib.clear_background Raylib.Color.white;
+    let w =
+      Raylib.measure_text "You Died. Press [R] to start a new game" ui_font_size
+    in
+    Raylib.draw_text "You Died. Press [R] to Start a New Game"
+      ((Raylib.get_screen_width () / 2) - (w / 2))
+      300 ui_font_size Raylib.Color.black;
+    if Raylib.is_key_pressed Raylib.Key.R then (
+      let player = create_default_at Player (0, 0) in
+      let generated_state =
+        Transformations.generate_floor player
+          Procgen.Pgworld.default_room_gen_settings
+          [ Transitions.entity_status_runner; Transitions.entity_action_runner ]
+      in
+      let new_state =
+        GameState.add_moves_modifier generated_state (ScaleMove 1) Pigeon
+        |> GameState.query_update_player
+      in
+
+      Raylib.end_drawing ();
+      let updated_renderer = update_render_state renderer new_state in
+      loop_aux updated_renderer new_state input_handler)
+    else Raylib.end_drawing ();
+    loop_aux renderer entity_state input_handler)
   else
     let key_pressed = Raylib.get_key_pressed () in
     match renderer.mode with

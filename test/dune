@@ -22,3 +22,12 @@
  (name modifier_tests)
  (libraries ounit2 engine game))
 
+(test
+ (name end_to_end_tests)
+ (libraries ounit2 engine game procgen))
+
+(test
+ (name player_tests)
+ (libraries ounit2 engine game))
+
+

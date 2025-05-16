@@ -79,6 +79,24 @@ let utils_tests =
            assert_equal 8. (length_squaredf (2., 2.)) );
          ( "the length squared of (2., 2.) should be 8." >:: fun _ ->
            assert_equal 8 (length_squared (2, 2)) );
+         ( "scaling (1, 2) by 2 should give (2, 4)" >:: fun _ ->
+           assert_equal (2, 4) (scale_vec2 (1, 2) 2) );
+         ( "scaling (1., 2.) by 2. should give (2., 4.)" >:: fun _ ->
+           assert_equal (2., 4.) (scale_vec2f (1., 2.) 2.) );
+         ( "multiplying (1, 2) by (2, 3) should give (2, 6)" >:: fun _ ->
+           assert_equal (2, 6) (mul_vec2 (1, 2) (2, 3)) );
+         ( "multiplying (1., 2.) by (2., 3.) should give (2., 6.)" >:: fun _ ->
+           assert_equal (2., 6.) (mul_vec2f (1., 2.) (2., 3.)) );
+         ( "rounding (1., 2.) should give (1., 2.)" >:: fun _ ->
+           assert_equal (1., 2.) (round_vec2f (1., 2.)) );
+         ( "rounding (1.4, 2.4) should give (1., 2.)" >:: fun _ ->
+           assert_equal (1., 2.)
+             (round_vec2f (1.4, 2.4))
+             ~printer:string_of_vec2f );
+         ( "converting (1., 2.) to vec2 should give (1, 2)" >:: fun _ ->
+           assert_equal (1, 2) (vec2_of_vec2f (1., 2.)) );
+         ( "converting (1, 2) to vec2f should give (1., 2.)" >:: fun _ ->
+           assert_equal (1., 2.) (vec2f_of_vec2 (1, 2)) );
        ]
 
 (**[entity_tests] tests functionality related to creating entities*)
