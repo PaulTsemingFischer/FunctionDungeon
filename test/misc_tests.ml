@@ -15,8 +15,6 @@ let misc_tests =
          ( "fence" >:: fun _ ->
            assert_equal "fence" (string_of_type (Obstacle (Obstacles.Fence 3)))
          );
-         ( "SpecialItem" >:: fun _ ->
-           assert_equal "special-item" (string_of_type SpecialItem) );
          ( "ApplyFire" >:: fun _ ->
            assert_equal
              "player received fire status effect that does 2.00 damage for 3 \

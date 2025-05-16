@@ -49,6 +49,5 @@ let entity_action_runner (state : GameState.t) (entity : GameWorld.e_t)
   | Enemy e -> Enemyaction.enemy_action state entity e input
   | Obstacle o -> Obstacleaction.obstacle_action state entity o input
   | ModifierItem _ -> state
-  | SpecialItem -> state
   | HealthItem _ -> state
   | _ -> state

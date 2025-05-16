@@ -22,7 +22,6 @@ type entity_types =
   | Enemy of Enemytype.enemy
   | Obstacle of Obstacles.obstacle
   | ModifierItem of Modifiers.possible_actions_modifier
-  | SpecialItem
   | HealthItem of float
 
 type status_effects = Fire of float * int
@@ -41,7 +40,6 @@ let string_of_type e_type =
   | Enemy e -> Enemytype.string_of_enemy e
   | Obstacle o -> Obstacles.string_of_obstacle o
   | ModifierItem m -> Modifiers.string_of_modifier m
-  | SpecialItem -> "special-item"
   | HealthItem x -> Printf.sprintf "health: %.2f" x
 
 (** [is_killable_entity entity_type] is true if [entity_type] can take
@@ -133,10 +131,6 @@ let create_default_at e_type pos : GameEntity.t =
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
           (ModifierItem m) [] pos
-    | SpecialItem ->
-        GameEntity.create
-          { health = 10.0; base_moves = []; base_actions = [] }
-          SpecialItem [] pos
     | HealthItem x ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }

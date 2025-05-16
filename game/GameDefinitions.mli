@@ -25,7 +25,6 @@ type entity_types =
   | Enemy of Enemytype.enemy
   | Obstacle of Obstacles.obstacle
   | ModifierItem of Modifiers.possible_actions_modifier
-  | SpecialItem
   | HealthItem of float
 
 (** [status_effects] represents all possible status effects that can be on an
