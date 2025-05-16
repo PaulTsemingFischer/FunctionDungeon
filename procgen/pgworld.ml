@@ -93,8 +93,8 @@ let default_room_gen_settings =
     gen_weak_mob = (fun () -> rand_weak_mob ());
     gen_strong_mob = (fun () -> rand_strong_mob ());
     gen_item = (fun () -> rand_item ());
-    weak_mob_rate = 0.002;
-    strong_mob_rate = 0.0005;
+    weak_mob_rate = 0.0015;
+    strong_mob_rate = 0.001;
     item_rate = 0.0007;
     room_width = (20, 70);
     room_height = (10, 50);
@@ -336,7 +336,7 @@ let rec gen_items_and_mobs room runs settings =
           in
           let weak_mob_r =
             settings.weak_mob_rate *. (0.5 ** n_mob_gen1)
-            *. (3.0 ** n_weak_gen2) *. (0.5 ** n__strong_gen2)
+            *. (0.8 ** n_weak_gen2) *. (0.5 ** n__strong_gen2)
           in
           let strong_mob_r =
             settings.strong_mob_rate *. (0.0 ** n_mob_gen1)

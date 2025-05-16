@@ -402,31 +402,25 @@ let render (renderer : t) =
   RenderableSet.to_list renderer.renderables
   |> List.iter (fun (r : renderable) ->
          let screen_space_position = game_to_rendered_pos r.rendered_pos in
+         let draw c color =
+           let font_size = 24 in
+           let text_width = Raylib.measure_text c font_size in
+           let text_height = font_size in
+           let x_centered =
+             fst screen_space_position - (text_width / 2)
+             + int_of_float (tile_scaling_factor /. 2.0)
+           in
+           let y_centered =
+             snd screen_space_position - (text_height / 2)
+             + int_of_float (tile_scaling_factor /. 2.0)
+           in
+           Raylib.draw_text c x_centered y_centered font_size color
+         in
          match to_entity_types r.source_entity.entity_type with
-         | Player ->
-             Raylib.draw_text "@"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.black
-         | Pigeon ->
-             Raylib.draw_text "p"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.orange
-         | Wall ->
-             Raylib.draw_text "#"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.black
-         | Door _ ->
-             Raylib.draw_text ">"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.darkpurple
+         | Player -> draw "@" Color.black
+         | Pigeon -> draw "p" Color.orange
+         | Wall -> draw "#" Color.black
+         | Door _ -> draw ">" Color.darkpurple
          | Enemy e -> (
              let create_range_circle radius =
                let center_x =
@@ -444,25 +438,13 @@ let render (renderer : t) =
              match e with
              | Jailer (r, t) ->
                  create_range_circle 1;
-                 Raylib.draw_text "j"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   Color.red
+                 draw "j" Color.red
              | Thief ->
                  create_range_circle 1;
-                 Raylib.draw_text "t"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   Color.red
+                 draw "t" Color.red
              | Fog_Cloud (r, t) ->
                  create_range_circle 1;
-                 Raylib.draw_text "c"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   Color.red
+                 draw "c" Color.red
              | Variable_Range_and_Damage (r, d) ->
                  create_range_circle r;
 
@@ -472,49 +454,15 @@ let render (renderer : t) =
                    else Color.red
                  in
 
-                 Raylib.draw_text "e"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   text_color)
+                 draw "e" text_color)
          | Obstacle o -> (
              match o with
-             | Spreading_Fire (c, r, g) ->
-                 Raylib.draw_text "♨"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   Color.red
-             | Fence t ->
-                 Raylib.draw_text "#"
-                   (fst screen_space_position)
-                   (snd screen_space_position)
-                   (int_of_float tile_scaling_factor)
-                   Color.brown)
-         | Water ->
-             Raylib.draw_text "~"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.blue
-         | Lava ->
-             Raylib.draw_text "~"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.orange
-         | Fire ->
-             Raylib.draw_text "♨"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.red
-         | Rock ->
-             Raylib.draw_text "o"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.gray
+             | Spreading_Fire (c, r, g) -> draw "♨" Color.red
+             | Fence t -> draw "#" Color.brown)
+         | Water -> draw "~" Color.blue
+         | Lava -> draw "~" Color.orange
+         | Fire -> draw "♨" Color.red
+         | Rock -> draw "o" Color.gray
          | HorizontalBouncer is_moving_right ->
              Raylib.draw_text
                (if is_moving_right then ">" else "<")
@@ -523,28 +471,15 @@ let render (renderer : t) =
                (int_of_float tile_scaling_factor)
                Color.black
          | ModifierItem m ->
-             Raylib.draw_text
+             draw
                (match m with
                | ScaleAction _ -> "S"
                | AddFire _ -> "F"
                | AddDamage _ -> "D"
                | AugmentToAdjacent -> "A")
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
                Color.magenta
-         | SpecialItem ->
-             Raylib.draw_text "*"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.gold
-         | HealthItem _ ->
-             Raylib.draw_text "H"
-               (fst screen_space_position)
-               (snd screen_space_position)
-               (int_of_float tile_scaling_factor)
-               Color.green);
+         | SpecialItem -> draw "*" Color.gold
+         | HealthItem _ -> draw "H" Color.green);
 
   List.iter
     (fun ovly ->
