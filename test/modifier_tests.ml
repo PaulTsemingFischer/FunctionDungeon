@@ -49,21 +49,8 @@ let make_equals_test name expected_output actual_output =
 let tests =
   "test suite"
   >::: [
-         (* make_equals_test "Variable range 0" (Modifiers.enemy_cross_actions
-            (Variable_Range 0)) []; make_equals_test "Variable range 1"
-            (Modifiers.enemy_cross_actions (Variable_Range 1)) [ ((1, 0), [
-            Modifiers.DealDamage 1. ]); ((-1, 0), [ Modifiers.DealDamage 1. ]);
-            ((1, 0), [ Modifiers.DealDamage 1. ]); ((-1, 0), [
-            Modifiers.DealDamage 1. ]); ((1, 1), [ Modifiers.DealDamage 1. ]);
-            ((-1, 1), [ Modifiers.DealDamage 1. ]); ((1, -1), [
-            Modifiers.DealDamage 1. ]); ((-1, -1), [ Modifiers.DealDamage 1. ]);
-            ]; make_equals_test "Variable damage 0.5"
-            (Modifiers.enemy_cross_actions (Variable_Damage 0.5)) [ ((1, 0), [
-            Modifiers.DealDamage 0.5 ]); ((-1, 0), [ Modifiers.DealDamage 0.5
-            ]); ((0, 1), [ Modifiers.DealDamage 0.5 ]); ((0, -1), [
-            Modifiers.DealDamage 0.5 ]); ]; *)
          make_equals_test "Variable range 1 & damage 2"
-           (Modifiers.enemy_cross_actions (Variable_Range_and_Damage (1, 2.)))
+           (Modifiers.enemy_circle_actions (Variable_Range_and_Damage (1, 2.)))
            [
              ((1, 0), [ Modifiers.DealDamage 2. ]);
              ((-1, 0), [ Modifiers.DealDamage 2. ]);
@@ -75,10 +62,10 @@ let tests =
              ((-1, -1), [ Modifiers.DealDamage 2. ]);
            ];
          make_equals_test "Variable range 0 & damage 2"
-           (Modifiers.enemy_cross_actions (Variable_Range_and_Damage (0, 2.)))
+           (Modifiers.enemy_circle_actions (Variable_Range_and_Damage (0, 2.)))
            [];
          make_equals_test "Thief attack"
-           (Modifiers.enemy_cross_actions Thief)
+           (Modifiers.enemy_circle_actions Thief)
            [
              ((1, 0), [ Modifiers.StealAttack ]);
              ((-1, 0), [ Modifiers.StealAttack ]);
@@ -86,7 +73,7 @@ let tests =
              ((0, -1), [ Modifiers.StealAttack ]);
            ];
          make_equals_test "Jailer attack"
-           (Modifiers.enemy_cross_actions (Jailer (5, 2)))
+           (Modifiers.enemy_circle_actions (Jailer (5, 2)))
            [
              ((1, 0), [ Modifiers.BarrierAttack (5, Obstacles.Fence 2) ]);
              ((-1, 0), [ Modifiers.BarrierAttack (5, Obstacles.Fence 2) ]);
@@ -94,7 +81,7 @@ let tests =
              ((0, -1), [ Modifiers.BarrierAttack (5, Obstacles.Fence 2) ]);
            ];
          make_equals_test "Thief attack"
-           (Modifiers.enemy_cross_actions (Fog_Cloud (1, 2)))
+           (Modifiers.enemy_circle_actions (Fog_Cloud (1, 2)))
            [
              ((1, 0), [ Modifiers.FogAttack (1, 2) ]);
              ((-1, 0), [ Modifiers.FogAttack (1, 2) ]);

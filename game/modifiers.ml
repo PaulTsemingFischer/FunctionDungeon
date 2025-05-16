@@ -34,11 +34,14 @@ let rec range_cross_moves (r : int) : possible_move list =
       let moves_for_n1 = n2_loop n1 [] in
       moves_for_n1 @ range_cross_moves (n1 - 1)
 
+let range_circle_moves (r : int) =
+  range_cross_moves r |> List.filter (fun (x, y) -> (x * x) + (y * y) <= r * r)
+
 let base_cross_actions : possible_action list =
   List.map (fun target -> (target, [ DealDamage 1. ])) base_cross_moves
 
-let var_range_damage_cross_actions r d : possible_action list =
-  List.map (fun target -> (target, [ DealDamage d ])) (range_cross_moves r)
+let var_range_damage_circle_actions r d : possible_action list =
+  List.map (fun target -> (target, [ DealDamage d ])) (range_circle_moves r)
 
 let enemy_attack_type (e : Enemytype.enemy) : action =
   match e with
@@ -47,9 +50,9 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
   | Fog_Cloud (r, f) -> FogAttack (r, f)
   | Variable_Range_and_Damage (r, d) -> DealDamage d
 
-let enemy_cross_actions (e : Enemytype.enemy) : possible_action list =
+let enemy_circle_actions (e : Enemytype.enemy) : possible_action list =
   match e with
-  | Variable_Range_and_Damage (r, d) -> var_range_damage_cross_actions r d
+  | Variable_Range_and_Damage (r, d) -> var_range_damage_circle_actions r d
   | _ ->
       List.map
         (fun target -> (target, [ enemy_attack_type e ]))
