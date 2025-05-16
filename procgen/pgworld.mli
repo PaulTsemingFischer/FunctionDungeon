@@ -39,8 +39,6 @@ type tile = ground * entity
 type t = tile array array
 type world = t list
 
-val default_entity : tile
-
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
   gen_strong_mob : unit -> strong_mob;
@@ -62,6 +60,8 @@ type room_gen_settings = {
 }
 
 val default_room_gen_settings : room_gen_settings
+(** [default_room_gen_settings] are good default parameters for room generation
+*)
 
 val string_of_genworld : t -> string
 (**[string_of_genworld world] is a string representation of the proc gen world

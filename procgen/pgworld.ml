@@ -66,8 +66,6 @@ type tile = ground * entity
 type t = tile array array
 type world = t list
 
-let default_entity : tile = (Void, Empty)
-
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
   gen_strong_mob : unit -> strong_mob;
@@ -95,7 +93,7 @@ let default_room_gen_settings =
     gen_item = (fun () -> rand_item ());
     weak_mob_rate = 0.002;
     strong_mob_rate = 0.0005;
-    item_rate = 0.001;
+    item_rate = 0.0007;
     room_width = (20, 70);
     room_height = (10, 50);
     min_room_coverage = 0.2;
