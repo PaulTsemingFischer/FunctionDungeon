@@ -42,11 +42,11 @@ let create_wall () = create_default_at Wall (0, 0)
 
 (**[generate_starting_state ()] creates a randomly generated, procedural world
    with the player inside the map*)
-let generate_starting_state () =
+let generate_starting_state ?(settings = Pgworld.default_room_gen_settings) () =
   let player = create_default_at Player (0, 0) in
   let generated_state =
     Transformations.generate_floor (to_gameworld_type player)
-      Pgworld.default_room_gen_settings
+      settings
       [ Transitions.entity_status_runner; Transitions.entity_action_runner ]
   in
   GameState.add_moves_modifier generated_state (ScaleMove 1) Pigeon
@@ -55,112 +55,132 @@ let generate_starting_state () =
 (**[e2d_tests] tests stepping through state with multiple state generator
    functions and ensuring that the state at each step is the expected state*)
 let e2d_tests =
+  Random.init 50;
   "test suite that tests end-to-end functionality of state progression, with \
    procedural generation and full entity set"
-  >::: [
-         ( "stepping through the state of a game with one generator that does \
-            nothing\n\
-           \  and a single entity advances the turn but leaves the entity \
-            unchanged"
-         >:: fun _ ->
-           let state_start = generate_starting_state () in
-           let player = to_gameentity_type (GameState.get_player state_start) in
-           print_all_entities (GameState.room state_start);
-           assert_equal (Some player)
-             (match
-                GameWorld.query_id
-                  (GameState.room state_start)
-                  (to_entity_id player.id)
-              with
-             | None -> None
-             | Some player -> Some (to_gameentity_type player));
-           assert_equal 0 (GameState.get_turn state_start);
-           let state_next = GameState.step state_start Wait in
-           print_all_entities (GameState.room state_next);
-           assert_equal (Some player)
-             (match
-                GameWorld.query_id
-                  (GameState.room state_next)
-                  (to_entity_id player.id)
-              with
-             | None -> None
-             | Some player -> Some (to_gameentity_type player))
-             ~printer:string_of_entity_option;
-           assert_equal 1 (GameState.get_turn state_next) );
-         ( "Moving the player to pick up modifiers adds them to the modifier \
-            stack for player"
-         >:: fun _ ->
-           let player = create_default_at Player (0, 0) in
-           let pre_1_world =
-             GameWorld.put_entity GameWorld.empty (to_gameworld_type player)
-           in
-           let pre_2_world =
-             GameWorld.put_entity pre_1_world
-               (to_gameworld_type (create_default_at (HealthItem 10.0) (1, 0)))
-           in
-           let pre_3_world =
-             GameWorld.put_entity pre_2_world
-               (to_gameworld_type
-                  (create_default_at (ModifierItem (AddDamage 1.0)) (2, 0)))
-           in
-           let state_start =
-             GameState.create [ pre_3_world ] []
-               [ Transitions.entity_action_runner ]
-               (to_gameworld_type player) 0
-           in
-           let state_1 =
-             GameState.step state_start (GameState.MovePlayer (1, 0))
-           in
-           let inv_input = GameState.Act (2, 0) in
-           assert_raises (GameState.Invalid_input inv_input) (fun _ ->
-               GameState.step state_1 inv_input);
-           let state_2 = GameState.step state_1 (GameState.MovePlayer (1, 0)) in
+  >::: List.flatten
+         (List.init 50 (fun _ ->
+              [
+                ( "no mobs-- stepping through the state of a game with one \
+                   generator that does nothing\n\
+                  \  and a single entity advances the turn but leaves the \
+                   entity unchanged"
+                >:: fun _ ->
+                  let state_start =
+                    generate_starting_state
+                      ~settings:
+                        {
+                          Pgworld.default_room_gen_settings with
+                          weak_mob_rate = 0.0;
+                          strong_mob_rate = 0.0;
+                        }
+                      ()
+                  in
+                  let player = GameState.get_player state_start in
+                  print_all_entities (GameState.room state_start);
+                  assert_equal (Some player)
+                    (GameWorld.query_id (GameState.room state_start) player.id);
+                  assert_equal 0
+                    (GameState.get_turn state_start)
+                    ~printer:string_of_int;
+                  let state_next = GameState.step state_start Wait in
+                  print_all_entities (GameState.room state_next);
+                  assert_equal (Some player)
+                    (GameWorld.query_id (GameState.room state_next) player.id)
+                    ~printer:string_of_entity_option;
+                  assert_equal 1
+                    (GameState.get_turn state_next)
+                    ~printer:string_of_int );
+                ( "with mobs-- stepping through the state of a game with one \
+                   generator that does nothing\n\
+                  \  and a single entity advances the turn but leaves the \
+                   entity unchanged"
+                >:: fun _ ->
+                  let state_start = generate_starting_state () in
+                  print_all_entities (GameState.room state_start);
+                  assert_equal 0
+                    (GameState.get_turn state_start)
+                    ~printer:string_of_int;
+                  let state_next = GameState.step state_start Wait in
+                  print_all_entities (GameState.room state_next);
+                  assert_equal 1
+                    (GameState.get_turn state_next)
+                    ~printer:string_of_int );
+                ( "Moving the player to pick up modifiers adds them to the \
+                   modifier stack for player"
+                >:: fun _ ->
+                  let player = create_default_at Player (0, 0) in
+                  let pre_1_world =
+                    GameWorld.put_entity GameWorld.empty player
+                  in
+                  let pre_2_world =
+                    GameWorld.put_entity pre_1_world
+                      (create_default_at (HealthItem 10.0) (1, 0))
+                  in
+                  let pre_3_world =
+                    GameWorld.put_entity pre_2_world
+                      (create_default_at (ModifierItem (AddDamage 1.0)) (2, 0))
+                  in
+                  let state_start =
+                    GameState.create [ pre_3_world ] []
+                      [ Transitions.entity_action_runner ]
+                      player 0
+                  in
+                  let state_1 =
+                    GameState.step state_start (GameState.MovePlayer (1, 0))
+                  in
+                  let inv_input = GameState.Act (2, 0) in
+                  assert_raises (GameState.Invalid_input inv_input) (fun _ ->
+                      GameState.step state_1 inv_input);
+                  let state_2 =
+                    GameState.step state_1 (GameState.MovePlayer (1, 0))
+                  in
 
-           assert_equal 1
-             (List.length
-                (fst (GameState.get_modifiers state_2 (to_entity_type Player))));
-           assert_equal 2 (GameState.get_turn state_2) );
-         ( "Moving the player into random, non-movable objects like walls, \
-            rocks, water, etc. prevents them from moving"
-         >:: fun _ ->
-           let player = create_default_at Player (0, 0) in
-           let pre_1_world =
-             GameWorld.put_entity GameWorld.empty (to_gameworld_type player)
-           in
-           let pre_2_world =
-             GameWorld.put_entity pre_1_world
-               (to_gameworld_type (create_default_at Rock (1, 0)))
-           in
-           let pre_3_world =
-             GameWorld.put_entity pre_2_world
-               (to_gameworld_type (create_default_at Wall (-1, 0)))
-           in
-           let pre_4_world =
-             GameWorld.put_entity pre_3_world
-               (to_gameworld_type
-                  (create_default_at (Obstacle (Fence 100)) (0, 1)))
-           in
-           let pre_5_world =
-             GameWorld.put_entity pre_4_world
-               (to_gameworld_type (create_default_at Water (0, -1)))
-           in
-           let state_start =
-             GameState.create [ pre_5_world ] []
-               [ Transitions.entity_action_runner ]
-               (to_gameworld_type player) 0
-           in
-           let inv_input = GameState.MovePlayer (1, 0) in
-           assert_raises (GameState.Invalid_input inv_input) (fun _ ->
-               GameState.step state_start inv_input);
-           let inv_input = GameState.MovePlayer (-1, 0) in
-           assert_raises (GameState.Invalid_input inv_input) (fun _ ->
-               GameState.step state_start inv_input);
-           let inv_input = GameState.MovePlayer (0, 1) in
-           assert_raises (GameState.Invalid_input inv_input) (fun _ ->
-               GameState.step state_start inv_input);
-           let inv_input = GameState.MovePlayer (0, -1) in
-           assert_raises (GameState.Invalid_input inv_input) (fun _ ->
-               GameState.step state_start inv_input) );
-       ]
-
+                  assert_equal 1
+                    (List.length (fst (GameState.get_modifiers state_2 Player)))
+                    ~printer:string_of_int;
+                  assert_equal 2
+                    (GameState.get_turn state_2)
+                    ~printer:string_of_int );
+                ( "Moving the player into random, non-movable objects like \
+                   walls, rocks, water, etc. prevents them from moving"
+                >:: fun _ ->
+                  let player = create_default_at Player (0, 0) in
+                  let pre_1_world =
+                    GameWorld.put_entity GameWorld.empty player
+                  in
+                  let pre_2_world =
+                    GameWorld.put_entity pre_1_world
+                      (create_default_at Rock (1, 0))
+                  in
+                  let pre_3_world =
+                    GameWorld.put_entity pre_2_world
+                      (create_default_at Wall (-1, 0))
+                  in
+                  let pre_4_world =
+                    GameWorld.put_entity pre_3_world
+                      (create_default_at (Obstacle (Fence 100)) (0, 1))
+                  in
+                  let pre_5_world =
+                    GameWorld.put_entity pre_4_world
+                      (create_default_at Water (0, -1))
+                  in
+                  let state_start =
+                    GameState.create [ pre_5_world ] []
+                      [ Transitions.entity_action_runner ]
+                      player 0
+                  in
+                  let inv_input = GameState.MovePlayer (1, 0) in
+                  assert_raises (GameState.Invalid_input inv_input) (fun _ ->
+                      GameState.step state_start inv_input);
+                  let inv_input = GameState.MovePlayer (-1, 0) in
+                  assert_raises (GameState.Invalid_input inv_input) (fun _ ->
+                      GameState.step state_start inv_input);
+                  let inv_input = GameState.MovePlayer (0, 1) in
+                  assert_raises (GameState.Invalid_input inv_input) (fun _ ->
+                      GameState.step state_start inv_input);
+                  let inv_input = GameState.MovePlayer (0, -1) in
+                  assert_raises (GameState.Invalid_input inv_input) (fun _ ->
+                      GameState.step state_start inv_input) );
+              ]))
 let _ = run_test_tt_main e2d_tests

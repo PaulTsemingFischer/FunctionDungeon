@@ -122,7 +122,7 @@ let create_default_at e_type pos : GameEntity.t =
           {
             health = 10.0;
             base_moves = base_cross_moves;
-            base_actions = enemy_cross_actions e;
+            base_actions = enemy_circle_actions e;
           }
           (Enemy e) [] pos
     | Obstacle o ->

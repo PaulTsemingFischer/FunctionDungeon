@@ -28,27 +28,32 @@ type possible_moves_modifier =
           some way. *)
 
 val base_cross_moves : possible_move list
-(**[base_cross_moves] is a list containing the most basic movement pattern*)
+(**[base_cross_moves] is a list containing the most basic square movement
+   pattern*)
 
 val range_cross_moves : int -> possible_move list
-(** [range_cross_moves r] is a list containing the basic movement patterns
-    scaled up by a factor [r]. *)
+(** [range_cross_moves r] is a list containing the basic square movement
+    patterns scaled up by a factor [r]. *)
+
+val range_circle_moves : int -> possible_move list
+(** [range_circle_moves r] is a list containing the basic circle movement
+    patterns scaled up by a factor [r]. *)
 
 val base_cross_actions : possible_action list
 (**[base_cross_actions] is a list containing the most basic attack pattern,
    which hits all 4 adjacent tiles with fixed damage 1. *)
 
-val var_range_damage_cross_actions : int -> float -> possible_action list
-(** [var_range_damage_cross_actions r d] is a list containing the actions for an
-    enemy with variable range [r] and damage [d] *)
+val var_range_damage_circle_actions : int -> float -> possible_action list
+(** [var_range_damage_circle_actions r d] is a list containing the actions for
+    an enemy with variable range [r] and damage [d] *)
 
 val enemy_attack_type : Enemytype.enemy -> action
 (** [enemy_attack_type e] is the effect on the player when an enemy of type [e]
     attacks *)
 
-val enemy_cross_actions : Enemytype.enemy -> possible_action list
-(** [enemy_cross_actions] is a list containing the acting patterns for a certain
-    enemy type [e] *)
+val enemy_circle_actions : Enemytype.enemy -> possible_action list
+(** [enemy_circle_actions] is a list containing the acting patterns for a
+    certain enemy type [e] *)
 
 val string_of_modifier : possible_actions_modifier -> string
 (** [string_of_modifier m] is the string representation of the attack modifier

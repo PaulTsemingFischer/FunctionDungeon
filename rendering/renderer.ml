@@ -351,10 +351,12 @@ let render_floor (renderer : t) =
       in
       match to_tile_types tile.entity_type with
       | Mud ->
-          Raylib.draw_text "."
-            (fst screen_space_position)
-            (snd screen_space_position)
-            (int_of_float tile_scaling_factor)
+          Raylib.draw_circle
+            (fst screen_space_position
+            + int_of_float (tile_scaling_factor /. 2.0))
+            (snd screen_space_position
+            + int_of_float (tile_scaling_factor /. 2.0))
+            (float_of_int (int_of_float (tile_scaling_factor *. 0.09)))
             Color.brown
       | Ground ->
           Raylib.draw_circle
@@ -362,7 +364,7 @@ let render_floor (renderer : t) =
             + int_of_float (tile_scaling_factor /. 2.0))
             (snd screen_space_position
             + int_of_float (tile_scaling_factor /. 2.0))
-            (float_of_int (int_of_float (tile_scaling_factor *. 0.05)))
+            (float_of_int (int_of_float (tile_scaling_factor *. 0.08)))
             Color.lightgray)
     (List.map
        (fun x -> to_tileentity_type x)
@@ -412,7 +414,7 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.green
+               Color.orange
          | Wall ->
              Raylib.draw_text "#"
                (fst screen_space_position)
@@ -424,7 +426,7 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.black
+               Color.darkpurple
          | Enemy e -> (
              let create_range_circle radius =
                let center_x =
@@ -465,7 +467,7 @@ let render (renderer : t) =
                  create_range_circle r;
 
                  let text_color =
-                   if d < 2. then Color.green
+                   if d < 2. then Color.yellow
                    else if d < 4. then Color.orange
                    else Color.red
                  in
@@ -542,7 +544,7 @@ let render (renderer : t) =
                (fst screen_space_position)
                (snd screen_space_position)
                (int_of_float tile_scaling_factor)
-               Color.black);
+               Color.green);
 
   List.iter
     (fun ovly ->

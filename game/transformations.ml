@@ -229,6 +229,7 @@ let normal_room (player : GameWorld.e_t) generated_room =
                     | Pgworld.(Item (AddDamage f)) -> ModifierItem (AddDamage f)
                     | Pgworld.(Item AugmentToAdjacent) ->
                         ModifierItem AugmentToAdjacent
+                    | Pgworld.(Item (HealthItem f)) -> HealthItem f
                     (* MISC *)
                     | Pgworld.Empty ->
                         failwith "Empty should already be skipped"
