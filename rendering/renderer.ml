@@ -407,37 +407,43 @@ let render (renderer : t) =
                (int_of_float tile_scaling_factor)
                Color.black
          | Enemy e -> (
+             let create_range_circle radius =
+               let center_x =
+                 fst screen_space_position
+                 + int_of_float (tile_scaling_factor /. 2.)
+               in
+               let center_y =
+                 snd screen_space_position
+                 + int_of_float (tile_scaling_factor /. 2.)
+               in
+               let radius_int = float_of_int radius *. tile_scaling_factor in
+               let range_color = Raylib.Color.create 100 100 255 80 in
+               Raylib.draw_circle center_x center_y radius_int range_color
+             in
              match e with
              | Jailer (r, t) ->
+                 create_range_circle 1;
                  Raylib.draw_text "j"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.black
              | Thief ->
+                 create_range_circle 1;
                  Raylib.draw_text "t"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.black
              | Fog_Cloud (r, t) ->
+                 create_range_circle 1;
                  Raylib.draw_text "c"
                    (fst screen_space_position)
                    (snd screen_space_position)
                    (int_of_float tile_scaling_factor)
                    Color.black
              | Variable_Range_and_Damage (r, d) ->
-                 let center_x =
-                   fst screen_space_position
-                   + (int_of_float tile_scaling_factor / 2)
-                 in
-                 let center_y =
-                   snd screen_space_position
-                   + (int_of_float tile_scaling_factor / 2)
-                 in
-                 let radius_int = float_of_int r *. tile_scaling_factor in
-                 let range_color = Raylib.Color.create 100 100 255 80 in
-                 Raylib.draw_circle center_x center_y radius_int range_color;
+                 create_range_circle r;
 
                  let text_color =
                    if d < 2. then Color.green
