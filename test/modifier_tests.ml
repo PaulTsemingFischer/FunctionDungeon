@@ -56,10 +56,6 @@ let tests =
              ((-1, 0), [ Modifiers.DealDamage 2. ]);
              ((1, 0), [ Modifiers.DealDamage 2. ]);
              ((-1, 0), [ Modifiers.DealDamage 2. ]);
-             ((1, 1), [ Modifiers.DealDamage 2. ]);
-             ((-1, 1), [ Modifiers.DealDamage 2. ]);
-             ((1, -1), [ Modifiers.DealDamage 2. ]);
-             ((-1, -1), [ Modifiers.DealDamage 2. ]);
            ];
          make_equals_test "Variable range 0 & damage 2"
            (Modifiers.enemy_circle_actions (Variable_Range_and_Damage (0, 2.)))

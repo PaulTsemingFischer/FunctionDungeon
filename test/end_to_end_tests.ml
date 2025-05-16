@@ -203,6 +203,39 @@ let e2d_tests =
                   let inv_input = GameState.MovePlayer (0, -1) in
                   assert_raises (GameState.Invalid_input inv_input) (fun _ ->
                       GameState.step state_start inv_input) );
+                ( "Moving the player into lava or fire deals damage" >:: fun _ ->
+                  let player = create_default_at Player (0, 0) in
+                  let pre_1_world =
+                    GameWorld.put_entity GameWorld.empty
+                      (to_gameworld_type player)
+                  in
+                  let pre_2_world =
+                    GameWorld.put_entity pre_1_world
+                      (to_gameworld_type (create_default_at Lava (1, 0)))
+                  in
+                  let pre_3_world =
+                    GameWorld.put_entity pre_2_world
+                      (to_gameworld_type (create_default_at Fire (-1, 0)))
+                  in
+                  let state_start =
+                    GameState.create [ pre_3_world ] []
+                      [ Transitions.entity_action_runner ]
+                      (to_gameworld_type player) 0
+                  in
+                  let inv_input = GameState.MovePlayer (1, 0) in
+                  assert_equal 9.0
+                    (let new_state = GameState.step state_start inv_input in
+                     let player =
+                       to_gameentity_type (GameState.get_player new_state)
+                     in
+                     (to_entity_stats player.stats).health);
+                  let inv_input = GameState.MovePlayer (-1, 0) in
+                  assert_equal 9.0
+                    (let new_state = GameState.step state_start inv_input in
+                     let player =
+                       to_gameentity_type (GameState.get_player new_state)
+                     in
+                     (to_entity_stats player.stats).health) );
               ]))
 
 let _ = run_test_tt_main e2d_tests
