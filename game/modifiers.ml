@@ -53,10 +53,18 @@ let enemy_attack_type (e : Enemytype.enemy) : action =
 let enemy_circle_actions (e : Enemytype.enemy) : possible_action list =
   match e with
   | Variable_Range_and_Damage (r, d) -> var_range_damage_circle_actions r d
-  | _ ->
+  | Jailer (r, _) ->
       List.map
         (fun target -> (target, [ enemy_attack_type e ]))
-        base_cross_moves
+        (range_circle_moves 3)
+  | Thief ->
+      List.map
+        (fun target -> (target, [ enemy_attack_type e ]))
+        (range_circle_moves 2)
+  | Fog_Cloud (r, _) ->
+      List.map
+        (fun target -> (target, [ enemy_attack_type e ]))
+        (range_circle_moves (max (r / 3) 1))
 
 [@@@coverage off]
 

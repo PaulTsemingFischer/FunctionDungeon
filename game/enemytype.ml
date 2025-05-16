@@ -24,5 +24,5 @@ let string_of_enemy (e : enemy) =
 let jailer_small = Jailer (3, 5)
 let jailer_medium = Jailer (5, 10)
 let jailer_large = Jailer (7, 12)
-let small_fog_cloud = Fog_Cloud (5, 240)
-let large_fog_cloud = Fog_Cloud (10, 720)
+let small_fog_cloud = Fog_Cloud (4, 140)
+let large_fog_cloud = Fog_Cloud (8, 520)
