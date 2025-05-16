@@ -145,6 +145,7 @@ let create_default_at e_type pos : GameEntity.t =
 (**[print_entities entity_list] prints all entities in given entity_list*)
 let print_entities entity_list =
   List.iter (fun x -> print_endline (GameEntity.string_of_entity x)) entity_list
+[@@coverage off]
 
 module GameWorld = World.Make (GameEntity)
 
@@ -183,6 +184,7 @@ let create_tile_at t_type pos : TileEntity.t =
 (**[print_tiles tile_list] prints all entities in given [tile_list]*)
 let print_tiles tile_list =
   List.iter (fun x -> print_endline (TileEntity.string_of_entity x)) tile_list
+[@@coverage off]
 
 module GameTiles = World.Make (TileEntity)
 

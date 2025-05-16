@@ -116,6 +116,7 @@ let print_events state =
     (fun ((turn, event) : int * event) ->
       print_endline (string_of_int turn ^ "\t" ^ string_of_event event))
     (List.rev state.events)
+[@@coverage off]
 
 let print_latest_events (state : t) =
   List.iter
@@ -124,6 +125,7 @@ let print_latest_events (state : t) =
         print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
       else ())
     state.events
+[@@coverage off]
 
 let query_update_player state =
   let updated_player =
