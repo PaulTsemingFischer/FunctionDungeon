@@ -188,6 +188,8 @@ let print_tiles tile_list =
 
 module GameTiles = World.Make (TileEntity)
 
+[@@@coverage off]
+
 let to_entity_types x = x
 let to_tile_types x = x
 let to_entity_type x = x
@@ -200,3 +202,5 @@ let to_status_effect x = x
 let to_status_effects x = x
 let to_gametiles_type x = x
 let to_tileentity_type x = x
+
+[@@@coverage on]
