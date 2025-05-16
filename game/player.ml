@@ -43,7 +43,10 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
           in
           match e_opt with
           | None -> GameState.(raise (Invalid_input input))
-          | Some e -> apply_actions_to state e actions))
+          | Some e ->
+              if is_killable_entity e.entity_type then
+                apply_actions_to state e actions
+              else raise GameState.(raise (Invalid_input input))))
   | Attack ->
       apply_attack_to state entity.pos
         (GameState.activate_action_modifiers state Player
