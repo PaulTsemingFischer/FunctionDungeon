@@ -254,6 +254,23 @@ let liquify_islands room settings =
     walls;
   room
 
+let add_mud =
+  room_map (fun room spot ->
+      let spot_data = get_at_vec room spot in
+      let card_neighbors = cardinal_neighbor_items room spot in
+      if
+        spot_data = (Ground, Empty)
+        && List.length
+             (List.filter
+                (fun tile ->
+                  match tile with
+                  | _, Water -> true
+                  | _ -> false)
+                card_neighbors)
+           > 0
+      then (Mud, Empty)
+      else spot_data)
+
 (** [border_wall room] is the room [room] with a border of walls around the
     outside of the map *)
 let border_wall room =
@@ -457,6 +474,7 @@ and generate_room (settings : room_gen_settings) : t =
   let room = noise_room w h settings.noise_room_wall_chance in
   let room = cave_merge room settings in
   let room = liquify_islands room settings in
+  let room = add_mud room in
   let room = border_wall room in
   let room = remove_redundant_walls room in
   let room = gen_items_and_mobs room 5 settings in

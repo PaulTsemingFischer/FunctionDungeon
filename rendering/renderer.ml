@@ -345,7 +345,7 @@ let render_floor (renderer : t) =
             + int_of_float (tile_scaling_factor /. 2.0))
             (snd screen_space_position
             + int_of_float (tile_scaling_factor /. 2.0))
-            (float_of_int (int_of_float (tile_scaling_factor *. 0.05)))
+            (float_of_int (int_of_float (tile_scaling_factor *. 0.09)))
             Color.brown
       | Ground ->
           Raylib.draw_circle
@@ -353,7 +353,7 @@ let render_floor (renderer : t) =
             + int_of_float (tile_scaling_factor /. 2.0))
             (snd screen_space_position
             + int_of_float (tile_scaling_factor /. 2.0))
-            (float_of_int (int_of_float (tile_scaling_factor *. 0.05)))
+            (float_of_int (int_of_float (tile_scaling_factor *. 0.08)))
             Color.lightgray)
     (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
 
