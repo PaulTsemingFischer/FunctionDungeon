@@ -21,6 +21,7 @@ type item =
   | AddFire of float * int
   | AddDamage of float
   | AugmentToAdjacent
+  | HealthItem of float
 
 type entity =
   | Empty
