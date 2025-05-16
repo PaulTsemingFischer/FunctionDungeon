@@ -2,6 +2,9 @@ open OUnit2
 open Engine
 open Game
 open Obstacles
+open GameDefinitions
+open GameState
+open Obstacleaction
 
 let string_of_vec2 v =
   match v with
@@ -68,6 +71,53 @@ let fence_growth_test =
   "Fence growth test assert raises" >:: fun _ ->
   assert_raises WrongObsType (fun _ -> grow_fire (Fence 1))
 
+let blank_world = GameWorld.empty
+let origin_player = create_default_at Player (0, 0)
+let origin_player_world = GameWorld.put_entity blank_world origin_player
+
+let run_obstacle_action_state obstacle =
+  let test_obstacle = create_default_at (Obstacle obstacle) (2, 2) in
+  let test_world = GameWorld.put_entity origin_player_world test_obstacle in
+  let test_state =
+    GameState.create [ test_world ] [ GameTiles.empty ] [] origin_player 0
+  in
+  obstacle_action test_state test_obstacle obstacle ()
+
+let base_list_size =
+  List.length (GameWorld.all_entities origin_player_world) + 1
+
+let fence_dying_entities =
+  GameWorld.all_entities (GameState.room (run_obstacle_action_state (Fence 0)))
+
+let fence_aging_entities =
+  GameWorld.all_entities (GameState.room (run_obstacle_action_state (Fence 1)))
+
+let fence_dying_test =
+  "A fence with 0 turns left will die and therefore there will be less \
+   entities present"
+  >:: fun _ ->
+  assert_equal true
+    (List.length fence_dying_entities < base_list_size)
+    ~printer:string_of_bool
+
+let fence_aging_test =
+  "A fence with 1 turn left will remain and therefore there will be the same \
+   number of\n\
+  \   entities present"
+  >:: fun _ -> assert_equal (List.length fence_aging_entities) base_list_size
+
+let spreading_fire_entities =
+  GameWorld.all_entities
+    (GameState.room (run_obstacle_action_state (Spreading_Fire ((2, 2), 1, 1))))
+
+let spreading_fire_test =
+  "A world with a spreading fire will have more entities after that fire takes \
+   an action and expands"
+  >:: fun _ ->
+  assert_equal true
+    (List.length spreading_fire_entities > base_list_size)
+    ~printer:string_of_bool
+
 let tests =
   "test suite"
   >::: [
@@ -84,6 +134,9 @@ let tests =
          spreading_growth_test_rate_1;
          spreading_growth_test_rate_2;
          fence_growth_test;
+         fence_dying_test;
+         fence_aging_test;
+         spreading_fire_test;
        ]
 
 let _ =
