@@ -30,37 +30,40 @@ let string_of_event event =
   match event with
   | Move (entity, startpos, endpos) ->
       Printf.sprintf "%s moved from %s to %s"
-        (string_of_type entity.entity_type)
+        (string_of_type (to_entity_types entity.entity_type))
         (string_of_vec2 startpos) (string_of_vec2 endpos)
   | Say (entity, message) ->
-      Printf.sprintf "%s says: %s" (string_of_type entity.entity_type) message
+      Printf.sprintf "%s says: %s"
+        (string_of_type (to_entity_types entity.entity_type))
+        message
   | ActivateActionModifier (entity, _, _) ->
       Printf.sprintf "%s activates their action modifiers!"
-        (string_of_type entity.entity_type)
+        (string_of_type (to_entity_types entity.entity_type))
   | ActivateMoveModifier (entity, _, _) ->
       Printf.sprintf "%s activates their move modifiers!"
-        (string_of_type entity.entity_type)
+        (string_of_type (to_entity_types entity.entity_type))
   | ChangeHealth (e, amt) ->
       Printf.sprintf "%s's health changed by %.2f"
-        (string_of_type e.entity_type)
+        (string_of_type (to_entity_types e.entity_type))
         amt
   | ApplyFire (e, (amt, turns)) ->
       Printf.sprintf
         "%s received fire status effect that does %.2f damage for %d turns"
-        (string_of_type e.entity_type)
+        (string_of_type (to_entity_types e.entity_type))
         amt turns
   | TakeFireDamage e ->
       Printf.sprintf "%s took damage from fire status effect"
-        (string_of_type e.entity_type)
+        (string_of_type (to_entity_types e.entity_type))
   | PickUpModifier (e, m) ->
       Printf.sprintf "%s picked up attack modifier: %s"
-        (string_of_type e.entity_type)
+        (string_of_type (to_entity_types e.entity_type))
         (Modifiers.string_of_modifier m)
   | PickUpSpecial (e, count) ->
       Printf.sprintf "%s picked up a special item! Current count: %d"
-        (string_of_type e.entity_type)
+        (string_of_type (to_entity_types e.entity_type))
         count
-  | EntityDeath e -> Printf.sprintf "%s died" (string_of_type e.entity_type)
+  | EntityDeath e ->
+      Printf.sprintf "%s died" (string_of_type (to_entity_types e.entity_type))
   | FogCloud (e, r, f) ->
       Printf.sprintf "fog cloud of %i radius for %i frames" r f
 
@@ -80,7 +83,7 @@ type t = {
   special_progress : int;
 }
 
-and transition = t -> GameEntity.t -> input -> t
+and transition = t -> GameWorld.e_t -> input -> t
 
 let room state =
   try List.nth state.rooms state.room_id
@@ -113,6 +116,7 @@ let print_events state =
     (fun ((turn, event) : int * event) ->
       print_endline (string_of_int turn ^ "\t" ^ string_of_event event))
     (List.rev state.events)
+[@@coverage off]
 
 let print_latest_events (state : t) =
   List.iter
@@ -121,18 +125,21 @@ let print_latest_events (state : t) =
         print_endline (string_of_int turn ^ "\t" ^ string_of_event event)
       else ())
     state.events
+[@@coverage off]
 
 let query_update_player state =
   let updated_player =
     List.find_opt
-      (fun (e : GameEntity.t) -> e.entity_type = Player)
-      (GameWorld.all_entities (room state))
+      (fun (e : GameEntity.t) -> e.entity_type = to_entity_type Player)
+      (List.map
+         (fun x -> to_gameentity_type x)
+         (GameWorld.all_entities (room state)))
   in
   {
     state with
     player =
       (match updated_player with
-      | Some p -> p
+      | Some p -> to_gameworld_type p
       | None -> state.player);
     modifiers = state.modifiers;
   }
@@ -143,11 +150,13 @@ let step (state : t) (input : input) =
       (fun (state_ext : t) (transition : transition) ->
         List.fold_left
           (fun (acc : t) (entity : GameEntity.t) ->
-            if GameWorld.mem_id (room acc) entity.id then
-              transition acc entity input
+            if GameWorld.mem_id (room acc) (to_entity_id entity.id) then
+              transition acc (to_gameworld_type entity) input
             else acc)
           state_ext
-          (GameWorld.all_entities (room state_ext)))
+          (List.map
+             (fun x -> to_gameentity_type x)
+             (GameWorld.all_entities (room state_ext))))
       state state.transitions
   in
   print_latest_events new_state;
@@ -222,9 +231,15 @@ let activate_action_modifiers state (entity_type : entity_types)
 let apply_action_modifiers state (entity : GameEntity.t)
     (possible_actions : Modifiers.possible_action list) =
   let modified_actions =
-    activate_action_modifiers state entity.entity_type possible_actions
+    activate_action_modifiers state
+      (to_entity_types entity.entity_type)
+      possible_actions
   in
-  match List.assoc_opt (string_of_type entity.entity_type) state.modifiers with
+  match
+    List.assoc_opt
+      (string_of_type (to_entity_types entity.entity_type))
+      state.modifiers
+  with
   | Some _ ->
       ( add_event state
           (ActivateActionModifier (entity, possible_actions, modified_actions)),
@@ -252,19 +267,29 @@ let activate_move_modifiers state (entity_type : entity_types)
 let apply_move_modifiers state (entity : GameEntity.t)
     (possible_moves : Modifiers.possible_move list) =
   let modified_moves =
-    activate_move_modifiers state entity.entity_type possible_moves
+    activate_move_modifiers state
+      (to_entity_types entity.entity_type)
+      possible_moves
   in
-  match List.assoc_opt (string_of_type entity.entity_type) state.modifiers with
+  match
+    List.assoc_opt
+      (string_of_type (to_entity_types entity.entity_type))
+      state.modifiers
+  with
   | Some _ ->
       ( add_event state
           (ActivateMoveModifier (entity, possible_moves, modified_moves)),
         modified_moves )
   | None -> (state, possible_moves)
 
-let get_modifiers state entity_type :
+let get_modifiers state (entity_type : GameEntity.entity_type) :
     Modifiers.possible_actions_modifier list
     * Modifiers.possible_moves_modifier list =
-  match List.assoc_opt (string_of_type entity_type) state.modifiers with
+  match
+    List.assoc_opt
+      (string_of_type (to_entity_types entity_type))
+      state.modifiers
+  with
   | None -> ([], [])
   | Some x -> x
 
@@ -330,7 +355,7 @@ let remove_actions_modifier state entity_type =
 
 let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle) =
   let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
-  set_room state (GameWorld.put_entity world new_obstacle)
+  set_room state (GameWorld.put_entity world (to_gameworld_type new_obstacle))
 
 let increment_progress state =
   { state with special_progress = state.special_progress + 1 }
@@ -362,7 +387,9 @@ let build_barrier (state : t) (world : GameWorld.t) (center : vec2)
   List.fold_left
     (fun (current_state, current_world) p ->
       let new_obstacle = create_default_at (Obstacle objects) p in
-      let new_world = GameWorld.put_entity current_world new_obstacle in
+      let new_world =
+        GameWorld.put_entity current_world (to_gameworld_type new_obstacle)
+      in
       (set_room current_state new_world, new_world))
     (state, world) positions
   |> fst

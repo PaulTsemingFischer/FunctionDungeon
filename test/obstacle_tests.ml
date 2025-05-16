@@ -73,13 +73,19 @@ let fence_growth_test =
 
 let blank_world = GameWorld.empty
 let origin_player = create_default_at Player (0, 0)
-let origin_player_world = GameWorld.put_entity blank_world origin_player
+
+let origin_player_world =
+  GameWorld.put_entity blank_world (to_gameworld_type origin_player)
 
 let run_obstacle_action_state obstacle =
   let test_obstacle = create_default_at (Obstacle obstacle) (2, 2) in
-  let test_world = GameWorld.put_entity origin_player_world test_obstacle in
+  let test_world =
+    GameWorld.put_entity origin_player_world (to_gameworld_type test_obstacle)
+  in
   let test_state =
-    GameState.create [ test_world ] [ GameTiles.empty ] [] origin_player 0
+    GameState.create [ test_world ] [ GameTiles.empty ] []
+      (to_gameworld_type origin_player)
+      0
   in
   obstacle_action test_state test_obstacle obstacle ()
 

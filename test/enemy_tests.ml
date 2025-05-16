@@ -28,13 +28,19 @@ let string_of_variable_damage_range_test =
 
 let blank_world = GameWorld.empty
 let origin_player = create_default_at Player (0, 0)
-let origin_player_world = GameWorld.put_entity blank_world origin_player
+
+let origin_player_world =
+  GameWorld.put_entity blank_world (to_gameworld_type origin_player)
 
 let run_enemy_action_state enemy pos =
   let test_enemy = create_default_at (Enemy enemy) pos in
-  let test_world = GameWorld.put_entity origin_player_world test_enemy in
+  let test_world =
+    GameWorld.put_entity origin_player_world (to_gameworld_type test_enemy)
+  in
   let test_state =
-    GameState.create [ test_world ] [ GameTiles.empty ] [] origin_player 0
+    GameState.create [ test_world ] [ GameTiles.empty ] []
+      (to_gameworld_type origin_player)
+      0
   in
   enemy_action test_state test_enemy enemy ()
 
@@ -66,9 +72,13 @@ let jailer_action_entity_list_length_test_neg =
 
 let thief_action_state pos : GameState.t =
   let test_enemy = create_default_at (Enemy Thief) pos in
-  let test_world = GameWorld.put_entity origin_player_world test_enemy in
+  let test_world =
+    GameWorld.put_entity origin_player_world (to_gameworld_type test_enemy)
+  in
   let test_state =
-    GameState.create [ test_world ] [ GameTiles.empty ] [] origin_player 0
+    GameState.create [ test_world ] [ GameTiles.empty ] []
+      (to_gameworld_type origin_player)
+      0
   in
   let test_state_modifier =
     add_actions_modifier test_state (AddDamage 2.) Player
@@ -77,11 +87,11 @@ let thief_action_state pos : GameState.t =
 
 let thief_action_state_attack_modifiers =
   let state = thief_action_state (0, 1) in
-  GameState.get_modifiers state Player
+  GameState.get_modifiers state (to_entity_type Player)
 
 let thief_action_state_no_attack_modifiers =
   let state = thief_action_state (0, 2) in
-  GameState.get_modifiers state Player
+  GameState.get_modifiers state (to_entity_type Player)
 
 let thief_attack_modifiers_pos =
   "There are no modifiers left after a thief steals from a player with one \
