@@ -45,8 +45,7 @@ let create_wall () = create_default_at Wall (0, 0)
 let generate_starting_state ?(settings = Pgworld.default_room_gen_settings) () =
   let player = create_default_at Player (0, 0) in
   let generated_state =
-    Transformations.generate_floor (to_gameworld_type player)
-      settings
+    Transformations.generate_floor (to_gameworld_type player) settings
       [ Transitions.entity_status_runner; Transitions.entity_action_runner ]
   in
   GameState.add_moves_modifier generated_state (ScaleMove 1) Pigeon
@@ -76,17 +75,31 @@ let e2d_tests =
                         }
                       ()
                   in
-                  let player = GameState.get_player state_start in
+                  let player =
+                    to_gameentity_type (GameState.get_player state_start)
+                  in
                   print_all_entities (GameState.room state_start);
                   assert_equal (Some player)
-                    (GameWorld.query_id (GameState.room state_start) player.id);
+                    (match
+                       GameWorld.query_id
+                         (GameState.room state_start)
+                         (to_entity_id player.id)
+                     with
+                    | None -> None
+                    | Some x -> Some (to_gameentity_type x));
                   assert_equal 0
                     (GameState.get_turn state_start)
                     ~printer:string_of_int;
                   let state_next = GameState.step state_start Wait in
                   print_all_entities (GameState.room state_next);
                   assert_equal (Some player)
-                    (GameWorld.query_id (GameState.room state_next) player.id)
+                    (match
+                       GameWorld.query_id
+                         (GameState.room state_next)
+                         (to_entity_id player.id)
+                     with
+                    | None -> None
+                    | Some x -> Some (to_gameentity_type x))
                     ~printer:string_of_entity_option;
                   assert_equal 1
                     (GameState.get_turn state_next)
@@ -111,20 +124,23 @@ let e2d_tests =
                 >:: fun _ ->
                   let player = create_default_at Player (0, 0) in
                   let pre_1_world =
-                    GameWorld.put_entity GameWorld.empty player
+                    GameWorld.put_entity GameWorld.empty
+                      (to_gameworld_type player)
                   in
                   let pre_2_world =
                     GameWorld.put_entity pre_1_world
-                      (create_default_at (HealthItem 10.0) (1, 0))
+                      (to_gameworld_type
+                         (create_default_at (HealthItem 10.0) (1, 0)))
                   in
                   let pre_3_world =
                     GameWorld.put_entity pre_2_world
-                      (create_default_at (ModifierItem (AddDamage 1.0)) (2, 0))
+                      (to_gameworld_type
+                         (create_default_at (ModifierItem (AddDamage 1.0)) (2, 0)))
                   in
                   let state_start =
                     GameState.create [ pre_3_world ] []
                       [ Transitions.entity_action_runner ]
-                      player 0
+                      (to_gameworld_type player) 0
                   in
                   let state_1 =
                     GameState.step state_start (GameState.MovePlayer (1, 0))
@@ -137,7 +153,10 @@ let e2d_tests =
                   in
 
                   assert_equal 1
-                    (List.length (fst (GameState.get_modifiers state_2 Player)))
+                    (List.length
+                       (fst
+                          (GameState.get_modifiers state_2
+                             (to_entity_type Player))))
                     ~printer:string_of_int;
                   assert_equal 2
                     (GameState.get_turn state_2)
@@ -147,28 +166,30 @@ let e2d_tests =
                 >:: fun _ ->
                   let player = create_default_at Player (0, 0) in
                   let pre_1_world =
-                    GameWorld.put_entity GameWorld.empty player
+                    GameWorld.put_entity GameWorld.empty
+                      (to_gameworld_type player)
                   in
                   let pre_2_world =
                     GameWorld.put_entity pre_1_world
-                      (create_default_at Rock (1, 0))
+                      (to_gameworld_type (create_default_at Rock (1, 0)))
                   in
                   let pre_3_world =
                     GameWorld.put_entity pre_2_world
-                      (create_default_at Wall (-1, 0))
+                      (to_gameworld_type (create_default_at Wall (-1, 0)))
                   in
                   let pre_4_world =
                     GameWorld.put_entity pre_3_world
-                      (create_default_at (Obstacle (Fence 100)) (0, 1))
+                      (to_gameworld_type
+                         (create_default_at (Obstacle (Fence 100)) (0, 1)))
                   in
                   let pre_5_world =
                     GameWorld.put_entity pre_4_world
-                      (create_default_at Water (0, -1))
+                      (to_gameworld_type (create_default_at Water (0, -1)))
                   in
                   let state_start =
                     GameState.create [ pre_5_world ] []
                       [ Transitions.entity_action_runner ]
-                      player 0
+                      (to_gameworld_type player) 0
                   in
                   let inv_input = GameState.MovePlayer (1, 0) in
                   assert_raises (GameState.Invalid_input inv_input) (fun _ ->
@@ -183,4 +204,5 @@ let e2d_tests =
                   assert_raises (GameState.Invalid_input inv_input) (fun _ ->
                       GameState.step state_start inv_input) );
               ]))
+
 let _ = run_test_tt_main e2d_tests
