@@ -93,7 +93,7 @@ let draw_ui (renderer : t) =
     (get_screen_width ()) (get_screen_height ()) Color.black;
 
   let action_modifiers, _ =
-    GameState.get_modifiers renderer.source_state Player
+    GameState.get_modifiers renderer.source_state (to_entity_type Player)
   in
 
   (* action modifs *)
@@ -114,7 +114,10 @@ let draw_ui (renderer : t) =
 
   draw_metric "HEALTH: "
     (Printf.sprintf "%.2f"
-       (GameState.get_player renderer.source_state).stats.health)
+       (to_entity_stats
+          (to_gameentity_type (GameState.get_player renderer.source_state))
+            .stats)
+         .health)
     padding
     (get_screen_height () - (bottom_panel_height - panel_padding))
     ui_font_size Color.red;
@@ -133,7 +136,7 @@ let draw_ui (renderer : t) =
         match entities with
         | [] -> ()
         | h :: t -> begin
-            match h.entity_type with
+            match to_entity_types h.entity_type with
             | Wall | Door _ -> render_n_entities_aux t n current
             | x -> (
                 let entry_height =
@@ -142,13 +145,13 @@ let draw_ui (renderer : t) =
                     - ((current + 1) * ui_font_size))
                 in
                 Raylib.draw_text
-                  (string_of_type h.entity_type)
+                  (string_of_type (to_entity_types h.entity_type))
                   padding entry_height ui_font_size Color.white;
                 render_n_entities_aux t n (current + 1);
-                match h.entity_type with
+                match to_entity_types h.entity_type with
                 | Enemy _ | Pigeon ->
                     draw_metric_right "HEALTH: "
-                      (Printf.sprintf "%.2f" h.stats.health)
+                      (Printf.sprintf "%.2f" (to_entity_stats h.stats).health)
                       (get_screen_width () - padding)
                       entry_height ui_font_size Color.red
                 | _ -> ())
@@ -160,10 +163,16 @@ let draw_ui (renderer : t) =
   let sorted_entities =
     List.sort
       (fun (e1 : GameEntity.t) (e2 : GameEntity.t) ->
-        let e1_dist_from_player = length_squared (sub_vec2 e1.pos player.pos) in
-        let e2_dist_from_player = length_squared (sub_vec2 e2.pos player.pos) in
+        let e1_dist_from_player =
+          length_squared (sub_vec2 e1.pos (to_gameentity_type player).pos)
+        in
+        let e2_dist_from_player =
+          length_squared (sub_vec2 e2.pos (to_gameentity_type player).pos)
+        in
         e1_dist_from_player - e2_dist_from_player)
-      (GameWorld.all_entities (GameState.room renderer.source_state))
+      (List.map
+         (fun x -> to_gameentity_type x)
+         (GameWorld.all_entities (GameState.room renderer.source_state)))
   in
 
   render_n_entities sorted_entities 3
@@ -226,7 +235,7 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
       (fun renderable ->
         GameWorld.mem_id
           (GameState.room entity_state)
-          renderable.source_entity.id)
+          (to_entity_id renderable.source_entity.id))
       renderer.renderables
   in
   (* print_newline (); *)
@@ -255,14 +264,16 @@ let update_render_state (renderer : t) (entity_state : GameState.t) =
                 rendered_pos = existing_renderable.rendered_pos;
               }
               temp_renderer)
-      filtered_renderables all_entitities
+      filtered_renderables
+      (List.map (fun x -> to_gameentity_type x) all_entitities)
   in
   {
     renderables = updated_renderables;
     source_state = entity_state;
     camera = renderer.camera;
     camera_target =
-      compute_camera_target (GameState.get_player entity_state).pos;
+      compute_camera_target
+        (to_gameentity_type (GameState.get_player entity_state)).pos;
     overlays =
       renderer.overlays
       @ List.filter_map
@@ -338,7 +349,7 @@ let render_floor (renderer : t) =
                 (tile_scaling_factor /. 2.0, tile_scaling_factor /. 2.0))
         |> vec2_of_vec2f
       in
-      match tile.entity_type with
+      match to_tile_types tile.entity_type with
       | Mud ->
           Raylib.draw_circle
             (fst screen_space_position
@@ -355,7 +366,9 @@ let render_floor (renderer : t) =
             + int_of_float (tile_scaling_factor /. 2.0))
             (float_of_int (int_of_float (tile_scaling_factor *. 0.08)))
             Color.lightgray)
-    (GameTiles.all_entities (GameState.get_tiles renderer.source_state))
+    (List.map
+       (fun x -> to_tileentity_type x)
+       (GameTiles.all_entities (GameState.get_tiles renderer.source_state)))
 
 (**[game_to_rendered_pos game_pos] converts a [vec2f] position, [game_pos], into
    a position in the rendered world*)
@@ -403,7 +416,7 @@ let render (renderer : t) =
            in
            Raylib.draw_text c x_centered y_centered font_size color
          in
-         match r.source_entity.entity_type with
+         match to_entity_types r.source_entity.entity_type with
          | Player -> draw "@" Color.black
          | Pigeon -> draw "p" Color.orange
          | Wall -> draw "#" Color.black
@@ -527,11 +540,12 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
   else if
     GameWorld.query_id
       (GameState.room renderer.source_state)
-      (GameState.get_player renderer.source_state).id
+      (to_entity_id (to_gameentity_type (GameState.get_player entity_state)).id)
     = None
     && GameWorld.query_id
          (GameState.room entity_state)
-         (GameState.get_player entity_state).id
+         (to_entity_id
+            (to_gameentity_type (GameState.get_player entity_state)).id)
        = None
   then (
     Raylib.begin_drawing ();
@@ -545,7 +559,7 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
     if Raylib.is_key_pressed Raylib.Key.R then (
       let player = create_default_at Player (0, 0) in
       let generated_state =
-        Transformations.generate_floor player
+        Transformations.generate_floor (to_gameworld_type player)
           Procgen.Pgworld.default_room_gen_settings
           [ Transitions.entity_status_runner; Transitions.entity_action_runner ]
       in
@@ -594,10 +608,10 @@ let rec loop_aux (renderer : t) (entity_state : GameState.t)
           (* Raylib.draw_circle (fst render_tile_center) (snd
              render_tile_center) *)
           (* 10. Raylib.Color.black; *)
-          let player = GameState.get_player entity_state in
+          let player = to_gameentity_type (GameState.get_player entity_state) in
           let possible_actions =
             GameState.activate_action_modifiers entity_state Player
-              player.stats.base_actions
+              (to_entity_stats player.stats).base_actions
           in
           List.iter
             (fun (action_pos, actions) ->
@@ -699,7 +713,9 @@ let make_from_state (entity_state : GameState.t) =
   let source =
     {
       renderables =
-        GameWorld.all_entities (GameState.room entity_state)
+        List.map
+          (fun x -> to_gameentity_type x)
+          (GameWorld.all_entities (GameState.room entity_state))
         |> List.map (fun (entity : GameEntity.t) ->
                {
                  source_entity = entity;
@@ -709,7 +725,8 @@ let make_from_state (entity_state : GameState.t) =
       source_state = entity_state;
       camera = Camera2D.create (Vector2.zero ()) (Vector2.zero ()) 0.0 1.0;
       camera_target =
-        compute_camera_target (GameState.get_player entity_state).pos;
+        compute_camera_target
+          (to_gameentity_type (GameState.get_player entity_state)).pos;
       overlays = [];
       mode = Default;
     }

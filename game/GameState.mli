@@ -28,7 +28,7 @@ type event =
   | EntityDeath of GameEntity.t
   | FogCloud of GameEntity.t * int * int
 
-and transition = t -> GameEntity.t -> input -> t
+and transition = t -> GameWorld.e_t -> input -> t
 
 val string_of_event : event -> string
 
@@ -73,7 +73,7 @@ val add_event : t -> event -> t
 val get_turn : t -> int
 (**[get_turn state] returns the turn of [state]*)
 
-val get_player : t -> GameEntity.t
+val get_player : t -> GameWorld.e_t
 (**[get_player state] returns the player associated with [state]*)
 
 val query_update_player : t -> t
