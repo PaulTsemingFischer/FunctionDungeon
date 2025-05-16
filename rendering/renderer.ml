@@ -478,7 +478,6 @@ let render (renderer : t) =
                | AddDamage _ -> "D"
                | AugmentToAdjacent -> "A")
                Color.magenta
-         | SpecialItem -> draw "*" Color.gold
          | HealthItem _ -> draw "H" Color.green);
 
   List.iter

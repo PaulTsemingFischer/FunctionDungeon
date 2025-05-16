@@ -22,7 +22,7 @@ let player_action (state : GameState.t) (entity : GameEntity.t)
                       (GameEntity.set_pos
                          (to_gameentity_type (GameState.get_player state))
                          loc)))
-          | ModifierItem _ | SpecialItem | HealthItem _ ->
+          | ModifierItem _ | HealthItem _ ->
               apply_pickup_move state (to_gameworld_type entity) dir
           | Lava | Fire ->
               apply_action_to state (to_gameworld_type entity) (DealDamage 1.)

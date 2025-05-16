@@ -22,7 +22,6 @@ type entity_types =
   | Enemy of Enemytype.enemy
   | Obstacle of Obstacles.obstacle
   | ModifierItem of Modifiers.possible_actions_modifier
-  | SpecialItem
   | HealthItem of float
 
 type status_effects = Fire of float * int
@@ -41,7 +40,6 @@ let string_of_type e_type =
   | Enemy e -> Enemytype.string_of_enemy e
   | Obstacle o -> Obstacles.string_of_obstacle o
   | ModifierItem m -> Modifiers.string_of_modifier m
-  | SpecialItem -> "special-item"
   | HealthItem x -> Printf.sprintf "health: %.2f" x
 
 (** [is_killable_entity entity_type] is true if [entity_type] can take
@@ -133,10 +131,6 @@ let create_default_at e_type pos : GameEntity.t =
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
           (ModifierItem m) [] pos
-    | SpecialItem ->
-        GameEntity.create
-          { health = 10.0; base_moves = []; base_actions = [] }
-          SpecialItem [] pos
     | HealthItem x ->
         GameEntity.create
           { health = 10.0; base_moves = []; base_actions = [] }
@@ -145,7 +139,6 @@ let create_default_at e_type pos : GameEntity.t =
 (**[print_entities entity_list] prints all entities in given entity_list*)
 let print_entities entity_list =
   List.iter (fun x -> print_endline (GameEntity.string_of_entity x)) entity_list
-[@@coverage off]
 
 module GameWorld = World.Make (GameEntity)
 
@@ -184,7 +177,6 @@ let create_tile_at t_type pos : TileEntity.t =
 (**[print_tiles tile_list] prints all entities in given [tile_list]*)
 let print_tiles tile_list =
   List.iter (fun x -> print_endline (TileEntity.string_of_entity x)) tile_list
-[@@coverage off]
 
 module GameTiles = World.Make (TileEntity)
 

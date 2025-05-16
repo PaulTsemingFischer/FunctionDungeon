@@ -7,6 +7,10 @@
  (libraries ounit2 game))
 
 (test
+ (name misc_tests)
+ (libraries ounit2 game))
+
+(test
  (name obstacle_tests)
  (libraries ounit2 engine game))
 

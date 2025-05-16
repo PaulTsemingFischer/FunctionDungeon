@@ -80,7 +80,6 @@ type t = {
     * (Modifiers.possible_actions_modifier list
       * Modifiers.possible_moves_modifier list))
     list;
-  special_progress : int;
 }
 
 and transition = t -> GameWorld.e_t -> input -> t
@@ -108,7 +107,6 @@ let create (rooms : GameWorld.t list) (tiles : GameTiles.t list)
     turn = 0;
     player;
     modifiers = [];
-    special_progress = 0;
   }
 
 let print_events state =
@@ -356,11 +354,6 @@ let remove_actions_modifier state entity_type =
 let add_obstacle_to_world state world pos (obstacle_type : Obstacles.obstacle) =
   let new_obstacle = create_default_at (Obstacle obstacle_type) pos in
   set_room state (GameWorld.put_entity world (to_gameworld_type new_obstacle))
-
-let increment_progress state =
-  { state with special_progress = state.special_progress + 1 }
-
-let get_progress state = state.special_progress
 
 let positions_in_radius (center : vec2) (radius : int) : vec2 list =
   let center_x, center_y = center in
