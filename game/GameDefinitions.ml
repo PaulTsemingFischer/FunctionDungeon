@@ -62,7 +62,6 @@ module BaseEntityDeclarations :
 
   let string_of_stats stat = Printf.sprintf "health: %f" stat.health
   let string_of_type = string_of_type
-  let string_of_type = string_of_type
   let string_of_status (_ : status_effect) = "generic"
 end
 
@@ -186,3 +185,16 @@ let print_tiles tile_list =
   List.iter (fun x -> print_endline (TileEntity.string_of_entity x)) tile_list
 
 module GameTiles = World.Make (TileEntity)
+
+let to_entity_types x = x
+let to_tile_types x = x
+let to_entity_type x = x
+let to_entity_stats x = x
+let to_entity_id x = x
+let to_gameworld_type x = x
+let to_gameentity_type x = x
+let to_gameentity_stats x = x
+let to_status_effect x = x
+let to_status_effects x = x
+let to_gametiles_type x = x
+let to_tileentity_type x = x
