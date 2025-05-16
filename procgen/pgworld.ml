@@ -24,13 +24,15 @@ type item =
   | AddFire of float * int
   | AddDamage of float
   | AugmentToAdjacent
+  | HealthItem of float
 
 (** [rand_item] is a random item*)
 let rand_item () =
-  match Random.int 4 with
+  match Random.int 7 with
   | 0 -> ScaleAction (2 + Random.int 4)
   | 1 -> AddFire (0.1 +. Random.float 1.9, 1 + Random.int 5)
   | 3 -> AddDamage (0.1 +. Random.float 1.9)
+  | 4 | 5 | 6 -> HealthItem (Random.float 10.0)
   | _ -> AugmentToAdjacent
 
 let rand_weak_mob () =

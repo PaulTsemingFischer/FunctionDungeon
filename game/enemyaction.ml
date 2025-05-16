@@ -6,7 +6,7 @@ open Engine.Utils
     type [enemy] takes an action *)
 let enemy_action (state : GameState.t) (entity : GameEntity.t)
     (enemy : Enemytype.enemy) _ =
-  let possible_attacks = Modifiers.enemy_cross_actions enemy in
+  let possible_attacks = Modifiers.enemy_circle_actions enemy in
   let nearby_entity_action_pairs :
       (GameEntity.t * Modifiers.possible_action) option =
     List.fold_left

@@ -1,27 +1,33 @@
 (*TYPES*)
+(** [ground] represents a ground tile, does not block movement *)
 type ground =
   | Void
   | Ground
   | Mud
 
+  (** [weak_mob] represents a generic mob or pigeon *)
 type weak_mob =
   | Variable_Range_and_Damage of int * float
-  | Pigeon
+  | Pigeon  
 
+  (** [strong_mob] represents a mob with special effects *)
 type strong_mob =
   | Small_Jailer
   | Medium_Jailer
   | Large_Jailer
   | Thief
   | Small_Fog
-  | Large_Fog
+  | Large_Fog  (** generic mob or pigeon *)
 
+    (** [item] item represents any obtainable item *)
 type item =
   | ScaleAction of int
   | AddFire of float * int
   | AddDamage of float
   | AugmentToAdjacent
+  | HealthItem of float
 
+  (** [entity] represents a movement blocking entity(with the exception of Empty which does not block movement) *)
 type entity =
   | Empty
   | Water
@@ -35,10 +41,14 @@ type entity =
   | Item of item
   | Player
 
+  (** [tile] represents a square on the room grid *)
 type tile = ground * entity
+(** [t] represents a room of tiles *)
 type t = tile array array
+(** [world] represents a floor of rooms *)
 type world = t list
 
+(** [room_gen_settings] represents the modifiable settings used in room generation *)
 type room_gen_settings = {
   gen_weak_mob : unit -> weak_mob;
   gen_strong_mob : unit -> strong_mob;
